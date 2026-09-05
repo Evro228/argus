@@ -3,41 +3,86 @@ const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 
+const fs = require('fs');
+
 let mainWindow = null;
 let pythonProcess = null;
 
 const PORT = 8800;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
 
+function getRootDir() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'app');
+  }
+  return path.join(__dirname, '..');
+}
+
+function findPythonCommand(rootDir) {
+  const isWin = process.platform === 'win32';
+  const candidates = [
+    // 1. Workspace virtualenv
+    path.join(process.env.HOME || '', 'Antigravity', 'argus', '.venv', 'bin', 'python3'),
+    // 2. Relative to rootDir
+    isWin ? path.join(rootDir, '.venv', 'Scripts', 'python.exe') : path.join(rootDir, '.venv', 'bin', 'python3'),
+    // 3. User local / Framework Python
+    '/Library/Frameworks/Python.framework/Versions/3.14/bin/python3',
+    '/Library/Frameworks/Python.framework/Versions/3.13/bin/python3',
+    '/Library/Frameworks/Python.framework/Versions/3.12/bin/python3',
+    '/Library/Frameworks/Python.framework/Versions/3.11/bin/python3',
+    // 4. Homebrew
+    '/opt/homebrew/bin/python3',
+    '/usr/local/bin/python3',
+    // 5. System fallback
+    isWin ? 'python' : 'python3'
+  ];
+
+  for (const cand of candidates) {
+    if (cand.includes(path.sep)) {
+      if (fs.existsSync(cand)) {
+        return cand;
+      }
+    }
+  }
+  return isWin ? 'python' : 'python3';
+}
+
 function startPythonBackend() {
   const isWin = process.platform === 'win32';
-  const venvPython = isWin
-    ? path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe')
-    : path.join(__dirname, '..', '.venv', 'bin', 'python3');
+  const rootDir = getRootDir();
+  const pythonCmd = findPythonCommand(rootDir);
 
-  const pythonCmd = require('fs').existsSync(venvPython) ? venvPython : (isWin ? 'python' : 'python3');
+  console.log(`[ARGUS] Spawning Python backend via: ${pythonCmd} in ${rootDir}`);
 
-  pythonProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'backend.app.main:app', '--host', '127.0.0.1', '--port', `${PORT}`], {
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PYTHONPATH: path.join(__dirname, '..') },
-    detached: !isWin // Enables PGID management on POSIX
-  });
-
-  if (pythonProcess.stdout) {
-    pythonProcess.stdout.on('data', (data) => {
-      console.log(`[Backend] ${data.toString().trim()}`);
+  try {
+    pythonProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'backend.app.main:app', '--host', '127.0.0.1', '--port', `${PORT}`], {
+      cwd: rootDir,
+      env: {
+        ...process.env,
+        PYTHONPATH: rootDir,
+        PYTHONUNBUFFERED: '1'
+      },
+      detached: !isWin // Enables PGID management on POSIX
     });
-  }
 
-  if (pythonProcess.stderr) {
-    pythonProcess.stderr.on('data', (data) => {
-      console.error(`[Backend Log] ${data.toString().trim()}`);
+    if (pythonProcess.stdout) {
+      pythonProcess.stdout.on('data', (data) => {
+        console.log(`[Backend] ${data.toString().trim()}`);
+      });
+    }
+
+    if (pythonProcess.stderr) {
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`[Backend Log] ${data.toString().trim()}`);
+      });
+    }
+
+    pythonProcess.on('error', (err) => {
+      console.error('Failed to start Python backend:', err);
     });
+  } catch (err) {
+    console.error('Exception spawning Python backend:', err);
   }
-
-  pythonProcess.on('error', (err) => {
-    console.error('Failed to start Python backend:', err);
-  });
 }
 
 function waitForServer(callback, retries = 30) {
@@ -96,6 +141,14 @@ function createWindow() {
   });
 
   mainWindow.loadURL(SERVER_URL);
+
+  mainWindow.webContents.on('did-fail-load', () => {
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.loadURL(SERVER_URL).catch(() => {});
+      }
+    }, 1000);
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
