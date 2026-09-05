@@ -4,6 +4,7 @@ from typing import Optional
 import secrets
 import string
 import hashlib
+import base64
 from backend.app.utils.steganography import hide_message, reveal_message
 
 router = APIRouter()
