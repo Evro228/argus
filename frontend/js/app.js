@@ -751,6 +751,69 @@ App.loadKnowledgeHub = async function() {
   } catch (e) {}
 };
 
+// 8. Anthropic Cybersecurity Skills Hub
+App.loadSkills = async function(query = '') {
+  try {
+    const url = query ? `${API_BASE}/system/skills?q=${encodeURIComponent(query)}` : `${API_BASE}/system/skills?limit=30`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const container = document.getElementById('skills-list-container');
+    const badge = document.getElementById('skills-total-badge');
+    if (!container || !data.success) return;
+
+    if (badge && data.total) {
+      badge.textContent = `${data.total} playbooks`;
+    }
+
+    container.innerHTML = '';
+    if (!data.skills || data.skills.length === 0) {
+      container.innerHTML = `<div class="col-span-full py-8 text-center text-xs text-slate-500">Навыков по запросу "${query}" не найдено</div>`;
+      return;
+    }
+
+    data.skills.forEach(s => {
+      const card = document.createElement('div');
+      card.className = "p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between hover:border-cyan-500/40 transition group";
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-mono uppercase text-cyan-400 font-bold">${s.domain || 'cybersecurity'}</span>
+          </div>
+          <div class="font-mono font-bold text-xs text-slate-100 mb-1 group-hover:text-cyan-300 transition">${s.name}</div>
+          <p class="text-[11px] text-slate-400 line-clamp-3 leading-snug mb-2">${s.description || ''}</p>
+        </div>
+        <button onclick="App.openSkillModal('${s.name}')" class="text-[11px] py-1 px-2.5 rounded bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 font-medium border border-cyan-800/60 transition text-center w-full">
+          📜 Изучить плейбук
+        </button>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {}
+};
+
+App.openSkillModal = async function(skillName) {
+  const modal = document.getElementById('skill-modal');
+  const title = document.getElementById('modal-skill-name');
+  const content = document.getElementById('modal-skill-content');
+  if (!modal || !title || !content) return;
+
+  title.textContent = skillName;
+  content.textContent = 'Загрузка плейбука...';
+  modal.classList.remove('hidden');
+
+  try {
+    const res = await fetch(`${API_BASE}/system/skills/${encodeURIComponent(skillName)}`);
+    const data = await res.json();
+    if (data.success) {
+      content.textContent = data.content;
+    } else {
+      content.textContent = `Ошибка: ${data.error || 'Не удалось прочитать плейбук'}`;
+    }
+  } catch (e) {
+    content.textContent = `Ошибка сетевого запроса: ${e.message}`;
+  }
+};
+
 // Hook into App.init
 const originalInit = App.init;
 App.init = function() {
@@ -758,6 +821,7 @@ App.init = function() {
   this.loadWifiStatus();
   this.loadHardening();
   this.loadKnowledgeHub();
+  this.loadSkills();
   
   // Bind new action buttons
   document.getElementById('clearurls-btn')?.addEventListener('click', () => this.cleanUrl());
@@ -765,4 +829,25 @@ App.init = function() {
   document.getElementById('burn-create-btn')?.addEventListener('click', () => this.createBurnNote());
   document.getElementById('burn-read-btn')?.addEventListener('click', () => this.readBurnNote());
   document.getElementById('pdf-inspect-btn')?.addEventListener('click', () => this.inspectPdf());
+
+  // Skills Hub listeners
+  document.getElementById('skill-search-btn')?.addEventListener('click', () => {
+    const q = document.getElementById('skill-search-input')?.value.trim();
+    this.loadSkills(q);
+  });
+  document.getElementById('skill-search-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const q = e.target.value.trim();
+      this.loadSkills(q);
+    }
+  });
+  document.getElementById('skill-reset-btn')?.addEventListener('click', () => {
+    const input = document.getElementById('skill-search-input');
+    if (input) input.value = '';
+    this.loadSkills();
+  });
+  document.getElementById('modal-skill-close')?.addEventListener('click', () => {
+    document.getElementById('skill-modal')?.classList.add('hidden');
+  });
 };
+

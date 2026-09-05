@@ -3,6 +3,7 @@ import shutil
 import os
 import platform
 import subprocess
+import json
 
 router = APIRouter()
 
@@ -225,3 +226,63 @@ def get_knowledge_hub():
         "count": len(KNOWLEDGE_CATALOG),
         "items": KNOWLEDGE_CATALOG
     }
+
+# --- Anthropic Cybersecurity Skills Hub (818+ Playbooks) ---
+SKILLS_PATH = os.environ.get(
+    "CYBERSEC_SKILLS_PATH",
+    "/Users/slava/Antigravity/Skills/Anthropic-Cybersecurity-Skills"
+)
+
+_skills_cache = None
+
+def _load_skills():
+    global _skills_cache
+    if _skills_cache is not None:
+        return _skills_cache
+    index_file = os.path.join(SKILLS_PATH, "index.json")
+    if os.path.exists(index_file):
+        try:
+            with open(index_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                _skills_cache = data.get("skills", [])
+                return _skills_cache
+        except Exception:
+            pass
+    return []
+
+@router.get("/skills")
+def get_cybersec_skills(q: str = None, limit: int = 50):
+    all_skills = _load_skills()
+    if not q:
+        filtered = all_skills[:limit]
+    else:
+        query_lower = q.lower()
+        filtered = [
+            s for s in all_skills
+            if query_lower in s.get("name", "").lower() or query_lower in s.get("description", "").lower()
+        ][:limit]
+    
+    return {
+        "success": True,
+        "total": len(all_skills),
+        "count": len(filtered),
+        "skills": filtered
+    }
+
+@router.get("/skills/{skill_name}")
+def get_skill_detail(skill_name: str):
+    clean_name = os.path.basename(skill_name)
+    skill_file = os.path.join(SKILLS_PATH, "skills", clean_name, "SKILL.md")
+    if not os.path.exists(skill_file):
+        return {"success": False, "error": f"Skill '{clean_name}' not found"}
+    try:
+        with open(skill_file, "r", encoding="utf-8") as f:
+            content = f.read()
+        return {
+            "success": True,
+            "name": clean_name,
+            "content": content
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+

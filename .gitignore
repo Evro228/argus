@@ -28,3 +28,6 @@ ENV/
 tmp/
 uploads/
 reports/
+node_modules/
+dist/
+

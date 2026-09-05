@@ -19,9 +19,20 @@ function startPythonBackend() {
 
   pythonProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'backend.app.main:app', '--host', '127.0.0.1', '--port', `${PORT}`], {
     cwd: path.join(__dirname, '..'),
-    env: process.env,
-    stdio: 'ignore'
+    env: { ...process.env, PYTHONPATH: path.join(__dirname, '..') }
   });
+
+  if (pythonProcess.stdout) {
+    pythonProcess.stdout.on('data', (data) => {
+      console.log(`[Backend] ${data.toString().trim()}`);
+    });
+  }
+
+  if (pythonProcess.stderr) {
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(`[Backend Log] ${data.toString().trim()}`);
+    });
+  }
 
   pythonProcess.on('error', (err) => {
     console.error('Failed to start Python backend:', err);
