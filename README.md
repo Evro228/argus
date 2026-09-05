@@ -19,25 +19,41 @@
 | **🔎 OSINT & Footprint** | [Sherlock](https://github.com/sherlock-project/sherlock), [Blackbird](https://github.com/p1ngul1n0/blackbird), [theHarvester](https://github.com/laramies/theHarvester), [GHunt](https://github.com/mxrch/GHunt), [HIBP](https://haveibeenpwned.com/) | Мульти-поиск по никнейму по 400+ сервисам, интерактивная студия Google Dorks, проверка утечек почты. |
 | **🛰️ GEOINT 3D Map** | [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view), [Cesium](https://cesium.com/) | Фотореалистичный 3D-глобус с отслеживанием авиации (ADS-B), морских судов (AIS), орбит спутников и термальных очагов NASA FIRMS. |
 | **🔍 Code & Secret Audit** | [Gitleaks](https://github.com/gitleaks/gitleaks), [TruffleHog](https://github.com/trufflesecurity/trufflehog), [Semgrep](https://semgrep.dev/) | Автоматический аудит локальных репозиториев на утечки API-ключей OpenAI/AWS/GitHub, приватных ключей и паролей. |
-| **🌐 Network Scanner** | [Nmap](https://nmap.org/), [Nuclei](https://github.com/projectdiscovery/nuclei) | Сканирование открытых портов (нативное асинхронное ядро + поддержка Nmap), инспектор SSL/TLS сертификатов. |
-| **🔐 Crypto & Stego Lab** | [StegCloak](https://github.com/KuroLabs/stegcloak), [KeePassXC](https://keepassxc.org/) | Невидимая стеганография в символах Unicode нулевой ширины, шифрование AES-256, криптографический генератор паролей. |
-| **📸 Media Forensics** | [Aves](https://github.com/deckerst/aves), [Deface](https://github.com/ORB-HD/deface), [SD Prompt Reader](https://github.com/receyuki/stable-diffusion-prompt-reader) | Извлечение скрытых EXIF GPS-координат из фотографий, определение генераций ИИ, аудит метаданных камеры. |
-| **🎭 OPSEC & Privacy** | [Pasteguard](https://github.com/sgasser/pasteguard), [Camoufox](https://github.com/daijro/camoufox) | Обезвреживание текста от случайной утечки личных данных перед отправкой в нейросети, проверка внешнего IP-адреса. |
+| **🌐 Network & WireTapper** | [Nmap](https://nmap.org/), [Nuclei](https://github.com/projectdiscovery/nuclei), [WireTapper](https://github.com/h9zdev/WireTapper) | Сканирование открытых портов (нативное асинхронное ядро + Nmap), инспектор SSL/TLS, радио-сканирование Wi-Fi (SSID, WPA3/WPA2, 5GHz). |
+| **🔐 Crypto, Stego & Burn** | [StegCloak](https://github.com/KuroLabs/stegcloak), [Privnote](https://privnote.com/), [Send](https://github.com/timvisee/send), [w3c/webauthn](https://github.com/w3c/webauthn) | Невидимая стеганография в символах Unicode, шифрование AES-256, одноразовые самоуничтожающиеся записки, стенд Passkeys/WebAuthn. |
+| **📸 Media & Dangerzone** | [Aves](https://github.com/deckerst/aves), [Dangerzone](https://github.com/freedomofpress/dangerzone), [Deface](https://github.com/ORB-HD/deface) | Извлечение EXIF GPS-координат, проверка PDF на скрытый JS/эксплойты автозапуска (Dangerzone), детекция AI-генераций. |
+| **🎭 OPSEC & ClearURLs** | [ClearURLs](https://github.com/ClearURLs/Addon), [Pasteguard](https://github.com/sgasser/pasteguard), [OpenTrashmail](https://github.com/HaschekSolutions/opentrashmail) | Очистка ссылок от шпионских трекеров (utm, fbclid), санитизация текста от персональных данных, генерация временных профилей. |
 | **🤖 AI Cyber-Analyst** | [Anthropic Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) | Автоматическая генерация аналитических отчетов безопасности, оценка Security Posture Score и пошаговый план защиты. |
+| **📋 Hardening & Knowledge** | [How-To-Secure-A-Linux-Server](https://github.com/imthenachoman/How-To-Secure-A-Linux-Server), [SecLists](https://github.com/danielmiessler/SecLists), [HackTricks](https://book.hacktricks.xyz/) | Аудит FileVault/SIP/Gatekeeper, встроенные словари и читшиты безопасности (PayloadsAllTheThings, OWASP). |
 
 ---
 
-## 🚀 Быстрый запуск
+## 🚀 Кроссплатформенный запуск (macOS, Windows, Linux)
 
-### 1. Клонирование и старт в 1 команду (macOS / Linux):
+### 1. Запуск десктопного приложения в отдельном окне (macOS / Win / Linux):
 ```bash
-git clone https://github.com/slava/cybersec-studio.git
+# Установка зависимостей Electron
+npm install
+
+# Запуск нативного десктопного приложения
+npm start
+```
+
+### 2. Запуск на macOS / Linux (Терминал + Браузер):
+```bash
+git clone https://github.com/Evro228/cybersec-studio.git
 cd cybersec-studio
 ./run.sh
 ```
-Скрипт автоматически создаст окружение, установит зависимости, запустит локальный бэкенд и откроет веб-интерфейс в браузере: `http://localhost:8800`.
 
-### 2. Запуск через Docker:
+### 3. Запуск на Windows:
+```cmd
+git clone https://github.com/Evro228/cybersec-studio.git
+cd cybersec-studio
+run.bat
+```
+
+### 4. Запуск в изолированном Docker контейнере:
 ```bash
 docker compose up --build
 ```
