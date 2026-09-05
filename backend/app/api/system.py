@@ -101,6 +101,7 @@ def get_system_status():
         )
 
     return {
+        "success": True,
         "os": f"{platform.system()} {platform.release()} ({platform.machine()})",
         "python": platform.python_version(),
         "total_tools": len(TOOLS_MANIFEST),
