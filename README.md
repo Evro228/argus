@@ -42,15 +42,15 @@ npm start
 
 ### 2. Запуск на macOS / Linux (Терминал + Браузер):
 ```bash
-git clone https://github.com/Evro228/cybersec-studio.git
-cd cybersec-studio
+git clone https://github.com/Evro228/argus.git
+cd argus
 ./run.sh
 ```
 
 ### 3. Запуск на Windows:
 ```cmd
-git clone https://github.com/Evro228/cybersec-studio.git
-cd cybersec-studio
+git clone https://github.com/Evro228/argus.git
+cd argus
 run.bat
 ```
 
@@ -64,7 +64,7 @@ docker compose up --build
 ## 🛠 Архитектура проекта
 
 ```
-cybersec-studio/
+argus/
 ├── backend/
 │   ├── app/
 │   │   ├── api/             # Модули API (OSINT, Аудит, Сеть, Крипто, Медиа, OPSEC)

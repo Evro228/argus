@@ -5,7 +5,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
 echo "========================================================"
-echo "🛡️  Запуск CyberSec & OSINT Studio Cockpit"
+echo "👁️  Запуск ARGUS // Tactical Intelligence & Defense"
 echo "========================================================"
 
 # Virtualenv check

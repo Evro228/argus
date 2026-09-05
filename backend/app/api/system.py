@@ -260,7 +260,7 @@ if not os.path.exists(DEFAULT_SKILLS_PATH):
     if os.path.exists(rel_path):
         DEFAULT_SKILLS_PATH = rel_path
 
-SKILLS_PATH = os.environ.get("CYBERSEC_SKILLS_PATH", DEFAULT_SKILLS_PATH)
+SKILLS_PATH = os.environ.get("ARGUS_SKILLS_PATH", DEFAULT_SKILLS_PATH)
 
 _skills_cache = None
 
@@ -282,7 +282,7 @@ def _load_skills():
 
 
 @router.get("/skills")
-def get_cybersec_skills(q: str = None, limit: int = 50):
+def get_argus_skills(q: str = None, limit: int = 50):
     all_skills = _load_skills()
     if not q:
         filtered = all_skills[:limit]

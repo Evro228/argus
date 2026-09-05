@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 > nul
-title CyberSec & OSINT Studio
+title ARGUS // Tactical Intelligence & Defense
 echo ========================================================
-echo 🛡️  Запуск CyberSec & OSINT Studio (Windows)
+echo 👁️  Запуск ARGUS // Tactical Intelligence & Defense (Windows)
 echo ========================================================
 
 if not exist ".venv" (

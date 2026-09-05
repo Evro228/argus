@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  cybersec-studio:
+  argus:
     build: .
-    container_name: cybersec_studio
+    container_name: argus_cockpit
     restart: unless-stopped
     ports:
       - "8800:8800"

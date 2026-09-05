@@ -193,11 +193,11 @@ def generate_webauthn_challenge():
 
     options = {
         "challenge": challenge_b64,
-        "rp": {"name": "CyberSec Studio", "id": "localhost"},
+        "rp": {"name": "ARGUS", "id": "localhost"},
         "user": {
             "id": user_id,
-            "name": "operator@cybersec.local",
-            "displayName": "CyberSec Operator",
+            "name": "operator@argus.local",
+            "displayName": "ARGUS Tactical Operator",
         },
         "pubKeyCredParams": [
             {"type": "public-key", "alg": -7},  # ES256
