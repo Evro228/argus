@@ -99,8 +99,8 @@
         </button>
 
         <button data-tab="analyst" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-          <span class="text-base">🤖</span>
-          <span>AI Cyber-Analyst</span>
+          <span class="text-base">🛡️</span>
+          <span>Security Analyst</span>
         </button>
 
         <div class="pt-3 border-t border-slate-800/80 space-y-1">
@@ -262,7 +262,7 @@
 
         <div class="glass-panel p-5 rounded-2xl space-y-4">
           <div class="flex space-x-2">
-            <input id="audit-path-input" type="text" placeholder="Укажите путь к локальной папке проекта (например, /Users/slava/Antigravity/)..." class="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition font-mono">
+            <input id="audit-path-input" type="text" placeholder="Укажите путь к локальной папке проекта (например, ~/projects/my-app)..." class="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition font-mono">
             <button id="audit-path-btn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-sky-500/20">
               Запустить аудит 🔍
             </button>
@@ -581,15 +581,15 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- TAB 8: AI CYBER ANALYST -->
+      <!-- TAB 8: SECURITY ANALYST -->
       <!-- ======================================================== -->
       <div id="tab-analyst" class="tab-content hidden space-y-6">
         <div>
           <h2 class="text-xl font-black text-slate-100 flex items-center space-x-2">
-            <span>🤖</span>
-            <span>AI Cyber-Analyst & Executive Reports</span>
+            <span>🛡️</span>
+            <span>Security Posture & Executive Reports</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-1">Оценка общего уровня защищенности и пошаговый план устранения уязвимостей (Anthropic Cybersecurity Skills)</p>
+          <p class="text-xs text-slate-400 mt-1">Оценка общего уровня защищенности и пошаговый план устранения рисков (NIST SP 800-115 & CIS Benchmarks)</p>
         </div>
 
         <div class="glass-panel p-6 rounded-2xl space-y-4">
@@ -662,17 +662,17 @@
           <div id="knowledge-hub-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- Anthropic Cybersecurity Skills & Agent Playbooks Hub -->
+        <!-- Security Tactics & Incident Response Playbooks Hub -->
         <div class="space-y-3 pt-6 border-t border-slate-800">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <span class="text-lg">🛡️</span>
               <div>
                 <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
-                  <span>Anthropic Cybersecurity Skills & Playbooks</span>
+                  <span>Cybersecurity Tactics & Incident Playbooks</span>
                   <span id="skills-total-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800">818 playbooks</span>
                 </h3>
-                <p class="text-xs text-slate-400">Интегрированная библиотека навыков для AI-агентов (MITRE ATT&CK, Threat Intel, Forensics, SAST/DAST, Cloud Sec)</p>
+                <p class="text-xs text-slate-400">База знаний и регламентов реагирования на инциденты (MITRE ATT&CK, Threat Intel, Forensics, SAST/DAST, Cloud Sec)</p>
               </div>
             </div>
           </div>
@@ -698,7 +698,7 @@
           <span class="text-xl">📜</span>
           <div>
             <h3 id="modal-skill-name" class="font-mono text-sm font-bold text-cyan-400">Skill Playbook</h3>
-            <span class="text-xs text-slate-500">Anthropic Security Skill Specification</span>
+            <span class="text-xs text-slate-500">Security Tactics & Mitigation Specification</span>
           </div>
         </div>
         <button id="modal-skill-close" class="text-slate-400 hover:text-white px-2 py-1 text-lg rounded-lg hover:bg-slate-800 transition">✕</button>

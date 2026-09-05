@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-from backend.app.api import system, crypto, osint, audit, network, forensics, opsec, ai_analyst
+from backend.app.api import system, crypto, osint, audit, network, forensics, opsec, analyst
 
 app = FastAPI(
     title="CyberSec & OSINT Studio Cockpit",
@@ -27,7 +27,7 @@ app.include_router(audit.router, prefix="/api/audit", tags=["Code & Secret Audit
 app.include_router(network.router, prefix="/api/network", tags=["Network & Scanner"])
 app.include_router(forensics.router, prefix="/api/forensics", tags=["Forensics & EXIF"])
 app.include_router(opsec.router, prefix="/api/opsec", tags=["OPSEC & Privacy"])
-app.include_router(ai_analyst.router, prefix="/api/analyst", tags=["AI Analyst"])
+app.include_router(analyst.router, prefix="/api/analyst", tags=["Security Analyst"])
 
 @app.get("/api/health")
 def health_check():

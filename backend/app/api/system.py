@@ -227,11 +227,14 @@ def get_knowledge_hub():
         "items": KNOWLEDGE_CATALOG
     }
 
-# --- Anthropic Cybersecurity Skills Hub (818+ Playbooks) ---
-SKILLS_PATH = os.environ.get(
-    "CYBERSEC_SKILLS_PATH",
-    "/Users/slava/Antigravity/Skills/Anthropic-Cybersecurity-Skills"
-)
+# --- Security Tactics & Playbooks Hub (818 Playbooks) ---
+DEFAULT_SKILLS_PATH = os.path.expanduser("~/Antigravity/Skills/Anthropic-Cybersecurity-Skills")
+if not os.path.exists(DEFAULT_SKILLS_PATH):
+    rel_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../Skills/Anthropic-Cybersecurity-Skills"))
+    if os.path.exists(rel_path):
+        DEFAULT_SKILLS_PATH = rel_path
+
+SKILLS_PATH = os.environ.get("CYBERSEC_SKILLS_PATH", DEFAULT_SKILLS_PATH)
 
 _skills_cache = None
 

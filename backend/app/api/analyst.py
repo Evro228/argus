@@ -13,7 +13,7 @@ class AnalysisReportRequest(BaseModel):
 @router.post("/report/generate")
 def generate_security_report(req: AnalysisReportRequest):
     """
-    Generates a structured executive summary based on Anthropic Cybersecurity methodology.
+    Generates an executive security posture summary and actionable remediation plan.
     """
     critical_count = sum(1 for f in req.findings if f.get("severity") == "CRITICAL")
     high_count = sum(1 for f in req.findings if f.get("severity") == "HIGH")

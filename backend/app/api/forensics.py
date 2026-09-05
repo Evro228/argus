@@ -24,11 +24,11 @@ async def extract_image_exif(file: UploadFile = File(...)):
     lat_deg = None
     lon_deg = None
 
-    # Check for AI generation metadata in image info
-    ai_metadata = {}
+    # Check for synthetic generation metadata in image info
+    generator_metadata = {}
     for k in ["parameters", "prompt", "workflow", "Comment"]:
         if k in image.info:
-            ai_metadata[k] = str(image.info[k])[:1000]
+            generator_metadata[k] = str(image.info[k])[:1000]
 
     raw_exif = image.getexif()
     if raw_exif:
@@ -79,8 +79,10 @@ async def extract_image_exif(file: UploadFile = File(...)):
             "software": exif_data.get("Software", "Unknown"),
             "datetime": exif_data.get("DateTime", "Unknown")
         },
-        "is_ai_generated": bool(ai_metadata),
-        "ai_metadata": ai_metadata,
+        "is_synthetic": bool(generator_metadata),
+        "is_ai_generated": bool(generator_metadata),
+        "generator_metadata": generator_metadata,
+        "ai_metadata": generator_metadata,
         "exif_summary": exif_data
     }
 
