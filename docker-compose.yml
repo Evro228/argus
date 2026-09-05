@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  cybersec-studio:
+    build: .
+    container_name: cybersec_studio
+    restart: unless-stopped
+    ports:
+      - "8800:8800"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
