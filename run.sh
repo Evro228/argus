@@ -32,4 +32,4 @@ source .venv/bin/activate
 echo "🚀 Сервер запущен на: http://localhost:8800"
 echo "Для остановки нажмите Ctrl+C"
 
-python3 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8800 --reload
+python3 -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8800

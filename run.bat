@@ -16,5 +16,5 @@ if not exist ".venv" (
 
 echo [OK] Запуск веб-сервера...
 start http://localhost:8800
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8800 --reload
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8800
 pause

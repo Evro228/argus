@@ -6,7 +6,7 @@ services:
     container_name: argus_cockpit
     restart: unless-stopped
     ports:
-      - "8800:8800"
+      - "127.0.0.1:8800:8800"
     environment:
       - PYTHONUNBUFFERED=1
     volumes:

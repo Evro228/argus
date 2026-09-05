@@ -249,7 +249,7 @@ async def get_user_ip_telemetry():
     except Exception:
         pass
 
-    wan_ip = "94.228.214.36"
+    wan_ip = "Unknown"
     try:
         async with httpx.AsyncClient(verify=True, timeout=3.0) as client:
             resp = await client.get("https://api.ipify.org?format=json")

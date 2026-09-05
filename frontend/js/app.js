@@ -412,7 +412,7 @@ const App = {
         data.open_ports.forEach(p => {
           const row = document.createElement('div');
           row.className = "p-2 rounded bg-slate-900 border border-slate-800 flex justify-between";
-          row.innerHTML = `<span class="text-emerald-400 font-bold">${p.port}/TCP</span> <span class="text-slate-300">${p.service}</span> <span class="text-slate-500">${p.state}</span>`;
+          row.innerHTML = `<span class="text-emerald-400 font-bold">${escapeHtml(p.port)}/TCP</span> <span class="text-slate-300">${escapeHtml(p.service)}</span> <span class="text-slate-500">${escapeHtml(p.state)}</span>`;
           resultsBox.appendChild(row);
         });
       } else {

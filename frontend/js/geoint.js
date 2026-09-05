@@ -23,7 +23,7 @@
         { id: 'sao_paulo', name: 'Sao Paulo [SA-E1]', ip: '177.71.200.15', lat: -23.5505, lon: -46.6333, type: 'hub', ports: [{port: 80, s: 'HTTP'}], threat: 38 },
         { id: 'sydney', name: 'Sydney [AP-S1]', ip: '13.239.50.2', lat: -33.8688, lon: 151.2093, type: 'hub', ports: [{port: 443, s: 'HTTPS'}], threat: 19 },
         { id: 'beijing', name: 'Beijing [AS-E1]', ip: '202.108.22.5', lat: 39.9042, lon: 116.4074, type: 'source', ports: [{port: 80, s: 'HTTP'}], threat: 75 },
-        { id: 'moscow', name: 'Moscow [RU-C1]', ip: '94.228.214.36', lat: 55.7558, lon: 37.6173, type: 'operator', ports: [{port: 443, s: 'HTTPS'}, {port: 22, s: 'SSH'}], threat: 10 },
+        { id: 'moscow', name: 'Moscow [RU-C1]', ip: '198.51.100.36', lat: 55.7558, lon: 37.6173, type: 'operator', ports: [{port: 443, s: 'HTTPS'}, {port: 22, s: 'SSH'}], threat: 10 },
         { id: 'san_francisco', name: 'San Francisco [US-W1]', ip: '104.244.42.1', lat: 37.7749, lon: -122.4194, type: 'source', ports: [{port: 443, s: 'HTTPS'}], threat: 50 },
         { id: 'singapore', name: 'Singapore [AP-SE1]', ip: '43.252.12.9', lat: 1.3521, lon: 103.8198, type: 'hub', ports: [{port: 443, s: 'HTTPS'}], threat: 31 }
       ];
@@ -98,12 +98,16 @@
         coordsEl.textContent = `${this.activeNode.lat.toFixed(4)}° N, ${this.activeNode.lon.toFixed(4)}° E ${this.activeNode.name}`;
       }
       if (portsContainer) {
-        portsContainer.innerHTML = this.activeNode.ports.map(p => `
+        portsContainer.innerHTML = this.activeNode.ports.map(p => {
+          const safePort = String(p.port).replace(/[&<>"']/g, '');
+          const safeS = String(p.s).replace(/[&<>"']/g, '');
+          return `
           <div class="px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 text-center">
-            <div class="text-xs font-bold text-sky-400 font-mono">${p.port}</div>
-            <div class="text-[10px] text-slate-400 font-mono">${p.s}</div>
+            <div class="text-xs font-bold text-sky-400 font-mono">${safePort}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${safeS}</div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
       if (threatMeter) threatMeter.style.width = `${this.activeNode.threat}%`;
       if (threatScore) threatScore.textContent = `${this.activeNode.threat}%`;

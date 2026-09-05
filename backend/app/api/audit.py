@@ -99,11 +99,38 @@ def scan_text_content(content: str, filename: str) -> list[dict[str, Any]]:
 
 @router.post("/scan/path")
 def scan_directory_path(req: ScanPathRequest):
-    target_path = os.path.expanduser(req.path.strip())
+    raw_path = req.path.strip()
+    if not raw_path:
+        return {"success": False, "error": "Путь не может быть пустым."}
+
+    # Resolve symlinks and normalize path
+    target_path = os.path.realpath(os.path.expanduser(raw_path))
+
     if not os.path.exists(target_path):
         return {
             "success": False,
             "error": f"Путь '{target_path}' не существует на диске.",
+        }
+
+    # Security: block system root directories and credential vaults
+    blocked_prefixes = (
+        "/etc", "/proc", "/sys", "/dev", "/root", "/var", "/private",
+        "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/System", "/Library"
+    )
+    blocked_dir_names = {".ssh", ".gnupg", ".aws", ".azure", ".config/gcloud"}
+
+    for prefix in blocked_prefixes:
+        if target_path == prefix or target_path.startswith(prefix + "/"):
+            return {
+                "success": False,
+                "error": f"Доступ к системной директории '{prefix}' заблокирован политикой безопасности.",
+            }
+
+    path_parts = set(os.path.normpath(target_path).split(os.sep))
+    if any(b in path_parts for b in blocked_dir_names):
+        return {
+            "success": False,
+            "error": "Сканирование конфиденциальных директорий учетных данных (.ssh, .aws, .gnupg) запрещено.",
         }
 
     all_findings = []
@@ -186,13 +213,20 @@ def scan_directory_path(req: ScanPathRequest):
 
 @router.post("/scan/file")
 async def scan_uploaded_file(file: UploadFile = File(...)):
-    content_bytes = await file.read()
+    raw_filename = file.filename or "unknown_file"
+    safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", os.path.basename(raw_filename))[:120]
+
+    # Limit to 15MB
+    content_bytes = await file.read(15 * 1024 * 1024 + 1)
+    if len(content_bytes) > 15 * 1024 * 1024:
+        return {"success": False, "error": "Размер файла превышает лимит 15 МБ."}
+
     content_str = content_bytes.decode("utf-8", errors="ignore")
-    findings = scan_text_content(content_str, file.filename)
+    findings = scan_text_content(content_str, safe_filename)
 
     return {
         "success": True,
-        "filename": file.filename,
+        "filename": safe_filename,
         "size_bytes": len(content_bytes),
         "total_findings": len(findings),
         "findings": findings,

@@ -1,5 +1,7 @@
 import base64
 import hashlib
+import os
+import re
 import secrets
 import string
 
@@ -79,7 +81,7 @@ def generate_password(req: PassGenRequest):
     # Calculate Shannon information entropy
     import math
     pool_size = len(alphabet)
-    entropy_bits = round(req.length * math.log2(pool_size), 1)
+    entropy_bits = round(len(password) * math.log2(pool_size), 1)
 
     strength = "Слабый"
     if entropy_bits >= 80:
@@ -104,9 +106,21 @@ async def calculate_hash(
     content = b""
     filename = "text_input"
     if file:
-        content = await file.read()
-        filename = file.filename
+        raw_name = file.filename or "file_input"
+        filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", os.path.basename(raw_name))[:120]
+        # Bounded read up to 50MB to prevent memory exhaustion
+        content = await file.read(50 * 1024 * 1024 + 1)
+        if len(content) > 50 * 1024 * 1024:
+            return {
+                "success": False,
+                "error": "Размер загружаемого файла превышает лимит 50 МБ.",
+            }
     elif text:
+        if len(text) > 10 * 1024 * 1024:
+            return {
+                "success": False,
+                "error": "Размер текста превышает допустимый лимит 10 МБ.",
+            }
         content = text.encode("utf-8")
 
     if not content:
@@ -115,8 +129,8 @@ async def calculate_hash(
             "error": "Предоставьте текст или файл для хеширования.",
         }
 
-    md5_hash = hashlib.md5(content).hexdigest()
-    sha1_hash = hashlib.sha1(content).hexdigest()
+    md5_hash = hashlib.md5(content, usedforsecurity=False).hexdigest()
+    sha1_hash = hashlib.sha1(content, usedforsecurity=False).hexdigest()
     sha256_hash = hashlib.sha256(content).hexdigest()
 
     return {

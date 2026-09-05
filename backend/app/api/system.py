@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import platform
 import shutil
@@ -6,6 +7,7 @@ import subprocess
 
 from fastapi import APIRouter
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 TOOLS_MANIFEST = [
@@ -116,9 +118,10 @@ def get_hardening_audit():
     checks = []
 
     # 1. FileVault (Disk Encryption)
+    fdesetup_path = shutil.which("fdesetup") or "/usr/bin/fdesetup"
     try:
         out = subprocess.run(
-            ["fdesetup", "status"], capture_output=True, text=True, timeout=2
+            [fdesetup_path, "status"], capture_output=True, text=True, timeout=2
         )
         status_str = (out.stdout or "").strip()
         is_on = "FileVault is On" in status_str
@@ -131,21 +134,23 @@ def get_hardening_audit():
                 "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault.",
             }
         )
-    except Exception:
+    except Exception as e:
+        logger.debug("FileVault check failed: %s", e)
         checks.append(
             {
                 "id": "filevault",
                 "name": "FileVault (Шифрование диска)",
                 "status": "CHECK_REQUIRED",
-                "detail": "Не удалось выполнить fdesetup автоматически",
+                "detail": f"Не удалось выполнить проверку: {e!s}",
                 "remediation": "Проверьте статус FileVault в настройках macOS.",
             }
         )
 
     # 2. Gatekeeper (Защита от запуска неподписанного софта)
+    spctl_path = shutil.which("spctl") or "/usr/sbin/spctl"
     try:
         out = subprocess.run(
-            ["spctl", "--status"], capture_output=True, text=True, timeout=2
+            [spctl_path, "--status"], capture_output=True, text=True, timeout=2
         )
         status_str = (out.stdout or "").strip()
         is_active = "assessments enabled" in status_str
@@ -158,13 +163,23 @@ def get_hardening_audit():
                 "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable",
             }
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Gatekeeper check failed: %s", e)
+        checks.append(
+            {
+                "id": "gatekeeper",
+                "name": "Apple Gatekeeper (Контроль подписей приложений)",
+                "status": "CHECK_REQUIRED",
+                "detail": f"Не удалось выполнить проверку: {e!s}",
+                "remediation": "Проверьте статус Gatekeeper в терминале: spctl --status",
+            }
+        )
 
     # 3. System Integrity Protection (SIP)
+    csrutil_path = shutil.which("csrutil") or "/usr/bin/csrutil"
     try:
         out = subprocess.run(
-            ["csrutil", "status"], capture_output=True, text=True, timeout=2
+            [csrutil_path, "status"], capture_output=True, text=True, timeout=2
         )
         status_str = (out.stdout or "").strip()
         is_enabled = "enabled" in status_str
@@ -177,8 +192,17 @@ def get_hardening_audit():
                 "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным.",
             }
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("SIP check failed: %s", e)
+        checks.append(
+            {
+                "id": "sip",
+                "name": "System Integrity Protection (SIP)",
+                "status": "CHECK_REQUIRED",
+                "detail": f"Не удалось выполнить проверку: {e!s}",
+                "remediation": "Проверьте статус SIP в терминале: csrutil status",
+            }
+        )
 
     # Calculate overall hardening score
     passed = sum(1 for c in checks if c["status"] == "PASS")
@@ -277,8 +301,8 @@ def _load_skills():
                 data = json.load(f)
                 _skills_cache = data.get("skills", [])
                 return _skills_cache
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Не удалось прочитать индекс скиллов: %s", e)
     return []
 
 

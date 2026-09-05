@@ -1,5 +1,7 @@
 import ast
 import io
+import os
+import re
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from PIL import ExifTags, Image
@@ -113,9 +115,12 @@ async def extract_image_exif(file: UploadFile = File(...)):
             except Exception:
                 pass
 
+    raw_filename = file.filename or "image_file"
+    safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", os.path.basename(raw_filename))[:120]
+
     return {
         "success": True,
-        "filename": file.filename,
+        "filename": safe_filename,
         "format": image.format,
         "dimensions": f"{image.width}x{image.height}",
         "has_gps": lat_deg is not None and lon_deg is not None,
@@ -203,9 +208,12 @@ async def inspect_pdf_security(file: UploadFile = File(...)):
     elif risk_score >= 20:
         verdict = "ПОТЕНЦИАЛЬНО ОПАСНЫЙ (ТРЕБУЕТСЯ ПЕСОЧНИЦА DANGERZONE)"
 
+    raw_filename = file.filename or "document.pdf"
+    safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", os.path.basename(raw_filename))[:120]
+
     return {
         "success": True,
-        "filename": file.filename,
+        "filename": safe_filename,
         "size_bytes": len(contents),
         "risk_score": min(100, risk_score),
         "verdict": verdict,

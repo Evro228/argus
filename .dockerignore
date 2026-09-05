@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.venv
+venv/
+node_modules/
+dist/
+uploads/
+reports/
+tmp/
+__pycache__/
+*.pyc
+*.log

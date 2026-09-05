@@ -1,4 +1,5 @@
 import asyncio
+import re
 from typing import Any
 
 import httpx
@@ -173,6 +174,13 @@ async def search_username(req: UsernameSearchRequest):
     username = req.username.strip().lstrip("@")
     if not username:
         return {"success": False, "error": "Введите никнейм для поиска."}
+
+    # Strict alphanumeric + safe delimiter check (prevents SSRF / path injection)
+    if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,64}", username):
+        return {
+            "success": False,
+            "error": "Некорректный формат никнейма. Допускаются только буквы, цифры, дефис, точка и подчеркивание (до 64 символов).",
+        }
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
