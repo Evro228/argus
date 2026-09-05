@@ -116,3 +116,92 @@ async def calculate_hash(
         },
         "virustotal_url": f"https://www.virustotal.com/gui/file/{sha256_hash}"
     }
+
+# --- Privnote / Send: In-Memory Ephemeral Self-Destructing Notes ---
+import time
+EPHEMERAL_NOTES = {}
+
+class BurnNoteCreateRequest(BaseModel):
+    secret: str
+    ttl_seconds: int = 3600 # 1 hour default
+
+@router.post("/burn-note/create")
+def create_burn_note(req: BurnNoteCreateRequest):
+    if not req.secret.strip():
+        return {"success": False, "error": "Записка не может быть пустой."}
+    
+    token = secrets.token_urlsafe(16)
+    expires_at = time.time() + req.ttl_seconds
+    
+    EPHEMERAL_NOTES[token] = {
+        "secret": req.secret,
+        "expires_at": expires_at
+    }
+
+    return {
+        "success": True,
+        "token": token,
+        "burn_url": f"/#burn-{token}",
+        "expires_in_seconds": req.ttl_seconds,
+        "note": "Записка будет уничтожена навсегда сразу после первого прочтения!"
+    }
+
+@router.get("/burn-note/read/{token}")
+def read_burn_note(token: str):
+    # Purge expired
+    now = time.time()
+    for k in list(EPHEMERAL_NOTES.keys()):
+        if EPHEMERAL_NOTES[k]["expires_at"] < now:
+            del EPHEMERAL_NOTES[k]
+
+    if token not in EPHEMERAL_NOTES:
+        return {
+            "success": False,
+            "error": "Записка не найдена или уже была уничтожена после первого прочтения."
+        }
+
+    note_data = EPHEMERAL_NOTES.pop(token) # Self-destruct on read!
+    return {
+        "success": True,
+        "secret": note_data["secret"],
+        "status": "DESTROYED_FROM_MEMORY"
+    }
+
+# --- WebAuthn / Passkeys (W3C standard) ---
+@router.post("/webauthn/challenge")
+def generate_webauthn_challenge():
+    """
+    Generates standard W3C WebAuthn challenge for FIDO2/Passkey registration.
+    """
+    challenge_bytes = secrets.token_bytes(32)
+    challenge_b64 = base64.urlsafe_b64encode(challenge_bytes).decode('utf-8').rstrip('=')
+    user_id = secrets.token_hex(8)
+
+    options = {
+        "challenge": challenge_b64,
+        "rp": {
+            "name": "CyberSec Studio",
+            "id": "localhost"
+        },
+        "user": {
+            "id": user_id,
+            "name": "operator@cybersec.local",
+            "displayName": "CyberSec Operator"
+        },
+        "pubKeyCredParams": [
+            {"type": "public-key", "alg": -7},  # ES256
+            {"type": "public-key", "alg": -257} # RS256
+        ],
+        "authenticatorSelection": {
+            "authenticatorAttachment": "platform",
+            "userVerification": "required"
+        },
+        "timeout": 60000,
+        "attestation": "none"
+    }
+
+    return {
+        "success": True,
+        "publicKey": options,
+        "protocol": "W3C WebAuthn Level 3 (FIDO2 / Passkeys)"
+    }

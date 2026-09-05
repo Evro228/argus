@@ -548,3 +548,221 @@ const App = {
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
+
+// --- NEW COMPREHENSIVE SUITE EXTENSIONS ---
+
+// 1. ClearURLs Link Cleaner
+App.cleanUrl = async function() {
+  const url = document.getElementById('clearurls-input')?.value.trim();
+  if (!url) return alert('Введите URL для очистки!');
+
+  this.log(`ClearURLs: очистка трекинг-параметров для ${url}...`, 'system');
+  try {
+    const res = await fetch(`${API_BASE}/opsec/clean-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('clearurls-output').value = data.cleaned_url;
+      document.getElementById('clearurls-stats').innerText = `Удалено шпионских меток: ${data.removed_params_count} (${data.removed_params.join(', ') || 'нет'})`;
+      this.log(`ClearURLs: Ссылка очищена! Удалено параметров: ${data.removed_params_count}`, 'success');
+    }
+  } catch (e) {
+    this.log(`Ошибка ClearURLs: ${e.message}`, 'error');
+  }
+};
+
+// 2. Disposable Identity Generator (OpenTrashmail)
+App.generateDisposableId = async function() {
+  this.log('Генерация временного защищенного профиля...', 'system');
+  try {
+    const res = await fetch(`${API_BASE}/opsec/disposable-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix: 'agent' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('disp-email').value = data.disposable_email;
+      document.getElementById('disp-pass').value = data.temporary_passphrase;
+      document.getElementById('disp-user').value = data.username;
+      this.log(`Временный профиль сгенерирован: ${data.disposable_email}`, 'success');
+    }
+  } catch (e) {}
+};
+
+// 3. Burn-After-Reading Notes (Privnote / Send)
+App.createBurnNote = async function() {
+  const secret = document.getElementById('burn-note-secret')?.value.trim();
+  if (!secret) return alert('Введите секретный текст!');
+
+  this.log('Создание самоуничтожающейся записки...', 'system');
+  try {
+    const res = await fetch(`${API_BASE}/crypto/burn-note/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('burn-note-token-output').value = data.token;
+      document.getElementById('burn-note-status').innerText = 'Записка создана! Она будет уничтожена сразу после первого прочтения.';
+      this.log(`Записка сохранена во временной памяти. Токен: ${data.token}`, 'success');
+    }
+  } catch (e) {
+    this.log(`Ошибка создания записки: ${e.message}`, 'error');
+  }
+};
+
+App.readBurnNote = async function() {
+  const token = document.getElementById('burn-note-read-token')?.value.trim();
+  if (!token) return alert('Введите токен записки!');
+
+  this.log(`Чтение и уничтожение записки с токеном ${token}...`, 'system');
+  try {
+    const res = await fetch(`${API_BASE}/crypto/burn-note/read/${token}`);
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('burn-note-read-result').value = data.secret;
+      document.getElementById('burn-note-read-badge').innerText = 'УНИЧТОЖЕНО НАВСЕГДА';
+      this.log('Записка прочитана и навсегда удалена из памяти сервера!', 'warn');
+    } else {
+      alert(data.error);
+      this.log(data.error, 'error');
+    }
+  } catch (e) {
+    this.log(`Ошибка чтения: ${e.message}`, 'error');
+  }
+};
+
+// 4. Dangerzone & PDF Inspector
+App.inspectPdf = async function() {
+  const fileInput = document.getElementById('pdf-inspect-input');
+  if (!fileInput.files || fileInput.files.length === 0) return alert('Выберите PDF-файл!');
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  this.log(`Инспекция структуры PDF: ${fileInput.files[0].name}...`, 'system');
+  try {
+    const res = await fetch(`${API_BASE}/forensics/pdf/inspect`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (!data.success) return alert(data.error);
+
+    document.getElementById('pdf-result-box').classList.remove('hidden');
+    document.getElementById('pdf-risk-score').innerText = `${data.risk_score} / 100`;
+    document.getElementById('pdf-verdict').innerText = data.verdict;
+
+    const warnEl = document.getElementById('pdf-warnings');
+    warnEl.innerHTML = '';
+    if (data.warnings.length === 0) {
+      warnEl.innerHTML = '<div class="text-emerald-400">✅ Подозрительных макросов, JavaScript или автоматических действий не обнаружено.</div>';
+    } else {
+      data.warnings.forEach(w => {
+        const d = document.createElement('div');
+        d.className = 'text-rose-400 font-semibold';
+        d.innerText = `⚠️ ${w}`;
+        warnEl.appendChild(d);
+      });
+    }
+    this.log(`PDF аудит завершен. Вердикт: ${data.verdict}`, data.risk_score > 20 ? 'warn' : 'success');
+  } catch (e) {
+    this.log(`Ошибка PDF инспектора: ${e.message}`, 'error');
+  }
+};
+
+// 5. WireTapper Wi-Fi Status
+App.loadWifiStatus = async function() {
+  try {
+    const res = await fetch(`${API_BASE}/network/wifi/status`);
+    const data = await res.json();
+    if (data.success && data.connected) {
+      document.getElementById('wifi-ssid').innerText = data.current_network.ssid;
+      document.getElementById('wifi-phy').innerText = data.current_network.phy_mode;
+      document.getElementById('wifi-channel').innerText = data.current_network.channel;
+      document.getElementById('wifi-security').innerText = data.current_network.security_rating;
+      this.log(`WireTapper: подключено к сети ${data.current_network.ssid} (${data.current_network.security_rating})`, 'info');
+    }
+  } catch (e) {}
+};
+
+// 6. Hardening & Compliance Matrix
+App.loadHardening = async function() {
+  try {
+    const res = await fetch(`${API_BASE}/system/hardening`);
+    const data = await res.json();
+    const container = document.getElementById('hardening-list');
+    if (!container || !data.success) return;
+
+    container.innerHTML = '';
+    document.getElementById('hardening-score').innerText = `${data.hardening_score}%`;
+
+    data.checks.forEach(c => {
+      const isPass = c.status === 'PASS';
+      const row = document.createElement('div');
+      row.className = "p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between";
+      row.innerHTML = `
+        <div>
+          <div class="font-semibold text-xs text-slate-200">${c.name}</div>
+          <div class="text-[11px] text-slate-500 font-mono mt-0.5">${c.detail}</div>
+          ${!isPass ? `<div class="text-[11px] text-amber-400 mt-1 font-medium">${c.remediation}</div>` : ''}
+        </div>
+        <span class="px-2 py-0.5 rounded text-xs font-mono font-bold ${isPass ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+          ${c.status}
+        </span>
+      `;
+      container.appendChild(row);
+    });
+  } catch (e) {}
+};
+
+// 7. Knowledge Hub Reader
+App.loadKnowledgeHub = async function() {
+  try {
+    const res = await fetch(`${API_BASE}/system/knowledge`);
+    const data = await res.json();
+    const container = document.getElementById('knowledge-hub-container');
+    if (!container || !data.success) return;
+
+    container.innerHTML = '';
+    data.items.forEach(k => {
+      const card = document.createElement('div');
+      card.className = "p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between hover:border-sky-500/40 transition";
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-sky-400">${k.category}</span>
+            <span class="text-xs font-mono text-amber-400">${k.stars}</span>
+          </div>
+          <div class="font-bold text-sm text-slate-100 mb-1">${k.title}</div>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">${k.desc}</p>
+        </div>
+        <a href="${k.url}" target="_blank" rel="noopener noreferrer" class="text-xs py-1.5 px-3 rounded bg-slate-800 hover:bg-slate-700 text-center text-slate-200 font-medium transition">
+          Открыть репозиторий ↗
+        </a>
+      `;
+      container.appendChild(card);
+    });
+  } catch (e) {}
+};
+
+// Hook into App.init
+const originalInit = App.init;
+App.init = function() {
+  originalInit.call(this);
+  this.loadWifiStatus();
+  this.loadHardening();
+  this.loadKnowledgeHub();
+  
+  // Bind new action buttons
+  document.getElementById('clearurls-btn')?.addEventListener('click', () => this.cleanUrl());
+  document.getElementById('disp-gen-btn')?.addEventListener('click', () => this.generateDisposableId());
+  document.getElementById('burn-create-btn')?.addEventListener('click', () => this.createBurnNote());
+  document.getElementById('burn-read-btn')?.addEventListener('click', () => this.readBurnNote());
+  document.getElementById('pdf-inspect-btn')?.addEventListener('click', () => this.inspectPdf());
+};

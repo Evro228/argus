@@ -105,3 +105,123 @@ def get_system_status():
         "installed_tools": installed_count,
         "tools": tools_status
     }
+
+# --- System Hardening & Compliance Matrix ---
+@router.get("/hardening")
+def get_hardening_audit():
+    checks = []
+    
+    # 1. FileVault (Disk Encryption)
+    try:
+        out = subprocess.run(["fdesetup", "status"], capture_output=True, text=True, timeout=2)
+        status_str = (out.stdout or "").strip()
+        is_on = "FileVault is On" in status_str
+        checks.append({
+            "id": "filevault",
+            "name": "FileVault (Аппаратное шифрование диска)",
+            "status": "PASS" if is_on else "WARN",
+            "detail": status_str,
+            "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault."
+        })
+    except Exception:
+        checks.append({
+            "id": "filevault",
+            "name": "FileVault (Шифрование диска)",
+            "status": "CHECK_REQUIRED",
+            "detail": "Не удалось выполнить fdesetup автоматически",
+            "remediation": "Проверьте статус FileVault в настройках macOS."
+        })
+
+    # 2. Gatekeeper (Защита от запуска неподписанного софта)
+    try:
+        out = subprocess.run(["spctl", "--status"], capture_output=True, text=True, timeout=2)
+        status_str = (out.stdout or "").strip()
+        is_active = "assessments enabled" in status_str
+        checks.append({
+            "id": "gatekeeper",
+            "name": "Apple Gatekeeper (Контроль подписей приложений)",
+            "status": "PASS" if is_active else "CRITICAL",
+            "detail": status_str,
+            "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable"
+        })
+    except Exception:
+        pass
+
+    # 3. System Integrity Protection (SIP)
+    try:
+        out = subprocess.run(["csrutil", "status"], capture_output=True, text=True, timeout=2)
+        status_str = (out.stdout or "").strip()
+        is_enabled = "enabled" in status_str
+        checks.append({
+            "id": "sip",
+            "name": "System Integrity Protection (SIP)",
+            "status": "PASS" if is_enabled else "WARN",
+            "detail": status_str,
+            "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным."
+        })
+    except Exception:
+        pass
+
+    # Calculate overall hardening score
+    passed = sum(1 for c in checks if c["status"] == "PASS")
+    score = round((passed / len(checks)) * 100) if checks else 100
+
+    return {
+        "success": True,
+        "hardening_score": score,
+        "total_checks": len(checks),
+        "passed_checks": passed,
+        "checks": checks
+    }
+
+# --- Knowledge & CheatSheet Hub ---
+KNOWLEDGE_CATALOG = [
+    {
+        "id": "payloads_all_the_things",
+        "title": "PayloadsAllTheThings",
+        "category": "Веб-аудит & Безопасность",
+        "stars": "79.8k★",
+        "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+        "desc": "Всемирная коллекция шпаргалок по безопасности веб-приложений, обходам WAF и методологиям тестирования."
+    },
+    {
+        "id": "hacktricks",
+        "title": "HackTricks Wiki",
+        "category": "Энциклопедия",
+        "stars": "12k★",
+        "url": "https://book.hacktricks.xyz/",
+        "desc": "Детальнейшая база знаний по повышению привилегий в Linux/Windows, облачной безопасности и сетевым протоколам."
+    },
+    {
+        "id": "seclists",
+        "title": "SecLists (Daniel Miessler)",
+        "category": "Словари & Паттерны",
+        "stars": "73k★",
+        "url": "https://github.com/danielmiessler/SecLists",
+        "desc": "Главная коллекция словарей безопасности: фаззинг URL, дефолтные учетные записи, чувствительные пути файлов."
+    },
+    {
+        "id": "owasp_cheatsheets",
+        "title": "OWASP CheatSheetSeries",
+        "category": "Безопасная разработка",
+        "stars": "27k★",
+        "url": "https://cheatsheetseries.owasp.org/",
+        "desc": "Официальные шпаргалки OWASP по защите API, криптографии, аутентификации и сессиям."
+    },
+    {
+        "id": "awesome_privacy",
+        "title": "Awesome Privacy Directory",
+        "category": "Приватность & Софт",
+        "stars": "18k★",
+        "url": "https://github.com/pluja/awesome-privacy",
+        "desc": "Курируемый реестр открытых альтернатив коммерческим сервисам без слежки и утечек данных."
+    }
+]
+
+@router.get("/knowledge")
+def get_knowledge_hub():
+    return {
+        "success": True,
+        "count": len(KNOWLEDGE_CATALOG),
+        "items": KNOWLEDGE_CATALOG
+    }

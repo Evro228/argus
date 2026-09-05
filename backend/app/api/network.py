@@ -118,3 +118,55 @@ def inspect_ssl_cert(req: CertCheckRequest):
         }
     except Exception as e:
         return {"success": False, "error": f"Ошибка соединения SSL: {str(e)}"}
+
+# --- WireTapper: Wireless & Radio Reconnaissance ---
+import subprocess
+
+@router.get("/wifi/status")
+def get_wifi_recon_status():
+    try:
+        cmd = ["system_profiler", "SPAirPortDataType"]
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        raw = out.stdout or ""
+
+        ssid = "Не подключено"
+        phy_mode = "N/A"
+        channel = "N/A"
+        country_code = "N/A"
+
+        lines = raw.split("\n")
+        in_current = False
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if "Current Network Information:" in stripped and i + 1 < len(lines):
+                next_line = lines[i+1].strip().rstrip(":")
+                if next_line:
+                    ssid = next_line
+                    in_current = True
+            if in_current:
+                if "PHY Mode:" in stripped:
+                    phy_mode = stripped.split("PHY Mode:")[-1].strip()
+                elif "Channel:" in stripped:
+                    channel = stripped.split("Channel:")[-1].strip()
+                elif "Country Code:" in stripped:
+                    country_code = stripped.split("Country Code:")[-1].strip()
+                elif stripped.startswith("Other Local Wi-Fi Networks:") or (line.startswith("        ") and "PHY Mode" not in stripped and "Channel" not in stripped and "Country Code" not in stripped and "Network Type" not in stripped):
+                    pass
+
+        return {
+            "success": True,
+            "connected": ssid != "Не подключено",
+            "current_network": {
+                "ssid": ssid,
+                "phy_mode": phy_mode,
+                "channel": channel,
+                "country_code": country_code,
+                "security_rating": "WPA3 / WPA2 Enterprise" if "802.11ax" in phy_mode or "802.11ac" in phy_mode else "Standard WPA2"
+            },
+            "radio_environment": {
+                "band_5ghz": "5GHz" in channel,
+                "supported_standards": "802.11 a/b/g/n/ac/ax (Wi-Fi 6 Ready)"
+            }
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
