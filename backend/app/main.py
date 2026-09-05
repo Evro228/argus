@@ -1,14 +1,24 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import os
 
-from backend.app.api import system, crypto, osint, audit, network, forensics, opsec, analyst
+from backend.app.api import (
+    analyst,
+    audit,
+    crypto,
+    forensics,
+    network,
+    opsec,
+    osint,
+    system,
+)
 
 app = FastAPI(
     title="CyberSec & OSINT Studio Cockpit",
     description="Единая рабочая станция кибербезопасности, OSINT, GEOINT, криптографии и аудита кода",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 app.add_middleware(
@@ -29,13 +39,15 @@ app.include_router(forensics.router, prefix="/api/forensics", tags=["Forensics &
 app.include_router(opsec.router, prefix="/api/opsec", tags=["OPSEC & Privacy"])
 app.include_router(analyst.router, prefix="/api/analyst", tags=["Security Analyst"])
 
+
 @app.get("/api/health")
 def health_check():
     return {
         "status": "online",
         "service": "CyberSec & OSINT Studio",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
+
 
 # Mount static frontend directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,4 +57,5 @@ if os.path.exists(frontend_dir):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8800, reload=True)

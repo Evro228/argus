@@ -1,40 +1,68 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
 import asyncio
+import shutil
 import socket
 import ssl
-import shutil
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+
+from fastapi import APIRouter
+from pydantic import BaseModel
+
 from backend.app.utils.process_runner import run_command_stream
 
 router = APIRouter()
 
 TOP_PORTS = [
-    (21, "FTP"), (22, "SSH"), (23, "Telnet"), (25, "SMTP"), (53, "DNS"),
-    (80, "HTTP"), (110, "POP3"), (143, "IMAP"), (443, "HTTPS"), (445, "SMB"),
-    (993, "IMAPS"), (995, "POP3S"), (1433, "MSSQL"), (1521, "Oracle"),
-    (3306, "MySQL"), (3389, "RDP"), (5432, "PostgreSQL"), (5900, "VNC"),
-    (6379, "Redis"), (8000, "HTTP-Alt"), (8080, "HTTP-Proxy"), (8443, "HTTPS-Alt"),
-    (9000, "Sonar/Portainer"), (27017, "MongoDB")
+    (21, "FTP"),
+    (22, "SSH"),
+    (23, "Telnet"),
+    (25, "SMTP"),
+    (53, "DNS"),
+    (80, "HTTP"),
+    (110, "POP3"),
+    (143, "IMAP"),
+    (443, "HTTPS"),
+    (445, "SMB"),
+    (993, "IMAPS"),
+    (995, "POP3S"),
+    (1433, "MSSQL"),
+    (1521, "Oracle"),
+    (3306, "MySQL"),
+    (3389, "RDP"),
+    (5432, "PostgreSQL"),
+    (5900, "VNC"),
+    (6379, "Redis"),
+    (8000, "HTTP-Alt"),
+    (8080, "HTTP-Proxy"),
+    (8443, "HTTPS-Alt"),
+    (9000, "Sonar/Portainer"),
+    (27017, "MongoDB"),
 ]
+
 
 class ScanHostRequest(BaseModel):
     target: str
-    scan_type: str = "quick" # quick, full, nmap_fast, nmap_services
+    scan_type: str = "quick"  # quick, full, nmap_fast, nmap_services
+
 
 class CertCheckRequest(BaseModel):
     host: str
     port: int = 443
 
+
 @router.post("/scan/ports")
 async def scan_target_ports(req: ScanHostRequest):
-    target = req.target.strip().replace("http://", "").replace("https://", "").split("/")[0].split(":")[0]
+    target = (
+        req.target.strip()
+        .replace("http://", "")
+        .replace("https://", "")
+        .split("/")[0]
+        .split(":")[0]
+    )
     if not target:
         return {"success": False, "error": "Укажите целевой IP или домен."}
 
     nmap_path = shutil.which("nmap")
-    
+
     # If user selected nmap and it's installed, run nmap
     if "nmap" in req.scan_type and nmap_path:
         cmd = ["nmap", "-T4", target]
@@ -48,12 +76,12 @@ async def scan_target_ports(req: ScanHostRequest):
             "success": res["success"],
             "engine": "nmap",
             "target": target,
-            "raw_output": res["output"]
+            "raw_output": res["output"],
         }
 
     # Native Python Async Socket Scanner (Works everywhere without dependencies)
     open_ports = []
-    
+
     async def probe_port(port: int, service: str):
         try:
             conn = asyncio.open_connection(target, port)
@@ -64,7 +92,9 @@ async def scan_target_ports(req: ScanHostRequest):
                 "port": port,
                 "service": service,
                 "state": "OPEN",
-                "risk": "HIGH" if port in [21, 23, 445, 3389, 6379, 27017] else "NORMAL"
+                "risk": "HIGH"
+                if port in [21, 23, 445, 3389, 6379, 27017]
+                else "NORMAL",
             }
         except Exception:
             return None
@@ -79,12 +109,19 @@ async def scan_target_ports(req: ScanHostRequest):
         "target": target,
         "scanned_ports": len(TOP_PORTS),
         "open_ports_count": len(open_ports),
-        "open_ports": open_ports
+        "open_ports": open_ports,
     }
+
 
 @router.post("/cert/inspect")
 def inspect_ssl_cert(req: CertCheckRequest):
-    host = req.host.strip().replace("http://", "").replace("https://", "").split("/")[0].split(":")[0]
+    host = (
+        req.host.strip()
+        .replace("http://", "")
+        .replace("https://", "")
+        .split("/")[0]
+        .split(":")[0]
+    )
     try:
         ctx = ssl.create_default_context()
         with socket.create_connection((host, req.port), timeout=3.0) as sock:
@@ -114,13 +151,15 @@ def inspect_ssl_cert(req: CertCheckRequest):
             "valid_from": cert.get("notBefore"),
             "valid_until": not_after_str,
             "days_until_expiration": days_left,
-            "status": "VALID" if (days_left and days_left > 0) else "EXPIRED"
+            "status": "VALID" if (days_left and days_left > 0) else "EXPIRED",
         }
     except Exception as e:
-        return {"success": False, "error": f"Ошибка соединения SSL: {str(e)}"}
+        return {"success": False, "error": f"Ошибка соединения SSL: {e!s}"}
+
 
 # --- WireTapper: Wireless & Radio Reconnaissance ---
 import subprocess
+
 
 @router.get("/wifi/status")
 def get_wifi_recon_status():
@@ -139,7 +178,7 @@ def get_wifi_recon_status():
         for i, line in enumerate(lines):
             stripped = line.strip()
             if "Current Network Information:" in stripped and i + 1 < len(lines):
-                next_line = lines[i+1].strip().rstrip(":")
+                next_line = lines[i + 1].strip().rstrip(":")
                 if next_line:
                     ssid = next_line
                     in_current = True
@@ -150,7 +189,13 @@ def get_wifi_recon_status():
                     channel = stripped.split("Channel:")[-1].strip()
                 elif "Country Code:" in stripped:
                     country_code = stripped.split("Country Code:")[-1].strip()
-                elif stripped.startswith("Other Local Wi-Fi Networks:") or (line.startswith("        ") and "PHY Mode" not in stripped and "Channel" not in stripped and "Country Code" not in stripped and "Network Type" not in stripped):
+                elif stripped.startswith("Other Local Wi-Fi Networks:") or (
+                    line.startswith("        ")
+                    and "PHY Mode" not in stripped
+                    and "Channel" not in stripped
+                    and "Country Code" not in stripped
+                    and "Network Type" not in stripped
+                ):
                     pass
 
         return {
@@ -161,12 +206,14 @@ def get_wifi_recon_status():
                 "phy_mode": phy_mode,
                 "channel": channel,
                 "country_code": country_code,
-                "security_rating": "WPA3 / WPA2 Enterprise" if "802.11ax" in phy_mode or "802.11ac" in phy_mode else "Standard WPA2"
+                "security_rating": "WPA3 / WPA2 Enterprise"
+                if "802.11ax" in phy_mode or "802.11ac" in phy_mode
+                else "Standard WPA2",
             },
             "radio_environment": {
                 "band_5ghz": "5GHz" in channel,
-                "supported_standards": "802.11 a/b/g/n/ac/ax (Wi-Fi 6 Ready)"
-            }
+                "supported_standards": "802.11 a/b/g/n/ac/ax (Wi-Fi 6 Ready)",
+            },
         }
     except Exception as e:
         return {"success": False, "error": str(e)}

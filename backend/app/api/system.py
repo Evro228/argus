@@ -1,9 +1,10 @@
-from fastapi import APIRouter
-import shutil
+import json
 import os
 import platform
+import shutil
 import subprocess
-import json
+
+from fastapi import APIRouter
 
 router = APIRouter()
 
@@ -14,7 +15,7 @@ TOOLS_MANIFEST = [
         "category": "Network",
         "description": "Сетевой сканер портов и аудит безопасности хостов",
         "brew": "brew install nmap",
-        "doc": "https://nmap.org/"
+        "doc": "https://nmap.org/",
     },
     {
         "id": "gitleaks",
@@ -22,7 +23,7 @@ TOOLS_MANIFEST = [
         "category": "Code Audit",
         "description": "Поиск случайно закоммиченных паролей и API-ключей в коде",
         "brew": "brew install gitleaks",
-        "doc": "https://github.com/gitleaks/gitleaks"
+        "doc": "https://github.com/gitleaks/gitleaks",
     },
     {
         "id": "trufflehog",
@@ -30,7 +31,7 @@ TOOLS_MANIFEST = [
         "category": "Code Audit",
         "description": "Глубокий поиск утекших секретов с проверкой их валидности",
         "brew": "brew install trufflehog",
-        "doc": "https://github.com/trufflesecurity/trufflehog"
+        "doc": "https://github.com/trufflesecurity/trufflehog",
     },
     {
         "id": "nuclei",
@@ -38,7 +39,7 @@ TOOLS_MANIFEST = [
         "category": "Network / Web",
         "description": "Быстрый сканер веб-уязвимостей на базе YAML-шаблонов",
         "brew": "brew install nuclei",
-        "doc": "https://github.com/projectdiscovery/nuclei"
+        "doc": "https://github.com/projectdiscovery/nuclei",
     },
     {
         "id": "semgrep",
@@ -46,7 +47,7 @@ TOOLS_MANIFEST = [
         "category": "Code Audit",
         "description": "Статический анализатор кода (SAST) на наличие уязвимостей",
         "brew": "brew install semgrep",
-        "doc": "https://semgrep.dev/"
+        "doc": "https://semgrep.dev/",
     },
     {
         "id": "trivy",
@@ -54,7 +55,7 @@ TOOLS_MANIFEST = [
         "category": "Containers",
         "description": "Сканер уязвимостей Docker-образов, репозиториев и конфигов",
         "brew": "brew install trivy",
-        "doc": "https://trivy.dev/"
+        "doc": "https://trivy.dev/",
     },
     {
         "id": "docker",
@@ -62,7 +63,7 @@ TOOLS_MANIFEST = [
         "category": "Containers",
         "description": "Среда контейнеризации для изолированного запуска сервисов",
         "brew": "brew install --cask docker",
-        "doc": "https://www.docker.com/"
+        "doc": "https://www.docker.com/",
     },
     {
         "id": "ffmpeg",
@@ -70,15 +71,16 @@ TOOLS_MANIFEST = [
         "category": "Media",
         "description": "Движок обработки аудио и видео для медиа-криминалистики",
         "brew": "brew install ffmpeg",
-        "doc": "https://ffmpeg.org/"
-    }
+        "doc": "https://ffmpeg.org/",
+    },
 ]
+
 
 @router.get("/status")
 def get_system_status():
     tools_status = []
     installed_count = 0
-    
+
     for item in TOOLS_MANIFEST:
         path = shutil.which(item["id"])
         is_installed = path is not None
@@ -86,80 +88,94 @@ def get_system_status():
         if is_installed:
             installed_count += 1
             try:
-                out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=2)
+                out = subprocess.run(
+                    [path, "--version"], capture_output=True, text=True, timeout=2
+                )
                 first_line = (out.stdout or out.stderr or "").strip().split("\n")[0]
                 version = first_line[:40] if first_line else "Installed"
             except Exception:
                 version = "Installed"
-                
-        tools_status.append({
-            **item,
-            "installed": is_installed,
-            "path": path,
-            "version": version
-        })
+
+        tools_status.append(
+            {**item, "installed": is_installed, "path": path, "version": version}
+        )
 
     return {
         "os": f"{platform.system()} {platform.release()} ({platform.machine()})",
         "python": platform.python_version(),
         "total_tools": len(TOOLS_MANIFEST),
         "installed_tools": installed_count,
-        "tools": tools_status
+        "tools": tools_status,
     }
+
 
 # --- System Hardening & Compliance Matrix ---
 @router.get("/hardening")
 def get_hardening_audit():
     checks = []
-    
+
     # 1. FileVault (Disk Encryption)
     try:
-        out = subprocess.run(["fdesetup", "status"], capture_output=True, text=True, timeout=2)
+        out = subprocess.run(
+            ["fdesetup", "status"], capture_output=True, text=True, timeout=2
+        )
         status_str = (out.stdout or "").strip()
         is_on = "FileVault is On" in status_str
-        checks.append({
-            "id": "filevault",
-            "name": "FileVault (Аппаратное шифрование диска)",
-            "status": "PASS" if is_on else "WARN",
-            "detail": status_str,
-            "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault."
-        })
+        checks.append(
+            {
+                "id": "filevault",
+                "name": "FileVault (Аппаратное шифрование диска)",
+                "status": "PASS" if is_on else "WARN",
+                "detail": status_str,
+                "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault.",
+            }
+        )
     except Exception:
-        checks.append({
-            "id": "filevault",
-            "name": "FileVault (Шифрование диска)",
-            "status": "CHECK_REQUIRED",
-            "detail": "Не удалось выполнить fdesetup автоматически",
-            "remediation": "Проверьте статус FileVault в настройках macOS."
-        })
+        checks.append(
+            {
+                "id": "filevault",
+                "name": "FileVault (Шифрование диска)",
+                "status": "CHECK_REQUIRED",
+                "detail": "Не удалось выполнить fdesetup автоматически",
+                "remediation": "Проверьте статус FileVault в настройках macOS.",
+            }
+        )
 
     # 2. Gatekeeper (Защита от запуска неподписанного софта)
     try:
-        out = subprocess.run(["spctl", "--status"], capture_output=True, text=True, timeout=2)
+        out = subprocess.run(
+            ["spctl", "--status"], capture_output=True, text=True, timeout=2
+        )
         status_str = (out.stdout or "").strip()
         is_active = "assessments enabled" in status_str
-        checks.append({
-            "id": "gatekeeper",
-            "name": "Apple Gatekeeper (Контроль подписей приложений)",
-            "status": "PASS" if is_active else "CRITICAL",
-            "detail": status_str,
-            "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable"
-        })
+        checks.append(
+            {
+                "id": "gatekeeper",
+                "name": "Apple Gatekeeper (Контроль подписей приложений)",
+                "status": "PASS" if is_active else "CRITICAL",
+                "detail": status_str,
+                "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable",
+            }
+        )
     except Exception:
         pass
 
     # 3. System Integrity Protection (SIP)
     try:
-        out = subprocess.run(["csrutil", "status"], capture_output=True, text=True, timeout=2)
+        out = subprocess.run(
+            ["csrutil", "status"], capture_output=True, text=True, timeout=2
+        )
         status_str = (out.stdout or "").strip()
         is_enabled = "enabled" in status_str
-        checks.append({
-            "id": "sip",
-            "name": "System Integrity Protection (SIP)",
-            "status": "PASS" if is_enabled else "WARN",
-            "detail": status_str,
-            "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным."
-        })
+        checks.append(
+            {
+                "id": "sip",
+                "name": "System Integrity Protection (SIP)",
+                "status": "PASS" if is_enabled else "WARN",
+                "detail": status_str,
+                "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным.",
+            }
+        )
     except Exception:
         pass
 
@@ -172,8 +188,9 @@ def get_hardening_audit():
         "hardening_score": score,
         "total_checks": len(checks),
         "passed_checks": passed,
-        "checks": checks
+        "checks": checks,
     }
+
 
 # --- Knowledge & CheatSheet Hub ---
 KNOWLEDGE_CATALOG = [
@@ -183,7 +200,7 @@ KNOWLEDGE_CATALOG = [
         "category": "Веб-аудит & Безопасность",
         "stars": "79.8k★",
         "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
-        "desc": "Всемирная коллекция шпаргалок по безопасности веб-приложений, обходам WAF и методологиям тестирования."
+        "desc": "Всемирная коллекция шпаргалок по безопасности веб-приложений, обходам WAF и методологиям тестирования.",
     },
     {
         "id": "hacktricks",
@@ -191,7 +208,7 @@ KNOWLEDGE_CATALOG = [
         "category": "Энциклопедия",
         "stars": "12k★",
         "url": "https://book.hacktricks.xyz/",
-        "desc": "Детальнейшая база знаний по повышению привилегий в Linux/Windows, облачной безопасности и сетевым протоколам."
+        "desc": "Детальнейшая база знаний по повышению привилегий в Linux/Windows, облачной безопасности и сетевым протоколам.",
     },
     {
         "id": "seclists",
@@ -199,7 +216,7 @@ KNOWLEDGE_CATALOG = [
         "category": "Словари & Паттерны",
         "stars": "73k★",
         "url": "https://github.com/danielmiessler/SecLists",
-        "desc": "Главная коллекция словарей безопасности: фаззинг URL, дефолтные учетные записи, чувствительные пути файлов."
+        "desc": "Главная коллекция словарей безопасности: фаззинг URL, дефолтные учетные записи, чувствительные пути файлов.",
     },
     {
         "id": "owasp_cheatsheets",
@@ -207,7 +224,7 @@ KNOWLEDGE_CATALOG = [
         "category": "Безопасная разработка",
         "stars": "27k★",
         "url": "https://cheatsheetseries.owasp.org/",
-        "desc": "Официальные шпаргалки OWASP по защите API, криптографии, аутентификации и сессиям."
+        "desc": "Официальные шпаргалки OWASP по защите API, криптографии, аутентификации и сессиям.",
     },
     {
         "id": "awesome_privacy",
@@ -215,28 +232,38 @@ KNOWLEDGE_CATALOG = [
         "category": "Приватность & Софт",
         "stars": "18k★",
         "url": "https://github.com/pluja/awesome-privacy",
-        "desc": "Курируемый реестр открытых альтернатив коммерческим сервисам без слежки и утечек данных."
-    }
+        "desc": "Курируемый реестр открытых альтернатив коммерческим сервисам без слежки и утечек данных.",
+    },
 ]
+
 
 @router.get("/knowledge")
 def get_knowledge_hub():
     return {
         "success": True,
         "count": len(KNOWLEDGE_CATALOG),
-        "items": KNOWLEDGE_CATALOG
+        "items": KNOWLEDGE_CATALOG,
     }
 
+
 # --- Security Tactics & Playbooks Hub (818 Playbooks) ---
-DEFAULT_SKILLS_PATH = os.path.expanduser("~/Antigravity/Skills/Anthropic-Cybersecurity-Skills")
+DEFAULT_SKILLS_PATH = os.path.expanduser(
+    "~/Antigravity/Skills/Anthropic-Cybersecurity-Skills"
+)
 if not os.path.exists(DEFAULT_SKILLS_PATH):
-    rel_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../Skills/Anthropic-Cybersecurity-Skills"))
+    rel_path = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "../../../../../Skills/Anthropic-Cybersecurity-Skills",
+        )
+    )
     if os.path.exists(rel_path):
         DEFAULT_SKILLS_PATH = rel_path
 
 SKILLS_PATH = os.environ.get("CYBERSEC_SKILLS_PATH", DEFAULT_SKILLS_PATH)
 
 _skills_cache = None
+
 
 def _load_skills():
     global _skills_cache
@@ -253,6 +280,7 @@ def _load_skills():
             pass
     return []
 
+
 @router.get("/skills")
 def get_cybersec_skills(q: str = None, limit: int = 50):
     all_skills = _load_skills()
@@ -261,16 +289,19 @@ def get_cybersec_skills(q: str = None, limit: int = 50):
     else:
         query_lower = q.lower()
         filtered = [
-            s for s in all_skills
-            if query_lower in s.get("name", "").lower() or query_lower in s.get("description", "").lower()
+            s
+            for s in all_skills
+            if query_lower in s.get("name", "").lower()
+            or query_lower in s.get("description", "").lower()
         ][:limit]
-    
+
     return {
         "success": True,
         "total": len(all_skills),
         "count": len(filtered),
-        "skills": filtered
+        "skills": filtered,
     }
+
 
 @router.get("/skills/{skill_name}")
 def get_skill_detail(skill_name: str):
@@ -281,11 +312,6 @@ def get_skill_detail(skill_name: str):
     try:
         with open(skill_file, "r", encoding="utf-8") as f:
             content = f.read()
-        return {
-            "success": True,
-            "name": clean_name,
-            "content": content
-        }
+        return {"success": True, "name": clean_name, "content": content}
     except Exception as e:
         return {"success": False, "error": str(e)}
-

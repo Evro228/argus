@@ -1,14 +1,17 @@
+from typing import Any
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
 
 router = APIRouter()
+
 
 class AnalysisReportRequest(BaseModel):
     title: str = "Сводный отчет безопасности"
     scan_type: str = "combined"
-    findings: List[Dict[str, Any]] = []
-    target_info: Optional[str] = None
+    findings: list[dict[str, Any]] = []
+    target_info: str | None = None
+
 
 @router.post("/report/generate")
 def generate_security_report(req: AnalysisReportRequest):
@@ -18,10 +21,10 @@ def generate_security_report(req: AnalysisReportRequest):
     critical_count = sum(1 for f in req.findings if f.get("severity") == "CRITICAL")
     high_count = sum(1 for f in req.findings if f.get("severity") == "HIGH")
     medium_count = sum(1 for f in req.findings if f.get("severity") == "MEDIUM")
-    
+
     # Calculate posture score: start at 100, deduct points
     score = max(0, 100 - (critical_count * 25 + high_count * 10 + medium_count * 3))
-    
+
     if score >= 90:
         verdict = "ОТЛИЧНЫЙ УРОВЕНЬ ЗАЩИТЫ"
         badge_color = "emerald"
@@ -39,8 +42,12 @@ def generate_security_report(req: AnalysisReportRequest):
             remediations.append(f"{idx}. {item.get('type', 'Уязвимость')}: {rem}")
 
     if not remediations:
-        remediations.append("Регулярно проводите сканирование репозиториев перед коммитом в production.")
-        remediations.append("Настройте pre-commit хуки с gitleaks для автоматической блокировки секретов.")
+        remediations.append(
+            "Регулярно проводите сканирование репозиториев перед коммитом в production."
+        )
+        remediations.append(
+            "Настройте pre-commit хуки с gitleaks для автоматической блокировки секретов."
+        )
 
     return {
         "success": True,
@@ -52,8 +59,8 @@ def generate_security_report(req: AnalysisReportRequest):
             "critical_issues": critical_count,
             "high_issues": high_count,
             "medium_issues": medium_count,
-            "total_analyzed": len(req.findings)
+            "total_analyzed": len(req.findings),
         },
         "key_remediations": remediations,
-        "timestamp": "2026-09-05"
+        "timestamp": "2026-09-05",
     }
