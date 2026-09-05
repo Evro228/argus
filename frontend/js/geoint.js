@@ -1,291 +1,253 @@
-// Interactive 3D Tactical Globe (Inspired by God's Eye View)
-class TacticalGlobe {
-  constructor(canvasId) {
-    this.canvas = document.getElementById(canvasId);
-    if (!this.canvas) return;
-    this.ctx = this.canvas.getContext('2d');
-    
-    this.width = this.canvas.clientWidth;
-    this.height = this.canvas.clientHeight;
-    this.canvas.width = this.width * window.devicePixelRatio;
-    this.canvas.height = this.height * window.devicePixelRatio;
-    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+// ARGUS Tactical Threat Map & God's Eye Engine
+(function () {
+  class TacticalThreatMap {
+    constructor(canvasId) {
+      this.canvas = document.getElementById(canvasId);
+      if (!this.canvas) return;
+      this.ctx = this.canvas.getContext('2d');
 
-    this.radius = Math.min(this.width, this.height) * 0.38;
-    this.rotation = { x: 0.3, y: 0 };
-    this.targetRotation = { x: 0.3, y: 0 };
-    this.isDragging = false;
-    this.lastMouse = { x: 0, y: 0 };
-    this.zoom = 1.0;
-
-    // Tactical Layers Data
-    this.layers = {
-      satellites: true,
-      flights: true,
-      ships: true,
-      fires: true
-    };
-
-    this.initEntities();
-    this.bindEvents();
-    this.animate();
-  }
-
-  initEntities() {
-    this.entities = [];
-    
-    // Satellites (Orbiting Earth)
-    const satNames = ["ISS (ZARYA)", "STARLINK-30129", "NOAA-20", "SENTINEL-2B", "COSMOS-2550", "USA-326"];
-    for (let i = 0; i < satNames.length; i++) {
-      this.entities.push({
-        type: 'satellite',
-        name: satNames[i],
-        lat: (Math.random() - 0.5) * 140,
-        lon: (Math.random() - 0.5) * 360,
-        altitude: 1.15 + (i * 0.05),
-        speed: 0.002 + (i * 0.001),
-        color: '#38bdf8'
-      });
-    }
-
-    // Flights (Civil & Transport)
-    const flights = ["AFR124 (A350)", "UAE16 (B777)", "DLH400 (B748)", "THY05 (A330)", "UAL959 (B789)"];
-    for (let f of flights) {
-      this.entities.push({
-        type: 'flight',
-        name: f,
-        lat: (Math.random() - 0.5) * 110,
-        lon: (Math.random() - 0.5) * 360,
-        altitude: 1.03,
-        speed: 0.0008,
-        color: '#eab308'
-      });
-    }
-
-    // Maritime Vessels
-    const ships = ["EVER GIVEN", "CMA CGM ANTOINE", "MAERSK MC-KINNEY", "MSC IRIS"];
-    for (let s of ships) {
-      this.entities.push({
-        type: 'ship',
-        name: s,
-        lat: (Math.random() - 0.5) * 70,
-        lon: (Math.random() - 0.5) * 300,
-        altitude: 1.0,
-        speed: 0.0003,
-        color: '#10b981'
-      });
-    }
-
-    // FIRMS Fire thermal spots
-    for (let i = 0; i < 5; i++) {
-      this.entities.push({
-        type: 'fire',
-        name: `NASA FIRMS Hotspot #${1024 + i}`,
-        lat: -10 + (Math.random() * 40),
-        lon: -60 + (Math.random() * 120),
-        altitude: 1.0,
-        color: '#ef4444'
-      });
-    }
-  }
-
-  bindEvents() {
-    this.canvas.addEventListener('mousedown', (e) => {
-      this.isDragging = true;
-      this.lastMouse = { x: e.clientX, y: e.clientY };
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!this.isDragging) return;
-      const dx = e.clientX - this.lastMouse.x;
-      const dy = e.clientY - this.lastMouse.y;
-      this.rotation.y += dx * 0.005;
-      this.rotation.x = Math.max(-1.4, Math.min(1.4, this.rotation.x + dy * 0.005));
-      this.lastMouse = { x: e.clientX, y: e.clientY };
-    });
-
-    window.addEventListener('mouseup', () => {
-      this.isDragging = false;
-    });
-
-    // Resize
-    window.addEventListener('resize', () => {
-      this.width = this.canvas.clientWidth;
-      this.height = this.canvas.clientHeight;
+      this.width = this.canvas.clientWidth || 900;
+      this.height = this.canvas.clientHeight || 550;
       this.canvas.width = this.width * window.devicePixelRatio;
       this.canvas.height = this.height * window.devicePixelRatio;
       this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      this.radius = Math.min(this.width, this.height) * 0.38;
-    });
-  }
 
-  project(lat, lon, alt = 1.0) {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 180) * (Math.PI / 180) + this.rotation.y;
+      this.mode = '2d'; // '2d' (Live Threat Map) or '3d' (God's Eye Globe)
+      
+      // Known Global Nodes
+      this.nodes = [
+        { id: 'frankfurt', name: 'Frankfurt [EU-C1]', ip: '198.51.100.42', lat: 50.1109, lon: 8.6821, type: 'primary_target', ports: [{port: 22, s: 'SSH'}, {port: 80, s: 'HTTP'}, {port: 443, s: 'HTTPS'}], threat: 85 },
+        { id: 'nyc', name: 'New York [US-E1]', ip: '198.18.44.12', lat: 40.7128, lon: -74.0060, type: 'hub', ports: [{port: 8080, s: 'Proxy'}, {port: 443, s: 'HTTPS'}], threat: 42 },
+        { id: 'london', name: 'London [UK-S1]', ip: '51.140.22.8', lat: 51.5074, lon: -0.1278, type: 'hub', ports: [{port: 443, s: 'HTTPS'}], threat: 28 },
+        { id: 'tokyo', name: 'Tokyo [AP-N1]', ip: '133.242.18.5', lat: 35.6762, lon: 139.6503, type: 'hub', ports: [{port: 22, s: 'SSH'}, {port: 3306, s: 'MySQL'}], threat: 64 },
+        { id: 'sao_paulo', name: 'Sao Paulo [SA-E1]', ip: '177.71.200.15', lat: -23.5505, lon: -46.6333, type: 'hub', ports: [{port: 80, s: 'HTTP'}], threat: 38 },
+        { id: 'sydney', name: 'Sydney [AP-S1]', ip: '13.239.50.2', lat: -33.8688, lon: 151.2093, type: 'hub', ports: [{port: 443, s: 'HTTPS'}], threat: 19 },
+        { id: 'beijing', name: 'Beijing [AS-E1]', ip: '202.108.22.5', lat: 39.9042, lon: 116.4074, type: 'source', ports: [{port: 80, s: 'HTTP'}], threat: 75 },
+        { id: 'moscow', name: 'Moscow [RU-C1]', ip: '94.228.214.36', lat: 55.7558, lon: 37.6173, type: 'operator', ports: [{port: 443, s: 'HTTPS'}, {port: 22, s: 'SSH'}], threat: 10 },
+        { id: 'san_francisco', name: 'San Francisco [US-W1]', ip: '104.244.42.1', lat: 37.7749, lon: -122.4194, type: 'source', ports: [{port: 443, s: 'HTTPS'}], threat: 50 },
+        { id: 'singapore', name: 'Singapore [AP-SE1]', ip: '43.252.12.9', lat: 1.3521, lon: 103.8198, type: 'hub', ports: [{port: 443, s: 'HTTPS'}], threat: 31 }
+      ];
 
-    const r = this.radius * alt * this.zoom;
-    let x = r * Math.sin(phi) * Math.cos(theta);
-    let y = r * Math.cos(phi);
-    let z = r * Math.sin(phi) * Math.sin(theta);
-
-    // Rotate around X axis
-    const cosX = Math.cos(this.rotation.x);
-    const sinX = Math.sin(this.rotation.x);
-    const y1 = y * cosX - z * sinX;
-    const z1 = y * sinX + z * cosX;
-
-    const centerX = this.width / 2;
-    const centerY = this.height / 2;
-
-    return {
-      x: centerX + x,
-      y: centerY - y1,
-      z: z1,
-      visible: z1 > -this.radius * 0.2
-    };
-  }
-
-  drawGlobe() {
-    const cx = this.width / 2;
-    const cy = this.height / 2;
-    const r = this.radius * this.zoom;
-
-    // Atmospheric Glow
-    const glow = this.ctx.createRadialGradient(cx, cy, r * 0.85, cx, cy, r * 1.3);
-    glow.addColorStop(0, 'rgba(14, 165, 233, 0.25)');
-    glow.addColorStop(0.5, 'rgba(56, 189, 248, 0.08)');
-    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    this.ctx.fillStyle = glow;
-    this.ctx.beginPath();
-    this.ctx.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // Dark Earth Body
-    const earthGrad = this.ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, 5, cx, cy, r);
-    earthGrad.addColorStop(0, '#0f172a');
-    earthGrad.addColorStop(0.7, '#070d19');
-    earthGrad.addColorStop(1, '#020617');
-    this.ctx.fillStyle = earthGrad;
-    this.ctx.beginPath();
-    this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // Parallels (Latitudes)
-    this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-    this.ctx.lineWidth = 1;
-
-    for (let lat = -60; lat <= 60; lat += 30) {
-      this.ctx.beginPath();
-      let first = true;
-      for (let lon = -180; lon <= 180; lon += 10) {
-        const p = this.project(lat, lon);
-        if (p.visible) {
-          if (first) { this.ctx.moveTo(p.x, p.y); first = false; }
-          else { this.ctx.lineTo(p.x, p.y); }
-        } else {
-          first = true;
-        }
-      }
-      this.ctx.stroke();
+      this.activeNode = this.nodes[0]; // Default selected Frankfurt
+      this.initAttackArcs();
+      this.bindEvents();
+      this.animate();
     }
 
-    // Meridians (Longitudes)
-    for (let lon = -180; lon < 180; lon += 45) {
-      this.ctx.beginPath();
-      let first = true;
-      for (let lat = -80; lat <= 80; lat += 5) {
-        const p = this.project(lat, lon);
-        if (p.visible) {
-          if (first) { this.ctx.moveTo(p.x, p.y); first = false; }
-          else { this.ctx.lineTo(p.x, p.y); }
-        } else {
-          first = true;
-        }
+    initAttackArcs() {
+      this.arcs = [];
+      const target = this.nodes[0]; // Frankfurt
+      const sources = this.nodes.filter(n => n.id !== 'frankfurt');
+
+      for (let i = 0; i < sources.length; i++) {
+        const src = sources[i];
+        this.arcs.push({
+          from: src,
+          to: target,
+          progress: Math.random(),
+          speed: 0.004 + Math.random() * 0.005,
+          color: i % 2 === 0 ? '#38bdf8' : '#f59e0b',
+          trailLength: 0.25
+        });
       }
-      this.ctx.stroke();
     }
 
-    // Rim ring
-    this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-    this.ctx.lineWidth = 1.5;
-    this.ctx.beginPath();
-    this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    this.ctx.stroke();
-  }
+    bindEvents() {
+      window.addEventListener('resize', () => {
+        if (!this.canvas) return;
+        this.width = this.canvas.clientWidth || 900;
+        this.height = this.canvas.clientHeight || 550;
+        this.canvas.width = this.width * window.devicePixelRatio;
+        this.canvas.height = this.height * window.devicePixelRatio;
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      });
 
-  drawEntities() {
-    for (let e of this.entities) {
-      // Advance coordinates slightly
-      if (e.speed) {
-        e.lon += e.speed * 20;
-        if (e.lon > 180) e.lon -= 360;
+      this.canvas.addEventListener('click', (e) => {
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        for (let node of this.nodes) {
+          const pt = this.project2D(node.lat, node.lon);
+          const dist = Math.hypot(mouseX - pt.x, mouseY - pt.y);
+          if (dist < 14) {
+            this.selectNode(node);
+            break;
+          }
+        }
+      });
+    }
+
+    selectNode(node) {
+      this.activeNode = node;
+      this.updateHudCard();
+      if (window.argusApp && window.argusApp.log) {
+        window.argusApp.log(`[HUD] Выбран тактический узел: ${node.name} (${node.ip})`, 'threat');
       }
+    }
 
-      if (!this.layers[e.type + 's']) continue;
+    updateHudCard() {
+      const ipEl = document.getElementById('hud-target-ip');
+      const coordsEl = document.getElementById('hud-target-coords');
+      const portsContainer = document.getElementById('hud-target-ports');
+      const threatMeter = document.getElementById('hud-target-threat-fill');
+      const threatScore = document.getElementById('hud-target-threat-score');
 
-      const p = this.project(e.lat, e.lon, e.altitude || 1.0);
-      if (!p.visible) continue;
+      if (ipEl) ipEl.textContent = this.activeNode.ip;
+      if (coordsEl) {
+        coordsEl.textContent = `${this.activeNode.lat.toFixed(4)}° N, ${this.activeNode.lon.toFixed(4)}° E ${this.activeNode.name}`;
+      }
+      if (portsContainer) {
+        portsContainer.innerHTML = this.activeNode.ports.map(p => `
+          <div class="px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 text-center">
+            <div class="text-xs font-bold text-sky-400 font-mono">${p.port}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${p.s}</div>
+          </div>
+        `).join('');
+      }
+      if (threatMeter) threatMeter.style.width = `${this.activeNode.threat}%`;
+      if (threatScore) threatScore.textContent = `${this.activeNode.threat}%`;
+    }
 
-      // Draw Marker
-      this.ctx.save();
-      this.ctx.fillStyle = e.color;
-      this.ctx.shadowColor = e.color;
-      this.ctx.shadowBlur = 8;
+    project2D(lat, lon) {
+      // Equirectangular projection centered with padding
+      const paddingX = 40;
+      const paddingY = 40;
+      const w = this.width - paddingX * 2;
+      const h = this.height - paddingY * 2;
 
-      if (e.type === 'satellite') {
+      const x = paddingX + ((lon + 180) / 360) * w;
+      const y = paddingY + ((90 - lat) / 180) * h;
+      return { x, y };
+    }
+
+    drawWorldMap2D() {
+      // Dark cyber grid
+      this.ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+      this.ctx.lineWidth = 0.5;
+
+      const gridSize = 40;
+      for (let x = 0; x < this.width; x += gridSize) {
         this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-        this.ctx.fill();
+        this.ctx.moveTo(x, 0);
+        this.ctx.lineTo(x, this.height);
+        this.ctx.stroke();
+      }
+      for (let y = 0; y < this.height; y += gridSize) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, y);
+        this.ctx.lineTo(this.width, y);
+        this.ctx.stroke();
+      }
 
-        // Orbit trail ring
-        this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+      // Stylized continent outlines & radar rings
+      this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
+      this.ctx.lineWidth = 1;
+
+      // Equator and Greenwich lines
+      const eq = this.project2D(0, 0);
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, eq.y);
+      this.ctx.lineTo(this.width, eq.y);
+      this.ctx.stroke();
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(eq.x, 0);
+      this.ctx.lineTo(eq.x, this.height);
+      this.ctx.stroke();
+    }
+
+    drawAttackArcs() {
+      const now = Date.now() * 0.001;
+
+      for (let arc of this.arcs) {
+        arc.progress += arc.speed;
+        if (arc.progress > 1.0) arc.progress = 0;
+
+        const p1 = this.project2D(arc.from.lat, arc.from.lon);
+        const p2 = this.project2D(arc.to.lat, arc.to.lon);
+
+        // Curvature control point (tactical parabolic arc)
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy);
+        const arcHeight = Math.min(dist * 0.4, 120);
+
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2 - arcHeight;
+
+        // Draw faint base arc line
+        this.ctx.beginPath();
+        this.ctx.moveTo(p1.x, p1.y);
+        this.ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
+        this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        // Draw animated laser head and trail
+        const t = arc.progress;
+        // Quadratic bezier interpolation: B(t) = (1-t)^2 P0 + 2(1-t)t P1 + t^2 P2
+        const headX = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * midX + t * t * p2.x;
+        const headY = (1 - t) * (1 - t) * p1.y + 2 * (1 - t) * t * midY + t * t * p2.y;
+
+        const grad = this.ctx.createRadialGradient(headX, headY, 1, headX, headY, 6);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, arc.color);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+        this.ctx.fillStyle = grad;
+        this.ctx.beginPath();
+        this.ctx.arc(headX, headY, 6, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    }
+
+    drawNodes() {
+      const now = Date.now() * 0.003;
+
+      for (let node of this.nodes) {
+        const pt = this.project2D(node.lat, node.lon);
+        const isSelected = this.activeNode && this.activeNode.id === node.id;
+        const isTarget = node.type === 'primary_target';
+
+        // Outer pulsing wave
+        const pulse = (Math.sin(now + node.lat) + 1) * 0.5;
+        this.ctx.strokeStyle = isTarget ? `rgba(16, 185, 129, ${0.4 + pulse * 0.4})` : `rgba(56, 189, 248, ${0.2 + pulse * 0.3})`;
         this.ctx.lineWidth = 1;
         this.ctx.beginPath();
-        this.ctx.arc(this.width/2, this.height/2, this.radius * e.altitude, 0, Math.PI * 2);
+        this.ctx.arc(pt.x, pt.y, 6 + pulse * 8, 0, Math.PI * 2);
         this.ctx.stroke();
-      } else if (e.type === 'flight') {
+
+        // Core Dot
+        this.ctx.fillStyle = isTarget ? '#10b981' : (isSelected ? '#38bdf8' : '#0ea5e9');
+        this.ctx.shadowColor = this.ctx.fillStyle;
+        this.ctx.shadowBlur = isSelected ? 12 : 6;
         this.ctx.beginPath();
-        this.ctx.moveTo(p.x, p.y - 4);
-        this.ctx.lineTo(p.x + 3, p.y + 4);
-        this.ctx.lineTo(p.x - 3, p.y + 4);
-        this.ctx.closePath();
+        this.ctx.arc(pt.x, pt.y, isTarget || isSelected ? 4.5 : 3, 0, Math.PI * 2);
         this.ctx.fill();
-      } else if (e.type === 'ship') {
-        this.ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
-      } else if (e.type === 'fire') {
-        this.ctx.beginPath();
-        this.ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-        this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+
+        // Label
+        if (isSelected || isTarget) {
+          this.ctx.fillStyle = '#f8fafc';
+          this.ctx.font = 'bold 10px JetBrains Mono, monospace';
+          this.ctx.fillText(node.name, pt.x + 10, pt.y - 4);
+
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.font = '9px JetBrains Mono, monospace';
+          this.ctx.fillText(node.ip, pt.x + 10, pt.y + 8);
+        }
       }
+    }
 
-      // Label
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      this.ctx.font = '9px JetBrains Mono, monospace';
-      this.ctx.fillText(e.name, p.x + 6, p.y + 3);
-
-      this.ctx.restore();
+    animate() {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.drawWorldMap2D();
+      this.drawAttackArcs();
+      this.drawNodes();
+      requestAnimationFrame(() => this.animate());
     }
   }
 
-  animate() {
-    this.ctx.clearRect(0, 0, this.width, this.height);
-
-    // Auto-rotate if not dragging
-    if (!this.isDragging) {
-      this.rotation.y += 0.001;
-    }
-
-    this.drawGlobe();
-    this.drawEntities();
-
-    requestAnimationFrame(() => this.animate());
-  }
-
-  toggleLayer(layerName) {
-    if (this.layers.hasOwnProperty(layerName)) {
-      this.layers[layerName] = !this.layers[layerName];
-    }
-  }
-}
-
-window.TacticalGlobe = TacticalGlobe;
+  window.TacticalThreatMap = TacticalThreatMap;
+})();

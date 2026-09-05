@@ -16,9 +16,9 @@ from backend.app.api import (
 )
 
 app = FastAPI(
-    title="CyberSec & OSINT Studio Cockpit",
+    title="ARGUS // Tactical Intelligence & Defense",
     description="Единая рабочая станция кибербезопасности, OSINT, GEOINT, криптографии и аудита кода",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -44,8 +44,8 @@ app.include_router(analyst.router, prefix="/api/analyst", tags=["Security Analys
 def health_check():
     return {
         "status": "online",
-        "service": "CyberSec & OSINT Studio",
-        "version": "1.0.0",
+        "service": "ARGUS Tactical Cockpit",
+        "version": "2.0.0",
     }
 
 

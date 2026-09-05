@@ -62,12 +62,12 @@ function waitForServer(callback, retries = 30) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1320,
-    height: 880,
-    minWidth: 1000,
-    minHeight: 650,
-    title: 'CyberSec & OSINT Studio Cockpit',
-    backgroundColor: '#030712',
+    width: 1380,
+    height: 900,
+    minWidth: 1080,
+    minHeight: 700,
+    title: 'ARGUS // Tactical Intelligence & Defense',
+    backgroundColor: '#0a0e15',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: false,

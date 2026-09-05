@@ -29,12 +29,12 @@ def run_app():
             time.sleep(0.1)
 
     window = webview.create_window(
-        title='CyberSec & OSINT Studio Cockpit (pywebview)',
+        title='ARGUS // Tactical Intelligence & Defense',
         url=f'http://127.0.0.1:{PORT}',
-        width=1320,
-        height=880,
-        min_size=(1000, 650),
-        background_color='#030712'
+        width=1380,
+        height=900,
+        min_size=(1080, 700),
+        background_color='#0a0e15'
     )
     webview.start(debug=False)
 

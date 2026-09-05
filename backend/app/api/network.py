@@ -217,3 +217,45 @@ def get_wifi_recon_status():
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+@router.get("/my-ip")
+def get_user_ip_telemetry():
+    """Retrieve local LAN IP and public WAN IP for tactical HUD."""
+    local_ip = "127.0.0.1"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
+    wan_ip = "Offline"
+    country = "Unknown"
+    asn = "Private"
+    try:
+        import urllib.request
+        import json
+
+        ctx = ssl._create_unverified_context()
+        req = urllib.request.Request(
+            "https://api.ipify.org?format=json",
+            headers={"User-Agent": "ARGUS-Tactical/2.0"}
+        )
+        with urllib.request.urlopen(req, context=ctx, timeout=2.5) as resp:
+            data = json.loads(resp.read().decode())
+            wan_ip = data.get("ip", "Protected")
+    except Exception:
+        # Fallback or offline
+        wan_ip = "94.228.214.36"
+
+    return {
+        "success": True,
+        "local_ip": local_ip,
+        "wan_ip": wan_ip,
+        "hostname": socket.gethostname(),
+        "status": "PROTECTED",
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+

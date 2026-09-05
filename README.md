@@ -1,18 +1,19 @@
-# 🛡️ CyberSec & OSINT Studio Cockpit
+# 👁️ ARGUS // Tactical Intelligence & Defense Cockpit
 
 > **All-in-One Cyber Intelligence, Reconnaissance & Defense Operations Cockpit**
-> Единая рабочая станция кибербезопасности, OSINT-разведки, 3D GEOINT, аудита кода и криптографии, объединяющая лучшие open-source инструменты мира в удобном графическом центре управления.
+> Единая рабочая станция тактической разведки, кибербезопасности, OSINT, 3D GEOINT / God's Eye View, аудита кода и криптографии, объединяющая лучшие open-source инструменты мира в премиальном графическом центре управления.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Version](https://img.shields.io/badge/Version-2.0.0-emerald.svg)]()
 [![Status](https://img.shields.io/badge/Status-Active%20Production-emerald.svg)]()
 
 ---
 
 ## 🌟 Возможности и объединенные проекты
 
-Вместо запуска десятков консольных утилит с разными флагами вручную, **CyberSec & OSINT Studio** объединяет функционал передовых репозиториев GitHub в 8 специализированных экранов:
+Вместо запуска десятков консольных утилит с разными флагами вручную, **ARGUS** объединяет функционал передовых репозиториев GitHub в единый тактический кокпит:
 
 | Модуль | Вдохновлен проектами | Ключевые возможности |
 | :--- | :--- | :--- |
