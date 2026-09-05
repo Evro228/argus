@@ -4,6 +4,13 @@
 
 const API_BASE = '/api';
 
+function escapeHtml(str) {
+  if (typeof str !== 'string') return String(str ?? '');
+  return str.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 const App = {
   activeTab: 'geoint', // Main Screen starts on God's Eye View & Tactical Threat Map
   threatMapInstance: null,
@@ -43,8 +50,19 @@ const App = {
 
     const line = document.createElement('div');
     line.className = `py-0.5 leading-relaxed font-mono ${colorClass}`;
-    line.innerHTML = `<span class="text-slate-500 text-xs">${time}</span> <span class="font-bold text-xs">${prefix}</span> ${message}`;
 
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'text-slate-500 text-xs';
+    timeSpan.textContent = time;
+
+    const prefixSpan = document.createElement('span');
+    prefixSpan.className = 'font-bold text-xs';
+    prefixSpan.textContent = ` ${prefix} `;
+
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = message; // Safe text node prevents DOM XSS
+
+    line.append(timeSpan, prefixSpan, msgSpan);
     consoleEl.appendChild(line);
     consoleEl.scrollTop = consoleEl.scrollHeight;
   },
@@ -326,12 +344,13 @@ const App = {
         data.profiles.forEach(p => {
           const item = document.createElement('div');
           item.className = "p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between";
+          const safeUrl = /^https?:\/\//i.test(p.url) ? p.url : '#';
           item.innerHTML = `
             <div>
-              <div class="font-bold text-slate-200">${p.name}</div>
-              <div class="text-[10px] text-slate-400 font-mono">${p.category} • HTTP ${p.status_code}</div>
+              <div class="font-bold text-slate-200">${escapeHtml(p.name)}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${escapeHtml(p.category)} • HTTP ${escapeHtml(p.status_code)}</div>
             </div>
-            <a href="${p.url}" target="_blank" class="px-2 py-1 rounded text-[11px] bg-slate-800 text-sky-400 hover:bg-sky-500 hover:text-white transition">Открыть ↗</a>
+            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded text-[11px] bg-slate-800 text-sky-400 hover:bg-sky-500 hover:text-white transition">Открыть ↗</a>
           `;
           resultsBox.appendChild(item);
         });
@@ -439,7 +458,7 @@ const App = {
         data.findings.forEach(f => {
           const item = document.createElement('div');
           item.className = "p-2 rounded bg-slate-900 border border-slate-800 text-xs";
-          item.innerHTML = `<div class="font-bold text-rose-400">[${f.severity}] ${f.title}</div><div class="text-slate-400 font-mono">${f.file}</div>`;
+          item.innerHTML = `<div class="font-bold text-rose-400">[${escapeHtml(f.severity)}] ${escapeHtml(f.type || f.title)}</div><div class="text-slate-400 font-mono text-[11px] mt-0.5">${escapeHtml(f.file)}</div>`;
           listEl.appendChild(item);
         });
       } else {

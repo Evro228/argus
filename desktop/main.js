@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
@@ -19,7 +19,8 @@ function startPythonBackend() {
 
   pythonProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'backend.app.main:app', '--host', '127.0.0.1', '--port', `${PORT}`], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PYTHONPATH: path.join(__dirname, '..') }
+    env: { ...process.env, PYTHONPATH: path.join(__dirname, '..') },
+    detached: !isWin // Enables PGID management on POSIX
   });
 
   if (pythonProcess.stdout) {
@@ -71,7 +72,26 @@ function createWindow() {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false
+    }
+  });
+
+  // Security: block opening new windows inside Electron; delegate to default OS browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  // Security: prevent in-window navigation away from local ARGUS cockpit
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith(SERVER_URL)) {
+      event.preventDefault();
+      shell.openExternal(url);
     }
   });
 
@@ -80,6 +100,19 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+}
+
+function stopPythonBackend() {
+  if (!pythonProcess || pythonProcess.killed) return;
+  try {
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', pythonProcess.pid.toString(), '/f', '/t']);
+    } else {
+      process.kill(-pythonProcess.pid, 'SIGTERM'); // Kill entire process group
+    }
+  } catch (e) {
+    try { pythonProcess.kill('SIGKILL'); } catch (_) {}
+  }
 }
 
 app.whenReady().then(() => {
@@ -93,14 +126,5 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('will-quit', () => {
-  if (pythonProcess) {
-    try {
-      if (process.platform === 'win32') {
-        spawn('taskkill', ['/pid', pythonProcess.pid, '/f', '/t']);
-      } else {
-        pythonProcess.kill('SIGINT');
-      }
-    } catch (e) {}
-  }
-});
+app.on('before-quit', stopPythonBackend);
+app.on('will-quit', stopPythonBackend);

@@ -1,9 +1,27 @@
+import ast
 import io
 
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from PIL import ExifTags, Image
 
 router = APIRouter()
+
+MAX_UPLOAD_SIZE = 15 * 1024 * 1024  # 15 MB threshold
+Image.MAX_IMAGE_PIXELS = 25_000_000  # 25 Megapixels threshold
+
+
+async def read_limited_file(file: UploadFile, max_bytes: int = MAX_UPLOAD_SIZE) -> bytes:
+    buffer = io.BytesIO()
+    read_size = 0
+    while chunk := await file.read(1024 * 1024):
+        read_size += len(chunk)
+        if read_size > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Размер файла превышает лимит {max_bytes // (1024 * 1024)} МБ",
+            )
+        buffer.write(chunk)
+    return buffer.getvalue()
 
 
 def convert_to_degrees(value):
@@ -13,11 +31,40 @@ def convert_to_degrees(value):
     return d + (m / 60.0) + (s / 3600.0)
 
 
+def safe_parse_coordinates(coord_val):
+    """
+    Secure coordinate parsing using ast.literal_eval to eliminate RCE via eval().
+    """
+    if coord_val is None:
+        return None
+    val = coord_val
+    if isinstance(val, str) and ("[" in val or "(" in val):
+        try:
+            val = ast.literal_eval(val)
+        except (ValueError, SyntaxError):
+            return None
+    if isinstance(val, (list, tuple)) and len(val) == 3:
+        try:
+            return [float(x) for x in val]
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
 @router.post("/image/exif")
 async def extract_image_exif(file: UploadFile = File(...)):
-    contents = await file.read()
+    try:
+        contents = await read_limited_file(file)
+    except HTTPException as e:
+        return {"success": False, "error": e.detail}
+
     try:
         image = Image.open(io.BytesIO(contents))
+    except Image.DecompressionBombError:
+        return {
+            "success": False,
+            "error": "Обнаружена декомпрессионная бомба изображения (DecompressionBomb).",
+        }
     except Exception as e:
         return {"success": False, "error": f"Не удалось открыть изображение: {e!s}"}
 
@@ -52,20 +99,15 @@ async def extract_image_exif(file: UploadFile = File(...)):
                 gps_lon = gps_info.get("GPSLongitude")
                 gps_lon_ref = gps_info.get("GPSLongitudeRef")
 
-                # If GPS tags are tuples/lists
-                if gps_lat and gps_lon:
-                    lat_deg = convert_to_degrees(
-                        eval(gps_lat)
-                        if isinstance(gps_lat, str) and "[" in gps_lat
-                        else gps_lat
-                    )
+                parsed_lat = safe_parse_coordinates(gps_lat)
+                if parsed_lat:
+                    lat_deg = convert_to_degrees(parsed_lat)
                     if gps_lat_ref == "S":
                         lat_deg = -lat_deg
-                    lon_deg = convert_to_degrees(
-                        eval(gps_lon)
-                        if isinstance(gps_lon, str) and "[" in gps_lon
-                        else gps_lon
-                    )
+
+                parsed_lon = safe_parse_coordinates(gps_lon)
+                if parsed_lon:
+                    lon_deg = convert_to_degrees(parsed_lon)
                     if gps_lon_ref == "W":
                         lon_deg = -lon_deg
             except Exception:
@@ -104,7 +146,11 @@ async def extract_image_exif(file: UploadFile = File(...)):
 # --- Dangerzone & PDF Security Inspector ---
 @router.post("/pdf/inspect")
 async def inspect_pdf_security(file: UploadFile = File(...)):
-    contents = await file.read()
+    try:
+        contents = await read_limited_file(file)
+    except HTTPException as e:
+        return {"success": False, "error": e.detail}
+
     if not contents.startswith(b"%PDF"):
         return {
             "success": False,

@@ -21,11 +21,17 @@ app = FastAPI(
     version="2.0.0",
 )
 
+# Security-hardened CORS (restrict origins to local cockpit and Electron)
+ALLOWED_ORIGINS = os.getenv(
+    "ARGUS_ALLOWED_ORIGINS",
+    "http://127.0.0.1:8800,http://localhost:8800,http://127.0.0.1:3000,http://localhost:3000,null",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 

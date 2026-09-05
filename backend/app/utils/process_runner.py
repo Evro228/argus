@@ -58,6 +58,7 @@ async def run_command_stream(
     except asyncio.TimeoutError:
         try:
             process.kill()
+            await process.wait()
         except Exception:
             pass
         return {

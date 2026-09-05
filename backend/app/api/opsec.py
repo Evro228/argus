@@ -20,28 +20,35 @@ def sanitize_sensitive_data(req: SanitizeRequest):
     """
     Pasteguard logic: strips emails, phones, credit cards, and tokens from text.
     """
-    cleaned = req.text
+    # Bounded input to prevent ReDoS
+    cleaned = req.text[:100_000]
     replacements = []
 
-    # 1. Emails
-    email_pattern = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+"
+    # 1. Emails (ReDoS-safe RFC pattern)
+    email_pattern = r"\b[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,10}\b"
     for m in re.finditer(email_pattern, cleaned):
         replacements.append(("EMAIL", m.group(0)))
     cleaned = re.sub(email_pattern, "[REDACTED_EMAIL]", cleaned)
 
-    # 2. Credit card numbers (Luhn/standard digits 13-19)
+    # 2. Credit card numbers (standard digits 13-16)
     cc_pattern = r"\b(?:\d[ -]*?){13,16}\b"
+    for m in re.finditer(cc_pattern, cleaned):
+        replacements.append(("CARD", m.group(0)))
     cleaned = re.sub(cc_pattern, "[REDACTED_CARD]", cleaned)
 
     # 3. Phone numbers (intl format)
     phone_pattern = r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
+    for m in re.finditer(phone_pattern, cleaned):
+        replacements.append(("PHONE", m.group(0)))
     cleaned = re.sub(phone_pattern, "[REDACTED_PHONE]", cleaned)
 
-    # 4. API keys / tokens (generic hex or base64 32+ chars)
-    token_pattern = r'(?:api[_-]?key|token|secret|password)\s*[:=]\s*["\']?([a-zA-Z0-9_.-]{16,})["\']?'
+    # 4. API keys / tokens (redacts value cleanly without duplicating key)
+    token_pattern = r'((?:api[_-]?key|token|secret|password)\s*[:=]\s*["\']?)([a-zA-Z0-9_.-]{16,})(["\']?)'
+    for m in re.finditer(token_pattern, cleaned, flags=re.IGNORECASE):
+        replacements.append(("SECRET_TOKEN", m.group(2)))
     cleaned = re.sub(
         token_pattern,
-        [r"\g<0>"][0] + ": [REDACTED_SECRET]",
+        r"\1[REDACTED_SECRET]\3",
         cleaned,
         flags=re.IGNORECASE,
     )

@@ -76,9 +76,10 @@ def generate_password(req: PassGenRequest):
         secrets.choice(alphabet) for _ in range(max(8, min(req.length, 128)))
     )
 
-    # Calculate entropy estimate
+    # Calculate Shannon information entropy
+    import math
     pool_size = len(alphabet)
-    entropy_bits = round(req.length * (pool_size.bit_length() - 1), 1)
+    entropy_bits = round(req.length * math.log2(pool_size), 1)
 
     strength = "Слабый"
     if entropy_bits >= 80:
@@ -143,8 +144,23 @@ def create_burn_note(req: BurnNoteCreateRequest):
     if not req.secret.strip():
         return {"success": False, "error": "Записка не может быть пустой."}
 
+    # Bounded input check to prevent RAM exhaustion
+    if len(req.secret) > 100_000:
+        return {"success": False, "error": "Превышен лимит размера записки (100 КБ)."}
+
+    # Automatic purge of expired notes
+    now = time.time()
+    for k in list(EPHEMERAL_NOTES.keys()):
+        if EPHEMERAL_NOTES[k]["expires_at"] < now:
+            EPHEMERAL_NOTES.pop(k, None)
+
+    # Eviction policy: hard cap at 1000 notes
+    if len(EPHEMERAL_NOTES) >= 1000:
+        oldest_k = next(iter(EPHEMERAL_NOTES))
+        EPHEMERAL_NOTES.pop(oldest_k, None)
+
     token = secrets.token_urlsafe(16)
-    expires_at = time.time() + req.ttl_seconds
+    expires_at = now + min(req.ttl_seconds, 86400)  # Max 24 hours
 
     EPHEMERAL_NOTES[token] = {"secret": req.secret, "expires_at": expires_at}
 

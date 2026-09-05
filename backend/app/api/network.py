@@ -4,6 +4,9 @@ import socket
 import ssl
 from datetime import datetime
 
+import ipaddress
+import re
+import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -49,27 +52,42 @@ class CertCheckRequest(BaseModel):
     port: int = 443
 
 
-@router.post("/scan/ports")
-async def scan_target_ports(req: ScanHostRequest):
-    target = (
-        req.target.strip()
+def sanitize_target_host(raw_target: str) -> str:
+    cleaned = (
+        raw_target.strip()
         .replace("http://", "")
         .replace("https://", "")
         .split("/")[0]
         .split(":")[0]
     )
-    if not target:
-        return {"success": False, "error": "Укажите целевой IP или домен."}
+    if not cleaned or cleaned.startswith("-"):
+        raise ValueError("Некорректный синтаксис цели. Использование флагов запрещено.")
+    try:
+        ipaddress.ip_address(cleaned)
+        return cleaned
+    except ValueError:
+        # FQDN validation (RFC 1123)
+        if re.fullmatch(r"(?=^.{1,253}$)(^(?!-)[A-Za-z0-9-_]{1,63}(?<!-)\.)+[A-Za-z]{2,63}$", cleaned) or cleaned in ("localhost", "127.0.0.1"):
+            return cleaned
+        raise ValueError("Цель должна быть валидным IP-адресом или доменным именем FQDN.")
+
+
+@router.post("/scan/ports")
+async def scan_target_ports(req: ScanHostRequest):
+    try:
+        target = sanitize_target_host(req.target)
+    except ValueError as err:
+        return {"success": False, "error": str(err)}
 
     nmap_path = shutil.which("nmap")
 
-    # If user selected nmap and it's installed, run nmap
+    # If user selected nmap and it's installed, run nmap with explicit '--' flag delimiter
     if "nmap" in req.scan_type and nmap_path:
-        cmd = ["nmap", "-T4", target]
+        cmd = ["nmap", "-T4", "--", target]
         if req.scan_type == "nmap_fast":
-            cmd = ["nmap", "-F", "-T4", target]
+            cmd = ["nmap", "-F", "-T4", "--", target]
         elif req.scan_type == "nmap_services":
-            cmd = ["nmap", "-sV", "--version-light", "-T4", target]
+            cmd = ["nmap", "-sV", "--version-light", "-T4", "--", target]
 
         res = await run_command_stream(cmd, timeout=120)
         return {
@@ -220,8 +238,8 @@ def get_wifi_recon_status():
 
 
 @router.get("/my-ip")
-def get_user_ip_telemetry():
-    """Retrieve local LAN IP and public WAN IP for tactical HUD."""
+async def get_user_ip_telemetry():
+    """Retrieve local LAN IP and public WAN IP for tactical HUD with strict TLS."""
     local_ip = "127.0.0.1"
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -231,24 +249,15 @@ def get_user_ip_telemetry():
     except Exception:
         pass
 
-    wan_ip = "Offline"
-    country = "Unknown"
-    asn = "Private"
+    wan_ip = "94.228.214.36"
     try:
-        import urllib.request
-        import json
-
-        ctx = ssl._create_unverified_context()
-        req = urllib.request.Request(
-            "https://api.ipify.org?format=json",
-            headers={"User-Agent": "ARGUS-Tactical/2.0"}
-        )
-        with urllib.request.urlopen(req, context=ctx, timeout=2.5) as resp:
-            data = json.loads(resp.read().decode())
-            wan_ip = data.get("ip", "Protected")
+        async with httpx.AsyncClient(verify=True, timeout=3.0) as client:
+            resp = await client.get("https://api.ipify.org?format=json")
+            if resp.status_code == 200:
+                data = resp.json()
+                wan_ip = data.get("ip", "Protected")
     except Exception:
-        # Fallback or offline
-        wan_ip = "94.228.214.36"
+        pass
 
     return {
         "success": True,
@@ -256,6 +265,6 @@ def get_user_ip_telemetry():
         "wan_ip": wan_ip,
         "hostname": socket.gethostname(),
         "status": "PROTECTED",
-        "timestamp": datetime.utcnow().isoformat() + "Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
