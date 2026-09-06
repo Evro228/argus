@@ -55,6 +55,8 @@ const App = {
     this.bindSessionHistory();
     this.bindApiKeysConfig();
     this.bindCctvMatrix();
+    this.initWatcher();
+    this.loadLanAssetsCached();
 
     this.log('ARGUS Tactical Cockpit инициализирован. Все подсистемы в норме.', 'system');
 
@@ -325,6 +327,12 @@ const App = {
       netBtn.addEventListener('click', () => this.scanPorts());
     }
 
+    // 1-Click LAN Discovery
+    const lanBtn = document.getElementById('btn-discover-lan');
+    if (lanBtn) {
+      lanBtn.addEventListener('click', () => this.discoverLanAssets());
+    }
+
     // Wi-Fi Refresh
     const wifiBtn = document.getElementById('btn-refresh-wifi');
     if (wifiBtn) {
@@ -581,6 +589,285 @@ const App = {
         document.getElementById('wifi-sec-val').textContent = data.current_network.security_rating;
       }
     } catch (e) {}
+  },
+
+  // -------------------------------------------------------------
+  // 1-CLICK LAN ASSET DISCOVERY & FINGERPRINTING
+  // -------------------------------------------------------------
+  async discoverLanAssets() {
+    const btn = document.getElementById('btn-discover-lan');
+    const grid = document.getElementById('lan-devices-grid');
+    const totalEl = document.getElementById('lan-count-total');
+    const gwEl = document.getElementById('lan-count-gateway');
+    const camEl = document.getElementById('lan-count-cameras');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin inline-block mr-1">🌀</span> <span>СКАНИРОВАНИЕ СЕТИ...</span>`;
+    }
+    if (grid) {
+      grid.innerHTML = `<div class="col-span-full py-8 text-center text-cyan-400 font-mono text-xs animate-pulse">Аудит ARP-кэша и зондирование портов подсети (80, 443, 554 RTSP)...</div>`;
+    }
+    this.log('[LAN DISCOVERY] Запуск 1-Click обнаружения устройств в локальном сегменте...', 'system');
+
+    try {
+      const res = await fetch(`${API_BASE}/network/discover`, {
+        method: 'POST',
+        headers: getApiHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        const devices = data.devices || [];
+        const summary = data.summary || {};
+        if (totalEl) totalEl.textContent = summary.total_devices || devices.length;
+        if (gwEl) gwEl.textContent = summary.gateways || 0;
+        if (camEl) camEl.textContent = summary.cameras || 0;
+
+        this.renderLanDevices(devices);
+        this.log(`[LAN DISCOVERY] Обнаружено ${devices.length} устройств (Шлюзов: ${summary.gateways || 0}, Камер: ${summary.cameras || 0})`, 'success');
+        this.recordHistory('LAN Discovery', 'Local Subnet', `Найдено устройств: ${devices.length}`);
+      } else {
+        if (grid) grid.innerHTML = `<div class="col-span-full py-6 text-center text-rose-400 font-mono text-xs">Ошибка сканирования: ${escapeHtml(data.error || 'Неизвестная ошибка')}</div>`;
+      }
+    } catch (e) {
+      this.log(`[LAN DISCOVERY] Сбой: ${e.message}`, 'error');
+      if (grid) grid.innerHTML = `<div class="col-span-full py-6 text-center text-rose-400 font-mono text-xs">Сбой подключения к сервису обнаружения: ${escapeHtml(e.message)}</div>`;
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<span>⚡</span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>`;
+      }
+    }
+  },
+
+  async loadLanAssetsCached() {
+    try {
+      const res = await fetch(`${API_BASE}/network/devices`, { headers: getApiHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.devices && data.devices.length > 0) {
+          const totalEl = document.getElementById('lan-count-total');
+          const gwEl = document.getElementById('lan-count-gateway');
+          const camEl = document.getElementById('lan-count-cameras');
+          const summary = data.summary || {};
+          if (totalEl) totalEl.textContent = summary.total_devices || data.devices.length;
+          if (gwEl) gwEl.textContent = summary.gateways || 0;
+          if (camEl) camEl.textContent = summary.cameras || 0;
+          this.renderLanDevices(data.devices);
+        }
+      }
+    } catch (_) {}
+  },
+
+  renderLanDevices(devices) {
+    const grid = document.getElementById('lan-devices-grid');
+    if (!grid) return;
+    if (!devices || devices.length === 0) {
+      grid.innerHTML = `<div class="col-span-full py-8 text-center text-slate-500 font-mono text-xs">Активных хостов в локальной таблице не найдено.</div>`;
+      return;
+    }
+
+    grid.innerHTML = devices.map(d => {
+      const isGw = d.is_gateway;
+      const isCam = d.has_rtsp;
+      const borderColor = isCam ? 'border-rose-500/40' : (isGw ? 'border-amber-500/40' : 'border-slate-800');
+      const badgeColor = isCam ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 
+                         isGw ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 
+                         'bg-slate-800 text-cyan-300 border-slate-700';
+      const typeLabel = isCam ? '📹 IP-КАМЕРА (RTSP)' : (isGw ? '🌐 ШЛЮЗ / РОУТЕР' : (d.device_type || 'HOST').toUpperCase());
+
+      const portsHtml = (d.open_ports || []).map(p => {
+        const pBadge = p === 554 ? 'bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold' : 'bg-slate-900 text-slate-400 border-slate-700';
+        return `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono border ${pBadge}">${p}</span>`;
+      }).join(' ');
+
+      return `
+        <div class="p-3 rounded-xl bg-slate-900/90 border ${borderColor} font-mono space-y-2 flex flex-col justify-between hover:border-cyan-500/40 transition">
+          <div>
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-xs font-bold text-slate-100 flex items-center space-x-1">
+                <span>${isCam ? '📹' : (isGw ? '🌐' : '💻')}</span>
+                <span>${escapeHtml(d.ip)}</span>
+              </span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${badgeColor}">${typeLabel}</span>
+            </div>
+            <div class="text-[11px] text-cyan-400 font-bold truncate">${escapeHtml(d.vendor || 'Unknown Vendor')}</div>
+            <div class="text-[10px] text-slate-400 flex justify-between">
+              <span>MAC: ${escapeHtml(d.mac || 'N/A')}</span>
+              <span>${escapeHtml(d.hostname || '')}</span>
+            </div>
+            ${d.open_ports && d.open_ports.length > 0 ? `
+              <div class="mt-2 pt-1 border-t border-slate-800/80 flex items-center space-x-1">
+                <span class="text-[10px] text-slate-500">Порты:</span>
+                <div class="flex flex-wrap gap-1">${portsHtml}</div>
+              </div>
+            ` : ''}
+          </div>
+          <div class="pt-2 border-t border-slate-800/80 flex justify-end">
+            <button onclick="window.argusApp.targetForPortScan('${escapeHtml(d.ip)}')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition flex items-center space-x-1 cursor-pointer">
+              <span>🎯</span> <span>СКАН ПОРТОВ</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  targetForPortScan(ip) {
+    const input = document.getElementById('net-scan-target');
+    if (input) {
+      input.value = ip;
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.scanPorts();
+    }
+  },
+
+  // -------------------------------------------------------------
+  // BACKGROUND WATCHER DAEMON & REAL-TIME ALERTS
+  // -------------------------------------------------------------
+  initWatcher() {
+    const statusBtn = document.getElementById('btn-watcher-status');
+    const closeBtn = document.getElementById('btn-close-watcher-dialog');
+    const toggleBtn = document.getElementById('btn-watcher-toggle');
+    const testBtn = document.getElementById('btn-watcher-test');
+    const clearBtn = document.getElementById('btn-watcher-clear');
+
+    if (statusBtn) statusBtn.onclick = () => this.openWatcherModal();
+    if (closeBtn) closeBtn.onclick = () => this.closeWatcherModal();
+
+    if (toggleBtn) {
+      toggleBtn.onclick = async () => {
+        try {
+          const statusRes = await fetch(`${API_BASE}/watcher/status`, { headers: getApiHeaders() });
+          const statusData = await statusRes.json();
+          const endpoint = statusData.running ? '/watcher/stop' : '/watcher/start';
+          await fetch(`${API_BASE}${endpoint}`, { method: 'POST', headers: getApiHeaders() });
+          await this.pollWatcherStatus();
+        } catch (e) {
+          this.log(`[WATCHER] Ошибка переключения: ${e.message}`, 'error');
+        }
+      };
+    }
+
+    if (testBtn) {
+      testBtn.onclick = async () => {
+        try {
+          await fetch(`${API_BASE}/watcher/trigger-test`, { method: 'POST', headers: getApiHeaders() });
+          await this.pollWatcherStatus();
+          this.log('[WATCHER] Тестовый алерт безопасности сгенерирован.', 'warn');
+        } catch (e) {
+          this.log(`[WATCHER] Ошибка теста: ${e.message}`, 'error');
+        }
+      };
+    }
+
+    if (clearBtn) {
+      clearBtn.onclick = async () => {
+        try {
+          await fetch(`${API_BASE}/watcher/clear`, { method: 'POST', headers: getApiHeaders() });
+          await this.pollWatcherStatus();
+          this.log('[WATCHER] Журнал алертов очищен.', 'info');
+        } catch (e) {
+          this.log(`[WATCHER] Ошибка очистки: ${e.message}`, 'error');
+        }
+      };
+    }
+
+    // Initial check and periodic polling every 15s
+    this.pollWatcherStatus();
+    this.watcherTimer = setInterval(() => this.pollWatcherStatus(), 15000);
+  },
+
+  async pollWatcherStatus() {
+    try {
+      const res = await fetch(`${API_BASE}/watcher/status`, { headers: getApiHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const badgeText = document.getElementById('watcher-badge-text');
+      const alertsCountEl = document.getElementById('watcher-alerts-count');
+      const modalStatus = document.getElementById('watcher-modal-status');
+      const modalStats = document.getElementById('watcher-modal-stats');
+      const toggleBtn = document.getElementById('btn-watcher-toggle');
+
+      const isRunning = data.running;
+      const alertsCount = data.alerts_count || 0;
+
+      if (alertsCountEl) alertsCountEl.textContent = alertsCount;
+      if (badgeText) {
+        badgeText.innerHTML = `🚨 СТОРОЖ: <span class="${isRunning ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${isRunning ? 'АКТИВЕН' : 'ОСТАНОВЛЕН'}</span> (<span id="watcher-alerts-count" class="${alertsCount > 0 ? 'text-rose-400 font-bold animate-pulse' : 'text-slate-300'}">${alertsCount}</span>)`;
+      }
+      if (modalStatus) {
+        modalStatus.textContent = isRunning ? 'АКТИВЕН' : 'ОСТАНОВЛЕН';
+        modalStatus.className = `px-2 py-0.5 rounded font-bold border ${isRunning ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`;
+      }
+      if (modalStats) {
+        modalStats.textContent = `Интервал: ${data.interval_seconds}с • Циклов: ${data.cycles_completed || 0}`;
+      }
+      if (toggleBtn) {
+        toggleBtn.textContent = isRunning ? 'ОСТАНОВИТЬ' : 'ЗАПУСТИТЬ';
+      }
+
+      // If new critical alerts arrived, log them to HUD terminal
+      if (data.recent_alerts && data.recent_alerts.length > 0) {
+        const latest = data.recent_alerts[0];
+        if (this._lastLoggedAlertId !== latest.id) {
+          this._lastLoggedAlertId = latest.id;
+          const logType = latest.level === 'CRITICAL' ? 'threat' : (latest.level === 'WARNING' ? 'warn' : 'info');
+          this.log(`[WATCHER ALERT] [${latest.level}] ${latest.title}: ${latest.message}`, logType);
+        }
+      }
+
+      this.renderWatcherAlerts(data.recent_alerts || []);
+    } catch (_) {}
+  },
+
+  openWatcherModal() {
+    const dialog = document.getElementById('dialog-watcher');
+    if (!dialog) return;
+    this.pollWatcherStatus();
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+  },
+
+  closeWatcherModal() {
+    const dialog = document.getElementById('dialog-watcher');
+    if (!dialog) return;
+    if (typeof dialog.close === 'function') dialog.close();
+    else dialog.removeAttribute('open');
+  },
+
+  renderWatcherAlerts(alerts) {
+    const feed = document.getElementById('watcher-alerts-feed');
+    const countEl = document.getElementById('watcher-modal-alert-count');
+    if (!feed) return;
+    if (countEl) countEl.textContent = `${alerts.length} записей`;
+
+    if (alerts.length === 0) {
+      feed.innerHTML = `<div class="text-center py-6 text-slate-500 font-mono">Нет активных инцидентов. Все периметры в норме.</div>`;
+      return;
+    }
+
+    feed.innerHTML = alerts.map(a => {
+      const isCrit = a.level === 'CRITICAL';
+      const isWarn = a.level === 'WARNING';
+      const borderCol = isCrit ? 'border-rose-500/50 bg-rose-950/20' : (isWarn ? 'border-amber-500/40 bg-amber-950/20' : 'border-slate-800 bg-slate-900/60');
+      const badgeCol = isCrit ? 'bg-rose-500/30 text-rose-300 border-rose-500/50' : (isWarn ? 'bg-amber-500/30 text-amber-300 border-amber-500/50' : 'bg-slate-800 text-sky-300 border-slate-700');
+
+      return `
+        <div class="p-3 rounded-xl border ${borderCol} font-mono space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${badgeCol}">${escapeHtml(a.level)}</span>
+              <span class="text-xs font-bold text-slate-100">${escapeHtml(a.title)}</span>
+            </div>
+            <span class="text-[10px] text-slate-500">${escapeHtml(a.time_utc || '')}</span>
+          </div>
+          <div class="text-[11px] text-slate-300">${escapeHtml(a.message)}</div>
+          <div class="text-[9px] text-slate-500">Компонент: ${escapeHtml(a.component || 'HOST')}</div>
+        </div>
+      `;
+    }).join('');
   },
 
   async scanCodePath() {
@@ -2438,6 +2725,9 @@ const App = {
     const flagEl = document.getElementById('cam-player-flag');
     const metaEl = document.getElementById('cam-player-meta');
     const imgEl = document.getElementById('cam-player-image');
+    const videoEl = document.getElementById('cam-player-video');
+    const streamBadge = document.getElementById('cam-player-stream-badge');
+    const toggleStreamBtn = document.getElementById('btn-cam-toggle-stream');
     const idOverlay = document.getElementById('cam-player-overlay-id');
     const coordsOverlay = document.getElementById('cam-player-overlay-coords');
     const resBadge = document.getElementById('cam-player-res-badge');
@@ -2455,6 +2745,13 @@ const App = {
       const data = await res.json();
       const cam = data.camera;
 
+      // Fetch live stream configuration
+      let streamInfo = null;
+      try {
+        const streamRes = await fetch(`/api/cameras/stream/${cameraId}`, { headers: getAuthHeaders() });
+        if (streamRes.ok) streamInfo = await streamRes.json();
+      } catch (_) {}
+
       if (titleEl) titleEl.textContent = cam.name;
       if (flagEl) flagEl.textContent = cam.flag;
       if (metaEl) metaEl.textContent = `${cam.operator} • ${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E • ${cam.resolution} ${cam.fps} FPS`;
@@ -2464,6 +2761,90 @@ const App = {
       if (resBadge) resBadge.textContent = cam.resolution;
       if (externalBtn) externalBtn.href = cam.stream_url;
       if (statusMsg) statusMsg.textContent = '';
+
+      // Clean up previous HLS instance if active
+      if (this._currentHls) {
+        this._currentHls.destroy();
+        this._currentHls = null;
+      }
+      if (videoEl) {
+        videoEl.pause();
+        videoEl.src = '';
+      }
+
+      let isStreaming = false;
+
+      const setupHlsStream = () => {
+        if (!streamInfo || !streamInfo.hls_available || !videoEl) return false;
+        const streamUrl = streamInfo.stream_url;
+
+        if (window.Hls && window.Hls.isSupported()) {
+          const hls = new window.Hls({ enableWorker: false, lowLatencyMode: true });
+          hls.loadSource(streamUrl);
+          hls.attachMedia(videoEl);
+          hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+            videoEl.play().catch(() => {});
+          });
+          hls.on(window.Hls.Events.ERROR, (evt, errData) => {
+            if (errData && errData.fatal) {
+              this.log(`[CCTV STREAM] Ошибка потока (${cam.id}): ${errData.type}`, 'warn');
+              switchToSnapshot();
+            }
+          });
+          this._currentHls = hls;
+          return true;
+        } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+          videoEl.src = streamUrl;
+          videoEl.play().catch(() => {});
+          return true;
+        }
+        return false;
+      };
+
+      const switchToStream = () => {
+        if (setupHlsStream()) {
+          isStreaming = true;
+          if (videoEl) videoEl.classList.remove('hidden');
+          if (imgEl) imgEl.classList.add('hidden');
+          if (streamBadge) streamBadge.classList.remove('hidden');
+          if (toggleStreamBtn) toggleStreamBtn.textContent = 'ПОКАЗАТЬ КАДР';
+          if (statusMsg) statusMsg.textContent = '🔴 Живой видеопоток HLS запущен.';
+        }
+      };
+
+      const switchToSnapshot = () => {
+        isStreaming = false;
+        if (this._currentHls) {
+          this._currentHls.destroy();
+          this._currentHls = null;
+        }
+        if (videoEl) {
+          videoEl.pause();
+          videoEl.classList.add('hidden');
+        }
+        if (imgEl) imgEl.classList.remove('hidden');
+        if (streamBadge) streamBadge.classList.add('hidden');
+        if (toggleStreamBtn) toggleStreamBtn.textContent = 'ЖИВОЙ ПОТОК HLS';
+      };
+
+      if (toggleStreamBtn) {
+        if (streamInfo && streamInfo.hls_available) {
+          toggleStreamBtn.classList.remove('hidden');
+          toggleStreamBtn.onclick = () => {
+            if (isStreaming) switchToSnapshot();
+            else switchToStream();
+          };
+        } else {
+          toggleStreamBtn.classList.add('hidden');
+        }
+      }
+
+      // If HLS is available and Air-Gap mode is off, launch live stream
+      if (streamInfo && streamInfo.hls_available && !streamInfo.air_gap_mode) {
+        switchToStream();
+      } else {
+        switchToSnapshot();
+      }
 
       if (captureBtn) {
         captureBtn.onclick = () => {
@@ -2476,15 +2857,19 @@ const App = {
 
       if (refreshBtn) {
         refreshBtn.onclick = () => {
-          if (imgEl) {
+          if (isStreaming && this._currentHls) {
+            switchToStream();
+            if (statusMsg) statusMsg.textContent = '🔄 Видеопоток перезапущен.';
+          } else if (imgEl) {
             const sep = cam.snapshot_url.includes('?') ? '&' : '?';
             imgEl.src = cam.snapshot_url + sep + 't=' + Date.now();
+            if (statusMsg) statusMsg.textContent = '🔄 Стоп-кадр обновлён.';
           }
-          if (statusMsg) statusMsg.textContent = '🔄 Поток обновлён.';
         };
       }
 
       const closePlayer = () => {
+        switchToSnapshot();
         if (typeof dialog.close === 'function') dialog.close();
         else dialog.removeAttribute('open');
       };
@@ -2494,7 +2879,7 @@ const App = {
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
 
-      this.log(`[GEOINT/CCTV] Открыта прямая трансляция: ${cam.flag} ${cam.city} — ${cam.name}`, 'info');
+      this.log(`[GEOINT/CCTV] Открыта камера: ${cam.flag} ${cam.city} — ${cam.name} [${cam.id}]`, 'info');
 
     } catch (err) {
       this.log('[CCTV] Ошибка открытия камеры: ' + err.message, 'error');

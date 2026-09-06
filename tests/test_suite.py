@@ -810,6 +810,123 @@ try:
 except Exception as e:
     record("47. Unified Multi-Repository Aggregator & Protocol Engine", False, str(e))
 
+# 48. 1-Click LAN Discovery & Asset Fingerprinting
+try:
+    disc_res = client.post("/api/network/discover")
+    disc_data = disc_res.json()
+    
+    devs_res = client.get("/api/network/devices")
+    devs_data = devs_res.json()
+    
+    summary = disc_data.get("summary", {})
+    devices = disc_data.get("devices", [])
+    
+    passed = (
+        disc_res.status_code == 200
+        and disc_data.get("success") is True
+        and "devices" in disc_data
+        and "summary" in disc_data
+        and devs_res.status_code == 200
+        and devs_data.get("success") is True
+        and (len(devices) == 0 or all("ip" in d and "vendor" in d for d in devices))
+    )
+    record("48. 1-Click LAN Discovery & Asset Fingerprinting", passed, f"Devices scanned: {summary.get('total_devices', len(devices))} | Gateways: {summary.get('gateways', 0)} | RTSP Cameras: {summary.get('cameras', 0)}")
+except Exception as e:
+    record("48. 1-Click LAN Discovery & Asset Fingerprinting", False, str(e))
+
+# 49. Background Watcher Daemon & Real-time Alerts
+try:
+    # 1. Start daemon
+    start_res = client.post("/api/watcher/start")
+    start_data = start_res.json()
+    
+    # 2. Check status
+    stat_res = client.get("/api/watcher/status")
+    stat_data = stat_res.json()
+    
+    # 3. Trigger test alert
+    test_res = client.post("/api/watcher/trigger-test")
+    test_data = test_res.json()
+    
+    # 4. Fetch alerts
+    alerts_res = client.get("/api/watcher/alerts")
+    alerts_data = alerts_res.json()
+    alerts = alerts_data.get("alerts", [])
+    
+    # 5. Clear alerts
+    clear_res = client.post("/api/watcher/clear")
+    clear_data = clear_res.json()
+    
+    passed = (
+        start_res.status_code == 200
+        and start_data.get("success") is True
+        and stat_res.status_code == 200
+        and stat_data.get("running") is True
+        and test_res.status_code == 200
+        and test_data.get("success") is True
+        and alerts_res.status_code == 200
+        and len(alerts) >= 1
+        and any("TEST" in a.get("id", "") for a in alerts)
+        and clear_res.status_code == 200
+        and clear_data.get("success") is True
+    )
+    record("49. Background Watcher Daemon & Real-time Alerts", passed, f"Daemon Running: {stat_data.get('running')} | Interval: {stat_data.get('interval_seconds')}s | Test Alert Emitted & Cleared")
+except Exception as e:
+    record("49. Background Watcher Daemon & Real-time Alerts", False, str(e))
+
+# 50. Tactical GEOINT Layers (FIRMS, USGS Earthquakes, Submarine Cables)
+try:
+    firms_res = client.get("/api/geoint/firms")
+    firms_data = firms_res.json()
+    
+    eq_res = client.get("/api/geoint/earthquakes")
+    eq_data = eq_res.json()
+    
+    cables_res = client.get("/api/geoint/cables")
+    cables_data = cables_res.json()
+    
+    telem_res = client.get("/api/geoint/telemetry")
+    telem_data = telem_res.json()
+    counts = telem_data.get("counts", {})
+    
+    passed = (
+        firms_res.status_code == 200
+        and firms_data.get("count", 0) >= 8
+        and eq_res.status_code == 200
+        and eq_data.get("count", 0) >= 8
+        and cables_res.status_code == 200
+        and cables_data.get("count", 0) >= 6
+        and telem_res.status_code == 200
+        and counts.get("firms", 0) >= 8
+        and counts.get("earthquakes", 0) >= 8
+        and counts.get("cables", 0) >= 6
+        and len(cables_data.get("cables", [])[0].get("waypoints", [])) >= 2
+    )
+    record("50. Tactical GEOINT Layers (FIRMS, Earthquakes, Cables)", passed, f"NASA FIRMS: {firms_data.get('count')} | USGS Earthquakes: {eq_data.get('count')} | Subsea Cables: {cables_data.get('count')}")
+except Exception as e:
+    record("50. Tactical GEOINT Layers (FIRMS, Earthquakes, Cables)", False, str(e))
+
+# 51. Camera HLS Live Video Streaming API
+try:
+    cam_stream_res = client.get("/api/cameras/stream/CAM_RU_MOW_01")
+    cam_stream_data = cam_stream_res.json()
+    
+    cam_stream2_res = client.get("/api/cameras/stream/CAM_RU_LED_01")
+    cam_stream2_data = cam_stream2_res.json()
+    
+    passed = (
+        cam_stream_res.status_code == 200
+        and cam_stream_data.get("success") is True
+        and cam_stream_data.get("camera_id") == "CAM_RU_MOW_01"
+        and bool(cam_stream_data.get("stream_url"))
+        and "hls_available" in cam_stream_data
+        and cam_stream2_res.status_code == 200
+        and cam_stream2_data.get("camera_id") == "CAM_RU_LED_01"
+    )
+    record("51. Camera HLS Live Video Streaming API", passed, f"MOW Stream: {cam_stream_data.get('protocol')} (HLS={cam_stream_data.get('hls_available')}) | LED Stream: {cam_stream2_data.get('protocol')}")
+except Exception as e:
+    record("51. Camera HLS Live Video Streaming API", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

@@ -18,6 +18,7 @@ from backend.app.api import (
     opsec,
     osint,
     system,
+    watcher,
 )
 
 # In production, disable interactive docs and openapi schema unless explicitly requested
@@ -152,6 +153,7 @@ app.include_router(geoint.router, prefix="/api/geoint", tags=["GEOINT & Tactical
 app.include_router(cameras.router, prefix="/api/cameras", tags=["Open CCTV & Webcams"])
 app.include_router(cameras.router, prefix="/api/geoint/cameras", tags=["Open CCTV & Webcams"])
 app.include_router(config.router, prefix="/api/system/config", tags=["API Keys & Config"])
+app.include_router(watcher.router, prefix="/api/watcher", tags=["Autonomous Watcher Daemon"])
 
 
 @app.get("/api/health")

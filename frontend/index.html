@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8800 http://localhost:8800; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8800 http://localhost:8800; img-src 'self' data: blob:; media-src 'self' blob: data: https: http:; font-src 'self' data:; object-src 'none'; base-uri 'self';">
   <title>ARGUS // Tactical Intelligence & Defense Cockpit</title>
   <script src="/js/vendor/tailwindcss.js"></script>
+  <script src="/js/vendor/hls.min.js"></script>
   <script src="/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -61,6 +62,12 @@
       <button id="btn-airgap-toggle" class="airgap-badge online" title="Переключить режим автономности">
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
         <span id="airgap-label">AIR-GAP: OFF</span>
+      </button>
+
+      <!-- Background Watcher Daemon Indicator -->
+      <button id="btn-watcher-status" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-mono font-semibold transition cursor-pointer" title="Фоновый сторож ARGUS (Watcher Daemon)">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="watcher-badge-text">🚨 СТОРОЖ: <span class="text-emerald-400">АКТИВЕН</span> (<span id="watcher-alerts-count" class="text-slate-300">0</span>)</span>
       </button>
 
       <!-- Operator Status Badge -->
@@ -203,11 +210,19 @@
             </button>
             <button id="btn-layer-cameras" class="layer-pill active px-2.5 py-1 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-teal-500/30">
               <span>📹</span>
-              <span>CCTV / КАМЕРЫ (<span id="count-cameras">70</span>)</span>
+              <span>CCTV / КАМЕРЫ (<span id="count-cameras">124</span>)</span>
             </button>
-            <button id="btn-layer-hotspots" class="layer-pill active px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-amber-500/30">
+            <button id="btn-layer-firms" class="layer-pill active px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-rose-500/30" title="NASA FIRMS (Thermal Hotspots / VIIRS / MODIS)">
               <span>🔥</span>
-              <span>FIRMS (<span id="count-hotspots">9</span>)</span>
+              <span>ТЕРМОТОЧКИ (<span id="count-firms">8</span>)</span>
+            </button>
+            <button id="btn-layer-earthquakes" class="layer-pill active px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-amber-500/30" title="USGS Global Earthquakes (Seismic Monitor)">
+              <span>⚡</span>
+              <span>СЕЙСМИКА (<span id="count-earthquakes">8</span>)</span>
+            </button>
+            <button id="btn-layer-cables" class="layer-pill active px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-blue-500/30" title="Submarine Fiber-Optic Telecommunication Cables">
+              <span>🌊</span>
+              <span>КАБЕЛИ СВЯЗИ (<span id="count-cables">6</span>)</span>
             </button>
             <button id="btn-layer-cyber" class="layer-pill active px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-sky-500/30">
               <span>⚡</span>
@@ -317,10 +332,50 @@
         <!-- Subsection Tool Picker -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1">
           <button class="tool-picker-pill active" data-tool="net-matrix">🎯 Scan Matrix (Nmap)</button>
+          <button class="tool-picker-pill" data-tool="net-lan">📡 1-Click LAN Discovery</button>
           <button class="tool-picker-pill" data-tool="net-topology">🌐 Ingress Topology</button>
           <button class="tool-picker-pill" data-tool="net-telemetry">⚡ Gateway Telematics</button>
           <button class="tool-picker-pill" data-tool="net-wifi">📶 Wi-Fi & RF Recon</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
+        </div>
+
+        <!-- 1-Click LAN Asset Discovery Card -->
+        <div class="tool-card argus-panel p-4" data-card="net-lan">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
+                <span>📡</span> <span>LAN ASSET DISCOVERY // АВТООБНАРУЖЕНИЕ УСТРОЙСТВ В СЕТИ</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono mt-0.5">
+                Пассивный и активный аудит локального сегмента: ARP-кэш, OUI-распознавание вендоров, обнаружение открытых IP-камер (RTSP:554) и шлюзов.
+              </p>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+              <button id="btn-discover-lan" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white font-mono font-bold text-xs rounded-lg transition shadow-md flex items-center space-x-1.5 cursor-pointer">
+                <span>⚡</span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- LAN Metrics Chips -->
+          <div class="flex flex-wrap gap-2 text-xs font-mono mb-3">
+            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
+              Всего хостов: <span id="lan-count-total" class="text-cyan-400 font-bold">0</span>
+            </span>
+            <span class="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-500/30 text-amber-300">
+              Маршрутизаторы/Шлюзы: <span id="lan-count-gateway" class="font-bold">0</span>
+            </span>
+            <span class="px-2.5 py-1 rounded bg-rose-950/40 border border-rose-500/30 text-rose-300">
+              IP-Камеры (RTSP): <span id="lan-count-cameras" class="font-bold">0</span>
+            </span>
+          </div>
+
+          <!-- LAN Discovered Devices Grid -->
+          <div id="lan-devices-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1">
+            <div class="col-span-full py-8 text-center text-slate-500 font-mono text-xs">
+              Нажмите «ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ» для автоматического сканирования текущей подсети.
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1138,8 +1193,15 @@
 
       <!-- Player Canvas / Feed Display -->
       <div class="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
+        <video id="cam-player-video" class="w-full h-full object-cover hidden" autoplay playsinline muted controls></video>
         <img id="cam-player-image" src="" alt="Live Stream" class="w-full h-full object-cover">
         
+        <!-- Live Playback Mode Badge -->
+        <div id="cam-player-stream-badge" class="absolute top-4 right-28 z-10 hidden px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-[10px] font-bold flex items-center space-x-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="cam-player-stream-text">LIVE HLS</span>
+        </div>
+
         <!-- Tactical HUD Overlay -->
         <div class="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between">
           <div class="flex justify-between items-start">
@@ -1167,6 +1229,10 @@
       <!-- Player Action Bar -->
       <div class="px-4 py-3 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between font-mono text-xs">
         <div class="flex items-center space-x-2">
+          <button id="btn-cam-toggle-stream" class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 font-bold transition flex items-center space-x-1 cursor-pointer">
+            <span>▶️</span>
+            <span id="cam-toggle-stream-text">ЗАПУСТИТЬ СТРИМ</span>
+          </button>
           <button id="btn-cam-capture" class="px-3 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 font-bold transition flex items-center space-x-1">
             <span>📸</span>
             <span>ЗАХВАТ КАДРА</span>
@@ -1181,6 +1247,47 @@
           </a>
         </div>
         <div id="cam-capture-status" class="text-[11px] text-emerald-400"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Watcher Daemon Dialog -->
+  <dialog id="dialog-watcher" class="p-0 bg-transparent backdrop:bg-black/85 backdrop:backdrop-blur-md outline-none max-w-2xl w-full">
+    <div class="argus-glass rounded-2xl border border-rose-500/30 p-5 font-mono text-slate-200 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🚨</span>
+          <div>
+            <h3 class="text-sm font-bold text-rose-400">ARGUS WATCHER // СТОРОЖ БЕЗОПАСНОСТИ</h3>
+            <p class="text-[11px] text-slate-400">Непрерывный фоновый мониторинг хоста, сети и телеметрии</p>
+          </div>
+        </div>
+        <button id="btn-close-watcher-dialog" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs cursor-pointer">✕</button>
+      </div>
+
+      <!-- Watcher Status & Action Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+        <div class="flex items-center space-x-2">
+          <span>Статус:</span>
+          <span id="watcher-modal-status" class="px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">АКТИВЕН</span>
+          <span id="watcher-modal-stats" class="text-slate-400 text-[11px]">Интервал: 30с</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <button id="btn-watcher-toggle" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] transition cursor-pointer">ОСТАНОВИТЬ</button>
+          <button id="btn-watcher-test" class="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] transition cursor-pointer">⚡ ТЕСТ АЛЕРТА</button>
+          <button id="btn-watcher-clear" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] transition cursor-pointer">🗑️ ОЧИСТИТЬ</button>
+        </div>
+      </div>
+
+      <!-- Alerts Feed -->
+      <div>
+        <div class="flex items-center justify-between mb-2 text-xs text-slate-400">
+          <span>Журнал оперативных инцидентов и предупреждений:</span>
+          <span id="watcher-modal-alert-count">0 записей</span>
+        </div>
+        <div id="watcher-alerts-feed" class="space-y-2 max-h-80 overflow-y-auto pr-1 text-xs">
+          <div class="text-center py-6 text-slate-500">Нет активных инцидентов. Система находится в штатном режиме.</div>
+        </div>
       </div>
     </div>
   </dialog>

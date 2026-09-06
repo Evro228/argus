@@ -46,6 +46,9 @@
         maritime: true,
         cameras: true,
         hotspots: true,
+        firms: true,
+        earthquakes: true,
+        cables: true,
         cyber: true
       };
 
@@ -69,6 +72,9 @@
       this.maritime = [];
       this.cameras = [];
       this.hotspots = [];
+      this.firms = [];
+      this.earthquakes = [];
+      this.cables = [];
 
       this.selectedEntity = { kind: 'node', data: this.nodes[0] };
 
@@ -108,6 +114,9 @@
             this.maritime = data.maritime || [];
             this.cameras = data.cameras || [];
             this.hotspots = data.hotspots || [];
+            this.firms = data.firms || [];
+            this.earthquakes = data.earthquakes || [];
+            this.cables = data.cables || [];
 
             // Update badge counters
             const countSats = document.getElementById('count-sats');
@@ -115,11 +124,17 @@
             const countShips = document.getElementById('count-ships');
             const countCameras = document.getElementById('count-cameras');
             const countHotspots = document.getElementById('count-hotspots');
+            const countFirms = document.getElementById('count-firms');
+            const countEarthquakes = document.getElementById('count-earthquakes');
+            const countCables = document.getElementById('count-cables');
             if (countSats) countSats.textContent = this.satellites.length;
             if (countAir) countAir.textContent = this.aircraft.length;
             if (countShips) countShips.textContent = this.maritime.length;
             if (countCameras) countCameras.textContent = this.cameras.length;
             if (countHotspots) countHotspots.textContent = this.hotspots.length;
+            if (countFirms) countFirms.textContent = this.firms.length;
+            if (countEarthquakes) countEarthquakes.textContent = this.earthquakes.length;
+            if (countCables) countCables.textContent = this.cables.length;
 
             // Update selected entity if present in latest telemetry
             if (this.selectedEntity) {
@@ -135,6 +150,15 @@
                 if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
               } else if (kind === 'camera') {
                 const updated = this.cameras.find(c => c.id === data.id);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'firms') {
+                const updated = this.firms.find(f => f.id === data.id);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'earthquake') {
+                const updated = this.earthquakes.find(e => e.id === data.id);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'cable') {
+                const updated = this.cables.find(c => c.id === data.id);
                 if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
               }
             }
@@ -160,6 +184,9 @@
       bind('btn-layer-maritime', 'maritime');
       bind('btn-layer-cameras', 'cameras');
       bind('btn-layer-hotspots', 'hotspots');
+      bind('btn-layer-firms', 'firms');
+      bind('btn-layer-earthquakes', 'earthquakes');
+      bind('btn-layer-cables', 'cables');
       bind('btn-layer-cyber', 'cyber');
     }
 
@@ -233,7 +260,44 @@
           }
         }
 
-        // 6. Check Cyber Nodes
+        // 6. Check NASA FIRMS Hotspots
+        if (this.layers.firms && this.firms) {
+          for (let f of this.firms) {
+            const pt = this.project2D(f.lat, f.lon);
+            if (Math.hypot(mouseX - pt.x, mouseY - pt.y) < 16) {
+              this.selectEntity('firms', f);
+              return;
+            }
+          }
+        }
+
+        // 7. Check USGS Earthquakes
+        if (this.layers.earthquakes && this.earthquakes) {
+          for (let eq of this.earthquakes) {
+            const pt = this.project2D(eq.lat, eq.lon);
+            if (Math.hypot(mouseX - pt.x, mouseY - pt.y) < 18) {
+              this.selectEntity('earthquake', eq);
+              return;
+            }
+          }
+        }
+
+        // 8. Check Submarine Cables Landing Hubs & Waypoints
+        if (this.layers.cables && this.cables) {
+          for (let c of this.cables) {
+            if (c.landing_points) {
+              for (let lp of c.landing_points) {
+                const pt = this.project2D(lp.lat, lp.lon);
+                if (Math.hypot(mouseX - pt.x, mouseY - pt.y) < 14) {
+                  this.selectEntity('cable', c);
+                  return;
+                }
+              }
+            }
+          }
+        }
+
+        // 9. Check Cyber Nodes
         if (this.layers.cyber) {
           for (let node of this.nodes) {
             const pt = this.project2D(node.lat, node.lon);
@@ -264,6 +328,9 @@
                       kind === 'maritime' ? `[AIS] ${data.flag} ${data.name} (${data.type})` :
                       kind === 'camera' ? `[CCTV] ${data.flag} ${data.city} (${data.name})` :
                       kind === 'hotspot' ? `[FIRMS] ${data.name} [${data.brightness_k}K]` :
+                      kind === 'firms' ? `[NASA FIRMS] ${data.name} [${data.brightness_k}K, FRP ${data.frp_mw}MW]` :
+                      kind === 'earthquake' ? `[USGS EQ] M${data.magnitude} ${data.place} [${data.depth_km}km]` :
+                      kind === 'cable' ? `[SUBSEA CABLE] ${data.name} (${data.capacity_tbps} Tbps)` :
                       `[CYBER] ${data.name} (${data.ip})`;
         window.argusApp.log(`[GEOINT HUD] Выбран объект: ${label}`, 'threat');
       }
@@ -438,6 +505,81 @@
         }
         if (threatLabel) threatLabel.textContent = 'OPERATOR / PUBLIC PROVIDER';
         if (threatScore) threatScore.textContent = data.operator || 'Public Feed';
+        if (threatFill) threatFill.style.width = '100%';
+
+      } else if (kind === 'firms') {
+        typeBadge.textContent = `NASA FIRMS // THERMAL ANOMALY [${escapeHtml(data.satellite || 'VIIRS')}]`;
+        if (titleLabel) titleLabel.textContent = 'THERMAL DESIGNATION';
+        if (targetIp) targetIp.textContent = `${data.name}`;
+        if (coordsLabel) coordsLabel.textContent = 'COORDINATES & REGION';
+        if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(2)}° N, ${data.lon.toFixed(2)}° E // ${escapeHtml(data.region || '')}`;
+        if (detailsLabel) detailsLabel.textContent = 'FIRE RADIATIVE POWER & SENSOR';
+        if (portsContainer) {
+          portsContainer.innerHTML = `
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-rose-500/30 text-center">
+              <div class="text-xs font-bold text-rose-400 font-mono">${data.brightness_k} K</div>
+              <div class="text-[9px] text-slate-400 font-mono">Яркость</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-amber-500/30 text-center">
+              <div class="text-xs font-bold text-amber-400 font-mono">${data.frp_mw} MW</div>
+              <div class="text-[9px] text-slate-400 font-mono">FRP Мощность</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-rose-500/30 text-center">
+              <div class="text-xs font-bold text-emerald-400 font-mono">${escapeHtml(data.confidence || 'HIGH')}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Точность</div>
+            </div>
+          `;
+        }
+        if (threatLabel) threatLabel.textContent = 'ACQUISITION TIME & DAY/NIGHT';
+        if (threatScore) threatScore.textContent = `${data.acq_time || 'N/A'} (Режим: ${data.daynight === 'D' ? 'Дневной' : 'Ночной'})`;
+        if (threatFill) threatFill.style.width = '95%';
+
+      } else if (kind === 'earthquake') {
+        const mag = data.magnitude || 5.0;
+        typeBadge.textContent = `USGS SEISMIC ACTIVITY // MAGNITUDE M${mag.toFixed(1)}`;
+        if (titleLabel) titleLabel.textContent = 'EPICENTER / SEISMIC ZONE';
+        if (targetIp) targetIp.textContent = `${data.place || 'Unknown Epicenter'}`;
+        if (coordsLabel) coordsLabel.textContent = 'COORDINATES & HYPOCENTER DEPTH';
+        if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(2)}° N, ${data.lon.toFixed(2)}° E // Глубина: ${data.depth_km} км`;
+        if (detailsLabel) detailsLabel.textContent = 'RICHTER MAGNITUDE & TSUNAMI RISK';
+        if (portsContainer) {
+          portsContainer.innerHTML = `
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-amber-500/30 text-center">
+              <div class="text-xs font-bold text-amber-400 font-mono">M${mag.toFixed(1)}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Магнитуда</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-amber-500/30 text-center">
+              <div class="text-xs font-bold text-cyan-300 font-mono">${data.depth_km} km</div>
+              <div class="text-[9px] text-slate-400 font-mono">Глубина</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-amber-500/30 text-center">
+              <div class="text-xs font-bold ${data.tsunami_alert ? 'text-rose-400 animate-pulse' : 'text-emerald-400'} font-mono">${data.tsunami_alert ? 'WARNING' : 'NONE'}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Цунами</div>
+            </div>
+          `;
+        }
+        if (threatLabel) threatLabel.textContent = 'TECTONIC FAULT & SIGNIFICANCE';
+        if (threatScore) threatScore.textContent = `${data.fault_zone || 'Fault'} (Score: ${data.significance || 500})`;
+        if (threatFill) threatFill.style.width = `${Math.min(100, Math.round(mag * 12))}%`;
+
+      } else if (kind === 'cable') {
+        typeBadge.textContent = `SUBMARINE FIBER OPTIC BACKBONE // ${data.capacity_tbps} TBPS`;
+        if (titleLabel) titleLabel.textContent = 'SUBSEA CABLE SYSTEM';
+        if (targetIp) targetIp.textContent = `${data.name}`;
+        if (coordsLabel) coordsLabel.textContent = 'LENGTH & OPERATIONAL DATE';
+        if (targetCoords) targetCoords.textContent = `${data.length_km.toLocaleString()} km // RFS Год: ${data.rfs_year}`;
+        if (detailsLabel) detailsLabel.textContent = 'KEY LANDING STATIONS';
+        if (portsContainer) {
+          const lps = (data.landing_points || []).slice(0, 3);
+          portsContainer.innerHTML = lps.map(lp => `
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-blue-500/30 text-center">
+              <div class="text-xs font-bold text-blue-400 font-mono truncate">${escapeHtml(lp.name.slice(0, 14))}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Хаб</div>
+            </div>
+          `).join('');
+        }
+        if (threatLabel) threatLabel.textContent = 'CONSORTIUM / OPERATORS';
+        if (threatScore) threatScore.textContent = `${data.owners || 'Global Telecom'}`;
         if (threatFill) threatFill.style.width = '100%';
       }
 
@@ -803,9 +945,158 @@
       }
     }
 
+    drawSubmarineCables() {
+      if (!this.layers.cables || !this.cables) return;
+      const now = Date.now() * 0.002;
+
+      for (let cable of this.cables) {
+        const isSelected = this.selectedEntity && this.selectedEntity.kind === 'cable' && this.selectedEntity.data.id === cable.id;
+
+        // 1. Draw subsea cable fiber route
+        if (cable.waypoints && cable.waypoints.length > 1) {
+          this.ctx.save();
+          this.ctx.strokeStyle = isSelected ? '#38bdf8' : 'rgba(14, 165, 233, 0.50)';
+          this.ctx.lineWidth = isSelected ? 2.5 : 1.2;
+          this.ctx.shadowColor = isSelected ? '#38bdf8' : '#0284c7';
+          this.ctx.shadowBlur = isSelected ? 12 : 4;
+          this.ctx.setLineDash(isSelected ? [] : [4, 3]);
+
+          this.ctx.beginPath();
+          let started = false;
+          let prevLon = 0;
+
+          for (let wp of cable.waypoints) {
+            const lat = wp[0];
+            const lon = wp[1];
+            const pt = this.project2D(lat, lon);
+
+            if (!started) {
+              this.ctx.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              // Handle antimeridian jump (wrap-around)
+              if (Math.abs(lon - prevLon) > 180) {
+                this.ctx.moveTo(pt.x, pt.y);
+              } else {
+                this.ctx.lineTo(pt.x, pt.y);
+              }
+            }
+            prevLon = lon;
+          }
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+
+        // 2. Draw cable landing stations
+        if (cable.landing_points) {
+          for (let lp of cable.landing_points) {
+            const pt = this.project2D(lp.lat, lp.lon);
+            const pulse = (Math.sin(now + lp.lat) + 1) * 0.5;
+
+            this.ctx.fillStyle = isSelected ? '#38bdf8' : '#0284c7';
+            this.ctx.beginPath();
+            this.ctx.arc(pt.x, pt.y, isSelected ? 4 : 2.5, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            if (isSelected) {
+              this.ctx.strokeStyle = `rgba(56, 189, 248, ${0.4 + pulse * 0.5})`;
+              this.ctx.lineWidth = 1;
+              this.ctx.beginPath();
+              this.ctx.arc(pt.x, pt.y, 6 + pulse * 6, 0, Math.PI * 2);
+              this.ctx.stroke();
+
+              this.ctx.fillStyle = '#bae6fd';
+              this.ctx.font = 'bold 8px JetBrains Mono, monospace';
+              this.ctx.fillText(`⚓ ${lp.name}`, pt.x + 6, pt.y + 3);
+            }
+          }
+        }
+      }
+    }
+
+    drawFirmsHotspots() {
+      if (!this.layers.firms || !this.firms) return;
+      const now = Date.now() * 0.003;
+
+      for (let f of this.firms) {
+        const pt = this.project2D(f.lat, f.lon);
+        const isSelected = this.selectedEntity && this.selectedEntity.kind === 'firms' && this.selectedEntity.data.id === f.id;
+        const pulse = (Math.sin(now + f.lat * 3) + 1) * 0.5;
+
+        // Radiant heat aura
+        const radius = isSelected ? 12 + pulse * 6 : 8 + pulse * 4;
+        const grad = this.ctx.createRadialGradient(pt.x, pt.y, 1, pt.x, pt.y, radius);
+        grad.addColorStop(0, '#ff4d4f');
+        grad.addColorStop(0.4, 'rgba(244, 63, 94, 0.45)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        this.ctx.fillStyle = grad;
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Core thermal ember
+        this.ctx.fillStyle = isSelected ? '#ffffff' : '#f59e0b';
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, isSelected ? 3 : 2, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        if (isSelected || f.brightness_k > 360) {
+          this.ctx.fillStyle = isSelected ? '#ffffff' : '#fda4af';
+          this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`🔥 ${f.name}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillStyle = '#fca5a5';
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`${f.brightness_k}K [FRP ${f.frp_mw}MW]`, pt.x + 8, pt.y + 7);
+        }
+      }
+    }
+
+    drawEarthquakes() {
+      if (!this.layers.earthquakes || !this.earthquakes) return;
+      const now = Date.now() * 0.002;
+
+      for (let eq of this.earthquakes) {
+        const pt = this.project2D(eq.lat, eq.lon);
+        const isSelected = this.selectedEntity && this.selectedEntity.kind === 'earthquake' && this.selectedEntity.data.id === eq.id;
+        const mag = eq.magnitude || 5.0;
+
+        const color = mag >= 6.5 ? '#ef4444' : (mag >= 5.5 ? '#f97316' : '#eab308');
+
+        // Concentric seismic shockwave rings
+        const waveProgress = ((now * 12 + mag * 5) % 24) / 24;
+        const ringRadius = 4 + waveProgress * (mag * 4);
+        const ringAlpha = Math.max(0, 1 - waveProgress) * (isSelected ? 0.9 : 0.6);
+
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = isSelected ? 1.8 : 1.2;
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, ringRadius, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Epicenter core
+        this.ctx.fillStyle = isSelected ? '#ffffff' : color;
+        this.ctx.shadowColor = color;
+        this.ctx.shadowBlur = isSelected ? 10 : 4;
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, isSelected ? 3.5 : 2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        if (isSelected || mag >= 6.0) {
+          this.ctx.fillStyle = isSelected ? '#ffffff' : color;
+          this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`⚡ M${mag.toFixed(1)} ${eq.place.slice(0, 20)}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillStyle = '#cbd5e1';
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`Глубина: ${eq.depth_km}км`, pt.x + 8, pt.y + 7);
+        }
+      }
+    }
+
     animate() {
       this.ctx.clearRect(0, 0, this.width, this.height);
       this.drawWorldMap2D();
+      this.drawSubmarineCables();
       this.drawAttackArcs();
       this.drawCyberNodes();
       this.drawSatellites();
@@ -813,6 +1104,8 @@
       this.drawMaritime();
       this.drawCameras();
       this.drawHotspots();
+      this.drawFirmsHotspots();
+      this.drawEarthquakes();
       requestAnimationFrame(() => this.animate());
     }
   }

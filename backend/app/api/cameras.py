@@ -1930,3 +1930,52 @@ async def offline_test_pattern():
       <text x="320" y="195" fill="#94a3b8" font-family="monospace" font-size="10" text-anchor="middle">EXTERNAL EGRESS SOCKETS BLOCKED</text>
     </svg>"""
     return Response(content=svg_data, media_type="image/svg+xml")
+
+
+@router.get("/stream/{camera_id}")
+@router.get("/stream/{camera_id}/")
+async def get_camera_stream(camera_id: str):
+    """
+    Возвращает статус прямого потока и URL стрима для HLS.js / HTML5 плеера.
+    В режиме Air-Gap принудительно активирует защищенный оффлайн-паттерн.
+    """
+    cam = next((c for c in ALL_CAMERAS if c["id"] == camera_id), None)
+    if not cam:
+        raise HTTPException(status_code=404, detail=f"Камера {camera_id} не найдена в каталоге")
+
+    air_gap = is_air_gap_enabled()
+    if air_gap:
+        return {
+            "success": True,
+            "camera_id": camera_id,
+            "camera_name": cam.get("name", ""),
+            "air_gap_mode": True,
+            "stream_type": "offline_pattern",
+            "protocol": "AIR_GAP",
+            "stream_url": "/api/cameras/offline_test_pattern",
+            "snapshot_url": "/api/cameras/offline_test_pattern",
+            "hls_available": False,
+            "message": "Air-Gap Stealth Mode: внешние сетевые сокеты видеопотока заблокированы",
+        }
+
+    is_hls = (
+        "hls" in cam.get("stream_type", "").lower()
+        or "m3u8" in cam.get("stream_url", "").lower()
+        or "hls" in cam.get("protocol", "").lower()
+    )
+
+    return {
+        "success": True,
+        "camera_id": camera_id,
+        "camera_name": cam.get("name", ""),
+        "air_gap_mode": False,
+        "stream_type": cam.get("stream_type", "hls"),
+        "protocol": cam.get("protocol", "HLS"),
+        "stream_url": cam.get("stream_url", ""),
+        "snapshot_url": cam.get("snapshot_url", ""),
+        "hls_available": is_hls,
+        "resolution": cam.get("resolution", "1080p FHD"),
+        "fps": cam.get("fps", 25),
+        "operator": cam.get("operator", ""),
+    }
+
