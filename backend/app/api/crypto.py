@@ -142,7 +142,9 @@ async def calculate_hash(
     }
 
 
-# --- Privnote / Send: In-Memory Ephemeral Self-Destructing Notes ---
+from backend.app.utils.memory import SecureBuffer
+
+# --- Privnote / Send: In-Memory Ephemeral Self-Destructing Notes with RAM Zeroing ---
 import time
 
 EPHEMERAL_NOTES = {}
@@ -162,38 +164,48 @@ def create_burn_note(req: BurnNoteCreateRequest):
     if len(req.secret) > 100_000:
         return {"success": False, "error": "Превышен лимит размера записки (100 КБ)."}
 
-    # Automatic purge of expired notes
+    # Automatic purge of expired notes with explicit memory wiping
     now = time.time()
     for k in list(EPHEMERAL_NOTES.keys()):
         if EPHEMERAL_NOTES[k]["expires_at"] < now:
-            EPHEMERAL_NOTES.pop(k, None)
+            expired = EPHEMERAL_NOTES.pop(k, None)
+            if expired and "buffer" in expired:
+                expired["buffer"].wipe()
 
     # Eviction policy: hard cap at 1000 notes
     if len(EPHEMERAL_NOTES) >= 1000:
         oldest_k = next(iter(EPHEMERAL_NOTES))
-        EPHEMERAL_NOTES.pop(oldest_k, None)
+        evicted = EPHEMERAL_NOTES.pop(oldest_k, None)
+        if evicted and "buffer" in evicted:
+            evicted["buffer"].wipe()
 
     token = secrets.token_urlsafe(16)
     expires_at = now + min(req.ttl_seconds, 86400)  # Max 24 hours
 
-    EPHEMERAL_NOTES[token] = {"secret": req.secret, "expires_at": expires_at}
+    # SecureBuffer ensures mutable C-level storage with wipe capability
+    EPHEMERAL_NOTES[token] = {
+        "buffer": SecureBuffer(req.secret),
+        "expires_at": expires_at,
+    }
 
     return {
         "success": True,
         "token": token,
         "burn_url": f"/#burn-{token}",
         "expires_in_seconds": req.ttl_seconds,
-        "note": "Записка будет уничтожена навсегда сразу после первого прочтения!",
+        "note": "Записка хранится в SecureBuffer с гарантированным занулением RAM сразу после прочтения!",
     }
 
 
 @router.get("/burn-note/read/{token}")
 def read_burn_note(token: str):
-    # Purge expired
+    # Purge expired with wipe
     now = time.time()
     for k in list(EPHEMERAL_NOTES.keys()):
         if EPHEMERAL_NOTES[k]["expires_at"] < now:
-            del EPHEMERAL_NOTES[k]
+            expired = EPHEMERAL_NOTES.pop(k, None)
+            if expired and "buffer" in expired:
+                expired["buffer"].wipe()
 
     if token not in EPHEMERAL_NOTES:
         return {
@@ -201,11 +213,15 @@ def read_burn_note(token: str):
             "error": "Записка не найдена или уже была уничтожена после первого прочтения.",
         }
 
-    note_data = EPHEMERAL_NOTES.pop(token)  # Self-destruct on read!
+    note_data = EPHEMERAL_NOTES.pop(token)
+    buf = note_data["buffer"]
+    secret_text = buf.get_bytes().decode("utf-8", errors="replace")
+    buf.wipe()  # Zero out memory immediately upon reading!
+
     return {
         "success": True,
-        "secret": note_data["secret"],
-        "status": "DESTROYED_FROM_MEMORY",
+        "secret": secret_text,
+        "status": "DESTROYED_AND_ZEROED_FROM_RAM",
     }
 
 

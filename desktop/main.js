@@ -2,7 +2,7 @@ const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
-
+const crypto = require('crypto');
 const fs = require('fs');
 
 let mainWindow = null;
@@ -10,6 +10,7 @@ let pythonProcess = null;
 
 const PORT = 8800;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
+const ARGUS_IPC_TOKEN = crypto.randomBytes(32).toString('hex');
 
 function getRootDir() {
   if (app.isPackaged) {
@@ -60,7 +61,8 @@ function startPythonBackend() {
       env: {
         ...process.env,
         PYTHONPATH: rootDir,
-        PYTHONUNBUFFERED: '1'
+        PYTHONUNBUFFERED: '1',
+        ARGUS_IPC_TOKEN: ARGUS_IPC_TOKEN
       },
       detached: !isWin // Enables PGID management on POSIX
     });
@@ -141,6 +143,12 @@ function createWindow() {
   });
 
   mainWindow.loadURL(SERVER_URL);
+
+  mainWindow.webContents.on('dom-ready', () => {
+    mainWindow.webContents.executeJavaScript(`
+      window.__ARGUS_IPC_TOKEN__ = "${ARGUS_IPC_TOKEN}";
+    `).catch(() => {});
+  });
 
   mainWindow.webContents.on('did-fail-load', () => {
     setTimeout(() => {

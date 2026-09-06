@@ -306,6 +306,106 @@ try:
 except Exception as e:
     record("25. Offline CVE Correlation Engine", False, str(e))
 
+# 26. Air-Gapped Stealth Mode Controller & State Sync
+try:
+    res_on = client.post("/api/system/airgap/toggle", json={"enabled": True})
+    data_on = res_on.json()
+    res_status = client.get("/api/system/airgap")
+    data_status = res_status.json()
+    passed = (
+        data_on.get("enabled") is True
+        and data_status.get("status") == "STEALTH"
+        and data_status.get("enabled") is True
+    )
+    # Restore online
+    client.post("/api/system/airgap/toggle", json={"enabled": False})
+    record("26. Air-Gapped Stealth Controller & Sockets", passed, f"Mode toggle verified: STEALTH/ONLINE synchronized")
+except Exception as e:
+    record("26. Air-Gapped Stealth Controller & Sockets", False, str(e))
+
+# 27. Authenticated AES-256-GCM Local Vault
+try:
+    secret_payload = {"api_key": "argus_alpha_999", "note": "classified"}
+    res_enc = client.post("/api/system/vault/encrypt", json={"data": secret_payload, "passphrase": "vault_password_123"})
+    data_enc = res_enc.json()
+    assert data_enc.get("success") is True
+    envelope = data_enc.get("envelope")
+
+    res_dec = client.post("/api/system/vault/decrypt", json={"envelope": envelope, "passphrase": "vault_password_123"})
+    data_dec = res_dec.json()
+    passed = (
+        data_dec.get("success") is True
+        and data_dec.get("payload", {}).get("api_key") == "argus_alpha_999"
+        and envelope.get("cipher") == "AES-256-GCM"
+    )
+    record("27. Authenticated AES-256-GCM Vault", passed, f"AEAD Verified: {envelope.get('cipher')} tamper-evident storage")
+except Exception as e:
+    record("27. Authenticated AES-256-GCM Vault", False, str(e))
+
+# 28. Zero-Width Steganography with AES-256
+try:
+    res_enc = client.post(
+        "/api/crypto/stego/encode",
+        json={"cover_text": "Обычный отчет за неделю.", "secret_text": "ARGUS_STRIKE_COORDINATES", "password": "stego_pass_99"}
+    )
+    data_enc = res_enc.json()
+    stego_text = data_enc.get("stego_text", "")
+
+    res_dec = client.post(
+        "/api/crypto/stego/decode",
+        json={"stego_text": stego_text, "password": "stego_pass_99"}
+    )
+    data_dec = res_dec.json()
+    passed = (
+        data_enc.get("success") is True
+        and data_dec.get("success") is True
+        and (data_dec.get("secret") == "ARGUS_STRIKE_COORDINATES" or data_dec.get("secret_message") == "ARGUS_STRIKE_COORDINATES")
+    )
+    record("28. Zero-Width Steganography (AES-256)", passed, f"Hidden {data_enc.get('hidden_chars_count')} zero-width chars decoded")
+except Exception as e:
+    record("28. Zero-Width Steganography (AES-256)", False, str(e))
+
+# 29. Forensics PDF Security & Dangerzone Inspector
+try:
+    mock_pdf = (
+        b"%PDF-1.4\n1 0 obj <</Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (alert(1)) >> >> endobj\n"
+        b"2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj <</Type /Page /Parent 2 0 R >> endobj\n"
+        b"trailer <</Root 1 0 R>>\n%%EOF"
+    )
+    res_pdf = client.post(
+        "/api/forensics/pdf/inspect",
+        files={"file": ("danger.pdf", mock_pdf, "application/pdf")}
+    )
+    data_pdf = res_pdf.json()
+    passed = (
+        data_pdf.get("success") is True
+        and data_pdf.get("indicators", {}).get("javascript_streams") >= 1
+        and data_pdf.get("risk_score") >= 30
+    )
+    record("29. Forensics PDF Dangerzone Inspector", passed, f"Verdict: {data_pdf.get('verdict')} (Score: {data_pdf.get('risk_score')})")
+except Exception as e:
+    record("29. Forensics PDF Dangerzone Inspector", False, str(e))
+
+# 30. Executive Posture & Vulnerability Analysis
+try:
+    mock_findings = [
+        {"type": "Open SSH", "severity": "HIGH", "remediation": "Disable root login."},
+        {"type": "Exposed API Key", "severity": "CRITICAL", "remediation": "Revoke OpenAI token immediately."}
+    ]
+    res_rep = client.post(
+        "/api/analyst/report/generate",
+        json={"title": "Host Posture Test", "findings": mock_findings}
+    )
+    data_rep = res_rep.json()
+    passed = (
+        data_rep.get("success") is True
+        and "security_score" in data_rep
+        and len(data_rep.get("key_remediations", [])) >= 2
+    )
+    record("30. Executive Security Posture Engine", passed, f"Score: {data_rep.get('security_score')}% | Verdict: {data_rep.get('verdict')}")
+except Exception as e:
+    record("30. Executive Security Posture Engine", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

@@ -19,6 +19,9 @@
       stationOsint: "OSINT & Разведка",
       stationVuln: "Уязвимости & Hardening",
       stationVault: "Крипто-сейф & Identity",
+      stationForensics: "Цифровая криминалистика",
+      stationOpsec: "OPSEC & DLP Санитайзер",
+      stationAnalyst: "ИИ Сводный Аналитик",
       
       // God's Eye HUD
       liveAttackStream: "ЖИВОЙ ПОТОК АТАК",
@@ -95,6 +98,9 @@
       stationOsint: "OSINT & Recon",
       stationVuln: "Vuln & Hardening",
       stationVault: "Identity Vault",
+      stationForensics: "Forensics Lab",
+      stationOpsec: "OPSEC & DLP Sanitizer",
+      stationAnalyst: "Executive AI Analyst",
       
       // God's Eye HUD
       liveAttackStream: "LIVE ATTACK STREAM",

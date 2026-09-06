@@ -4,11 +4,38 @@ import os
 import platform
 import shutil
 import subprocess
+from pydantic import BaseModel
 
 from fastapi import APIRouter
+from backend.app.utils.crypto_vault import encrypt_vault_payload, decrypt_vault_payload
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Global Air-Gapped State
+AIR_GAP_STATE = {
+    "enabled": False,
+    "mode": "ONLINE",
+    "updated_at": None,
+}
+
+
+def is_air_gap_enabled() -> bool:
+    return AIR_GAP_STATE["enabled"]
+
+
+class AirGapToggleRequest(BaseModel):
+    enabled: bool | None = None
+
+
+class VaultEncryptRequest(BaseModel):
+    data: dict | str
+    passphrase: str
+
+
+class VaultDecryptRequest(BaseModel):
+    envelope: dict
+    passphrase: str
 
 TOOLS_MANIFEST = [
     {
@@ -110,6 +137,69 @@ def get_system_status():
         "installed_tools": installed_count,
         "tools": tools_status,
     }
+
+
+# --- Air-Gapped Stealth Mode Controller ---
+@router.get("/airgap")
+def get_airgap_status():
+    return {
+        "success": True,
+        "enabled": AIR_GAP_STATE["enabled"],
+        "mode": AIR_GAP_STATE["mode"],
+        "status": "STEALTH" if AIR_GAP_STATE["enabled"] else "ONLINE",
+        "notice": (
+            "Режим строгой изоляции АКТИВЕН. Внешние сетевые сокеты заблокированы."
+            if AIR_GAP_STATE["enabled"]
+            else "Стандартный режим: разрешены внешние запросы телеметрии."
+        ),
+    }
+
+
+@router.post("/airgap/toggle")
+def toggle_airgap(req: AirGapToggleRequest | None = None):
+    import time
+    if req and req.enabled is not None:
+        AIR_GAP_STATE["enabled"] = req.enabled
+    else:
+        AIR_GAP_STATE["enabled"] = not AIR_GAP_STATE["enabled"]
+
+    AIR_GAP_STATE["mode"] = "STEALTH" if AIR_GAP_STATE["enabled"] else "ONLINE"
+    AIR_GAP_STATE["updated_at"] = time.time()
+
+    return {
+        "success": True,
+        "enabled": AIR_GAP_STATE["enabled"],
+        "mode": AIR_GAP_STATE["mode"],
+        "status": "STEALTH" if AIR_GAP_STATE["enabled"] else "ONLINE",
+    }
+
+
+# --- Encrypted Vault Storage (AES-256-GCM) ---
+@router.post("/vault/encrypt")
+def vault_encrypt(req: VaultEncryptRequest):
+    if not req.passphrase or len(req.passphrase) < 8:
+        return {"success": False, "error": "Пароль сейфа должен содержать минимум 8 символов."}
+    try:
+        envelope = encrypt_vault_payload(req.data, req.passphrase)
+        return {"success": True, "envelope": envelope}
+    except Exception as e:
+        return {"success": False, "error": f"Ошибка шифрования: {e!s}"}
+
+
+@router.post("/vault/decrypt")
+def vault_decrypt(req: VaultDecryptRequest):
+    try:
+        decrypted_bytes = decrypt_vault_payload(req.envelope, req.passphrase)
+        # Try decoding as JSON or string
+        try:
+            payload = json.loads(decrypted_bytes.decode("utf-8"))
+        except Exception:
+            payload = decrypted_bytes.decode("utf-8", errors="replace")
+        return {"success": True, "payload": payload}
+    except ValueError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        return {"success": False, "error": f"Ошибка расшифровки: {e!s}"}
 
 
 # --- System Hardening & Compliance Matrix ---

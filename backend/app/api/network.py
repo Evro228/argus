@@ -79,6 +79,21 @@ async def scan_target_ports(req: ScanHostRequest):
     except ValueError as err:
         return {"success": False, "error": str(err)}
 
+    from backend.app.api.system import is_air_gap_enabled
+    if is_air_gap_enabled():
+        # In Air-Gap mode, allow only loopback and RFC 1918 private subnets
+        is_private = False
+        try:
+            ip_obj = ipaddress.ip_address(target)
+            is_private = ip_obj.is_private or ip_obj.is_loopback
+        except ValueError:
+            is_private = target in ("localhost", "127.0.0.1")
+        if not is_private:
+            return {
+                "success": False,
+                "error": "Режим Air-Gapped Stealth Mode АКТИВИРОВАН. Сканирование внешних публичных хостов заблокировано для исключения утечек трафика. Разрешены только локальные IP-адреса.",
+            }
+
     nmap_path = shutil.which("nmap")
 
     # If user selected nmap and it's installed, run nmap with explicit '--' flag delimiter
@@ -255,15 +270,31 @@ def get_wifi_recon_status():
 
 @router.get("/my-ip")
 async def get_user_ip_telemetry():
-    """Retrieve local LAN IP and public WAN IP for tactical HUD with strict TLS."""
+    """Retrieve local LAN IP and public WAN IP for tactical HUD with strict TLS and Air-Gap enforcement."""
+    from backend.app.api.system import is_air_gap_enabled
+
+    air_gap_active = is_air_gap_enabled()
+
     local_ip = "127.0.0.1"
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
+        # In Air-Gap mode, bind only to loopback
+        s.connect(("127.0.0.1" if air_gap_active else "8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
     except Exception:
         pass
+
+    if air_gap_active:
+        return {
+            "success": True,
+            "local_ip": local_ip,
+            "wan_ip": "AIR-GAPPED (ISOLATED)",
+            "hostname": socket.gethostname(),
+            "status": "AIR-GAPPED (STEALTH)",
+            "air_gap_enforced": True,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
 
     wan_ip = "Unknown"
     try:
@@ -281,6 +312,7 @@ async def get_user_ip_telemetry():
         "wan_ip": wan_ip,
         "hostname": socket.gethostname(),
         "status": "PROTECTED",
+        "air_gap_enforced": False,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 

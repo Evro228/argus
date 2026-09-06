@@ -101,6 +101,18 @@ async def search_username(req: UsernameSearchRequest):
             "error": "Некорректный формат никнейма. Допускаются только буквы, цифры, дефис, точка и подчеркивание (до 64 символов).",
         }
 
+    from backend.app.api.system import is_air_gap_enabled
+    if is_air_gap_enabled():
+        return {
+            "success": True,
+            "username": username,
+            "air_gap_mode": True,
+            "total_checked": 0,
+            "found_count": 0,
+            "profiles": [],
+            "notice": "Режим Air-Gapped Stealth Mode АКТИВЕН. Внешние HTTP-запросы заблокированы. Используйте оффлайн базы утечек и локальный справочник платформ.",
+        }
+
     target_sites = OSINT_TARGET_SITES
     if req.category and req.category.lower() != "all":
         target_sites = [s for s in OSINT_TARGET_SITES if s.get("category", "").lower() == req.category.lower()]

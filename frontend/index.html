@@ -437,7 +437,9 @@
         <!-- Subsection Tool Picker -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1">
           <button class="tool-picker-pill active" data-tool="vault-entropy">🔐 Password Entropy</button>
-          <button class="tool-picker-pill" data-tool="vault-veracrypt">🗄️ VeraCrypt / LUKS Volumes</button>
+          <button class="tool-picker-pill" data-tool="vault-stego">👁️ Zero-Width Stego</button>
+          <button class="tool-picker-pill" data-tool="vault-burn">🔥 Burn Notes</button>
+          <button class="tool-picker-pill" data-tool="vault-veracrypt">🗄️ AES-256 Vault</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
         </div>
 
@@ -460,15 +462,209 @@
             </div>
           </div>
 
-          <!-- VeraCrypt Volume Card -->
-          <div class="tool-card argus-panel p-4" data-card="vault-veracrypt">
-            <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
-              <span>🗄️</span> <span>VERACRYPT & LUKS ENCRYPTED VAULT</span>
+          <!-- Zero-Width Steganography Card -->
+          <div class="tool-card argus-panel p-4" data-card="vault-stego">
+            <h3 class="text-sm font-bold font-mono text-violet-400 mb-2 flex items-center space-x-2">
+              <span>👁️</span> <span>ZERO-WIDTH STEGANOGRAPHY (AES-256)</span>
             </h3>
             <div class="space-y-2 text-xs font-mono">
-              <input id="veracrypt-name-input" type="text" placeholder="Имя сейфа (например: secure_vault.tc)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <input id="veracrypt-pwd-input" type="password" placeholder="Мастер-пароль" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <button id="veracrypt-create-btn" class="w-full py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">СОЗДАТЬ СЕЙФ (AES-256) 🛡️</button>
+              <textarea id="stego-cover-text" rows="2" placeholder="Обычный текст прикрытия (контейнер)..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
+              <textarea id="stego-secret-text" rows="2" placeholder="Секретное сообщение для сокрытия..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
+              <div class="flex space-x-2">
+                <input id="stego-password" type="password" placeholder="Ключ AES (опционально)" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1 text-slate-200">
+                <button id="stego-encode-btn" class="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-lg transition">СКРЫТЬ 🔒</button>
+                <button id="stego-decode-btn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition">ИЗВЛЕЧЬ 🔓</button>
+              </div>
+              <div id="stego-result-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[11px] hidden select-all break-all"></div>
+            </div>
+          </div>
+
+          <!-- Ephemeral Burn Notes Card -->
+          <div class="tool-card argus-panel p-4" data-card="vault-burn">
+            <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
+              <span>🔥</span> <span>EPHEMERAL BURN NOTES (RAM ZEROING)</span>
+            </h3>
+            <div class="space-y-2 text-xs font-mono">
+              <textarea id="burn-note-input" rows="2" placeholder="Текст одноразового секрета..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
+              <div class="flex items-center space-x-2">
+                <select id="burn-ttl-select" class="bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1 text-slate-300">
+                  <option value="600">10 минут</option>
+                  <option value="3600" selected>1 час</option>
+                  <option value="86400">24 часа</option>
+                </select>
+                <button id="burn-note-create-btn" class="flex-1 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">СОЗДАТЬ СЕКРЕТ 🔥</button>
+              </div>
+              <div id="burn-note-result" class="p-2 rounded bg-slate-900 border border-slate-800 text-[11px] hidden break-all"></div>
+            </div>
+          </div>
+
+          <!-- VeraCrypt & AES-256 Vault Card -->
+          <div class="tool-card argus-panel p-4" data-card="vault-veracrypt">
+            <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
+              <span>🗄️</span> <span>AUTHENTICATED AES-256-GCM VAULT</span>
+            </h3>
+            <div class="space-y-2 text-xs font-mono">
+              <input id="vault-data-input" type="text" placeholder="Данные для шифрования (токен, пароли, конфиг)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
+              <input id="vault-passphrase-input" type="password" placeholder="Мастер-пароль сейфа (минимум 8 знаков)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
+              <div class="flex space-x-2">
+                <button id="vault-encrypt-btn" class="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">ЗАШИФРОВАТЬ 🛡️</button>
+                <button id="vault-decrypt-btn" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition">РАСШИФРОВАТЬ 🔓</button>
+              </div>
+              <div id="vault-result-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[10px] hidden break-all"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 6: FORENSICS LAB & METADATA EXPLOIT AUDIT             -->
+      <!-- ========================================================= -->
+      <div id="tab-forensics" class="tab-content space-y-4 hidden">
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
+          <button class="tool-picker-pill active" data-tool="forensics-exif">📸 EXIF & GPS Recon</button>
+          <button class="tool-picker-pill" data-tool="forensics-pdf">📄 Dangerzone PDF Audit</button>
+          <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- EXIF Metadata Card -->
+          <div class="tool-card argus-panel p-4" data-card="forensics-exif">
+            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
+              <span>📸</span> <span>IMAGE EXIF & GEOLOCATION RECON</span>
+            </h3>
+            <div class="space-y-3 text-xs font-mono">
+              <p class="text-slate-400 text-[11px]">Извлечение скрытых метаданных съемки, модели камеры, GPS-координат и маркеров синтетической генерации ИИ.</p>
+              <div class="p-3 border-2 border-dashed border-slate-700/80 hover:border-sky-500/60 rounded-xl text-center cursor-pointer transition" id="exif-drop-zone">
+                <input type="file" id="exif-file-input" accept="image/*" class="hidden">
+                <span class="text-slate-400">Перетащите изображение или <span class="text-sky-400 underline">выберите файл</span></span>
+              </div>
+              <div id="exif-results-box" class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2 hidden">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Dangerzone PDF Security Card -->
+          <div class="tool-card argus-panel p-4" data-card="forensics-pdf">
+            <h3 class="text-sm font-bold font-mono text-rose-400 mb-2 flex items-center space-x-2">
+              <span>📄</span> <span>DANGERZONE PDF SECURITY & EXPLOIT AUDITOR</span>
+            </h3>
+            <div class="space-y-3 text-xs font-mono">
+              <p class="text-slate-400 text-[11px]">Глубокий анализ PDF на скрытые вредоносные директивы: /JavaScript, /Launch, /OpenAction и встроенные эксплойты.</p>
+              <div class="p-3 border-2 border-dashed border-slate-700/80 hover:border-rose-500/60 rounded-xl text-center cursor-pointer transition" id="pdf-drop-zone">
+                <input type="file" id="pdf-file-input" accept="application/pdf" class="hidden">
+                <span class="text-slate-400">Перетащите PDF или <span class="text-rose-400 underline">выберите файл</span></span>
+              </div>
+              <div id="pdf-results-box" class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2 hidden">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 7: OPSEC & DATA LOSS PREVENTION (PASTEGUARD)          -->
+      <!-- ========================================================= -->
+      <div id="tab-opsec" class="tab-content space-y-4 hidden">
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
+          <button class="tool-picker-pill active" data-tool="opsec-sanitize">🥷 Pasteguard DLP</button>
+          <button class="tool-picker-pill" data-tool="opsec-urls">🔗 ClearURLs Stripper</button>
+          <button class="tool-picker-pill" data-tool="opsec-disposable">👤 Disposable Identity</button>
+          <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Pasteguard DLP Sanitizer Card -->
+          <div class="tool-card argus-panel p-4" data-card="opsec-sanitize">
+            <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
+              <span>🥷</span> <span>PASTEGUARD DATA LOSS SANITIZER</span>
+            </h3>
+            <div class="space-y-2 text-xs font-mono">
+              <textarea id="opsec-sanitize-input" rows="3" placeholder="Вставьте конфиденциальный текст для вымарывания email, телефонов, карт и токенов..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
+              <button id="opsec-sanitize-btn" class="w-full py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">ВЫМАРАТЬ ДАННЫЕ (SANITIZE) 🛡️</button>
+              <div id="opsec-sanitize-result" class="p-2.5 rounded bg-slate-900 border border-slate-800 hidden space-y-1">
+                <div class="flex justify-between text-[11px] text-slate-400">
+                  <span>Очищенный текст:</span>
+                  <button id="btn-copy-sanitized" class="text-sky-400 hover:underline">Копировать</button>
+                </div>
+                <div id="sanitized-text-output" class="text-slate-200 select-all break-all whitespace-pre-wrap"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ClearURLs Tracker Stripper Card -->
+          <div class="tool-card argus-panel p-4" data-card="opsec-urls">
+            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
+              <span>🔗</span> <span>CLEARURLS TRACKER STRIPPER</span>
+            </h3>
+            <div class="space-y-2 text-xs font-mono">
+              <input id="opsec-url-input" type="text" placeholder="https://example.com/item?utm_source=ad&fbclid=xyz..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
+              <button id="opsec-url-btn" class="w-full py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg transition">УДАЛИТЬ ТРЕКЕРЫ СЛЕЖКИ 🧹</button>
+              <div id="opsec-url-result" class="p-2.5 rounded bg-slate-900 border border-slate-800 hidden space-y-1">
+                <div class="text-[10px] text-emerald-400 font-bold" id="url-removed-count"></div>
+                <div id="cleaned-url-output" class="text-sky-300 select-all break-all"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disposable Identity Generator Card -->
+          <div class="tool-card argus-panel p-4 md:col-span-2" data-card="opsec-disposable">
+            <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
+              <span>👤</span> <span>DISPOSABLE IDENTITY & BURNER PROFILE</span>
+            </h3>
+            <div class="flex items-center space-x-3 text-xs font-mono">
+              <input id="disposable-prefix-input" type="text" placeholder="Префикс (например: operator)" value="operator" class="w-48 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
+              <button id="disposable-gen-btn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">СОЗДАТЬ АНОНИМНЫЙ ПРОФИЛЬ 🎭</button>
+            </div>
+            <div id="disposable-identity-result" class="mt-3 p-3 rounded bg-slate-900 border border-slate-800 hidden text-xs font-mono space-y-1">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- TAB 8: EXECUTIVE SECURITY ANALYST                         -->
+      <!-- ========================================================= -->
+      <div id="tab-analyst" class="tab-content space-y-4 hidden">
+        <div class="tool-card argus-panel p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold font-mono text-sky-400 flex items-center space-x-2">
+                <span>📊</span> <span>EXECUTIVE POSTURE & SECURITY AUDIT DASHBOARD</span>
+              </h3>
+              <p class="text-slate-400 text-xs">Комплексный скоринг защищенности рабочей станции: FileVault, SIP, Gatekeeper, открытые порты и аудит кода.</p>
+            </div>
+            <button id="btn-generate-analyst-report" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">
+              СОСТАВИТЬ ОТЧЕТ ⚡
+            </button>
+          </div>
+
+          <div id="analyst-report-container" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-mono">SECURITY POSTURE SCORE</div>
+                <div id="analyst-score-val" class="text-3xl font-bold font-mono text-emerald-400 mt-1">--</div>
+                <div id="analyst-verdict-badge" class="text-[10px] font-mono text-slate-400 mt-1">Ожидание расчета...</div>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-mono">HOST HARDENING</div>
+                <div id="analyst-hardening-val" class="text-3xl font-bold font-mono text-sky-400 mt-1">--</div>
+                <div class="text-[10px] font-mono text-slate-500 mt-1">macOS System Integrity</div>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
+                <div class="text-xs text-slate-400 font-mono">AIR-GAP STATUS</div>
+                <div id="analyst-airgap-val" class="text-2xl font-bold font-mono text-slate-200 mt-1">ONLINE</div>
+                <div class="text-[10px] font-mono text-slate-500 mt-1">Socket Egress Guard</div>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+              <div class="text-xs font-bold font-mono text-slate-300">ПРИОРИТИЗИРОВАННЫЙ ПЛАН УСТРАНЕНИЯ РИСКОВ (ACTIONABLE REMEDIATIONS):</div>
+              <div id="analyst-remediations-list" class="space-y-1 text-xs font-mono text-slate-400">
+                <div>Нажмите «Составить отчет» для анализа состояния хоста и сканирований.</div>
+              </div>
             </div>
           </div>
         </div>

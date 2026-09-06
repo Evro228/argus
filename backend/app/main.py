@@ -45,12 +45,23 @@ app.add_middleware(
 
 # Rate limiting & Security Headers Middleware
 RATE_LIMIT_WINDOW = 60
-RATE_LIMIT_MAX_REQUESTS = 300
+RATE_LIMIT_MAX_REQUESTS = 600
 client_request_history = defaultdict(list)
+
+# Host validation to block DNS Rebinding
+VALID_HOSTS = {"127.0.0.1", "localhost", "testserver"}
 
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
-    # Apply rate limiting to API endpoints
+    # 1. DNS Rebinding Protection: Verify Host header
+    host_header = request.headers.get("host", "").split(":")[0]
+    if host_header and host_header not in VALID_HOSTS and not host_header.startswith("127."):
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"success": False, "error": "Запрещенный заголовок Host (DNS Rebinding Protection)."},
+        )
+
+    # 2. Apply rate limiting to API endpoints
     if request.url.path.startswith("/api/"):
         client_ip = request.client.host if request.client else "127.0.0.1"
         now = time.time()
@@ -65,14 +76,21 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
         timestamps.append(now)
         client_request_history[client_ip] = timestamps
 
-    # Optional API key protection if configured in environment
-    api_key = os.getenv("ARGUS_API_KEY", "").strip()
-    if api_key and request.url.path.startswith("/api/") and request.url.path != "/api/health":
-        auth_header = request.headers.get("X-API-Key") or request.headers.get("Authorization", "").replace("Bearer ", "")
-        if auth_header != api_key:
+    # 3. Localhost IPC Token Protection (Drive-by & Web-to-Localhost defense)
+    ipc_token = os.getenv("ARGUS_IPC_TOKEN", "").strip()
+    if ipc_token and request.url.path.startswith("/api/") and request.url.path != "/api/health":
+        import secrets
+        provided_token = (
+            request.headers.get("X-ARGUS-Token")
+            or request.headers.get("X-API-Key")
+            or request.headers.get("Authorization", "").replace("Bearer ", "")
+        ).strip()
+
+        # Constant-time comparison defeats timing side-channels
+        if not secrets.compare_digest(provided_token, ipc_token):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"success": False, "error": "Доступ запрещен: требуется валидный API-ключ."},
+                content={"success": False, "error": "Доступ запрещен: требуется валидный токен безопасности ARGUS (X-ARGUS-Token)."},
             )
 
     response = await call_next(request)
