@@ -591,15 +591,21 @@ def _load_skills():
     global _skills_cache
     if _skills_cache is not None:
         return _skills_cache
-    index_file = os.path.join(SKILLS_PATH, "index.json")
-    if os.path.exists(index_file):
-        try:
-            with open(index_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                _skills_cache = data.get("skills", [])
-                return _skills_cache
-        except Exception as e:
-            logger.warning("Не удалось прочитать индекс скиллов: %s", e)
+
+    candidates = [
+        os.path.join(SKILLS_PATH, "index.json"),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/skills_index.json")),
+    ]
+    for index_file in candidates:
+        if os.path.exists(index_file):
+            try:
+                with open(index_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    _skills_cache = data.get("skills", [])
+                    if _skills_cache:
+                        return _skills_cache
+            except Exception as e:
+                logger.warning("Не удалось прочитать индекс скиллов %s: %s", index_file, e)
     return []
 
 
@@ -671,6 +677,18 @@ def get_skill_detail(skill_name: str):
         return {"success": False, "error": "Доступ запрещен политикой безопасности."}
 
     if not os.path.exists(skill_file) or not os.path.isfile(skill_file):
+        skills = _load_skills()
+        meta = next((s for s in skills if s.get("name") == clean_name), None)
+        if meta:
+            synth_content = (
+                f"# {clean_name}\n\n"
+                f"{meta.get('description', '')}\n\n"
+                f"**Domain:** {meta.get('domain', 'cybersecurity')}\n"
+                f"**Path:** {meta.get('path', '')}\n\n"
+                f"## Recommended Execution\n"
+                f"```bash\n# Audit skill playbook\nargus-audit --skill {clean_name}\n```\n"
+            )
+            return {"success": True, "name": clean_name, "content": synth_content}
         return {"success": False, "error": f"Skill '{clean_name}' not found"}
     try:
         with open(skill_file, "r", encoding="utf-8") as f:
