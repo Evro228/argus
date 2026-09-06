@@ -53,6 +53,7 @@ const App = {
     this.bindPlaybooksHub();
     this.bindKnowledgeHub();
     this.bindSessionHistory();
+    this.bindApiKeysConfig();
 
     this.log('ARGUS Tactical Cockpit инициализирован. Все подсистемы в норме.', 'system');
 
@@ -1862,6 +1863,122 @@ const App = {
       });
       this.loadSessionHistory();
     } catch (_) {}
+  },
+
+  bindApiKeysConfig() {
+    const dialog = document.getElementById('dialog-api-keys');
+    const openBtn = document.getElementById('btn-open-config-keys');
+    const closeBtn = document.getElementById('btn-close-keys-dialog');
+    const cancelBtn = document.getElementById('btn-cancel-keys');
+    const saveBtn = document.getElementById('btn-save-keys');
+    const msgEl = document.getElementById('cfg-save-msg');
+
+    if (!dialog) return;
+
+    const openDialog = async () => {
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', 'true');
+      }
+      if (msgEl) msgEl.textContent = 'Загрузка текущих статусов...';
+
+      try {
+        const res = await fetch(`${API_BASE}/system/config/keys`, { headers: getApiHeaders() });
+        const data = await res.json();
+        if (data.success && data.keys) {
+          const k = data.keys;
+          if (document.getElementById('badge-opensky-status')) {
+            document.getElementById('badge-opensky-status').textContent = k.opensky.status;
+            document.getElementById('badge-opensky-status').className = `text-[10px] ${k.opensky.configured ? 'text-emerald-400 font-bold' : 'text-slate-400'}`;
+          }
+          if (document.getElementById('badge-ais-status')) {
+            document.getElementById('badge-ais-status').textContent = k.aisstream_key.status;
+            document.getElementById('badge-ais-status').className = `text-[10px] ${k.aisstream_key.configured ? 'text-emerald-400 font-bold' : 'text-slate-400'}`;
+          }
+          if (document.getElementById('badge-firms-status')) {
+            document.getElementById('badge-firms-status').textContent = k.nasa_firms_key.status;
+            document.getElementById('badge-firms-status').className = `text-[10px] ${k.nasa_firms_key.configured ? 'text-emerald-400 font-bold' : 'text-slate-400'}`;
+          }
+          if (document.getElementById('badge-shodan-status')) {
+            document.getElementById('badge-shodan-status').textContent = k.shodan_key.status;
+            document.getElementById('badge-shodan-status').className = `text-[10px] ${k.shodan_key.configured ? 'text-emerald-400 font-bold' : 'text-slate-400'}`;
+          }
+          if (document.getElementById('cfg-ollama-url') && k.ollama_url) {
+            document.getElementById('cfg-ollama-url').value = k.ollama_url.value || 'http://127.0.0.1:11434';
+          }
+          if (msgEl) msgEl.textContent = 'Конфигурация готова.';
+        }
+      } catch (err) {
+        if (msgEl) msgEl.textContent = 'Ошибка загрузки статусов.';
+      }
+    };
+
+    const closeDialog = () => {
+      if (typeof dialog.close === 'function') {
+        dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+      }
+    };
+
+    if (openBtn) openBtn.addEventListener('click', openDialog);
+    if (closeBtn) closeBtn.addEventListener('click', closeDialog);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeDialog);
+
+    // Global Hotkey: Cmd + , or Ctrl + ,
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+        e.preventDefault();
+        openDialog();
+      }
+    });
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'СОХРАНЕНИЕ... ⏳';
+
+        const payload = {};
+        const firmsKey = document.getElementById('cfg-firms-key')?.value.trim();
+        const openskyUser = document.getElementById('cfg-opensky-user')?.value.trim();
+        const openskyPass = document.getElementById('cfg-opensky-pass')?.value.trim();
+        const aisKey = document.getElementById('cfg-ais-key')?.value.trim();
+        const shodanKey = document.getElementById('cfg-shodan-key')?.value.trim();
+        const ollamaUrl = document.getElementById('cfg-ollama-url')?.value.trim();
+
+        if (firmsKey) payload.nasa_firms_key = firmsKey;
+        if (openskyUser) payload.opensky_username = openskyUser;
+        if (openskyPass) payload.opensky_password = openskyPass;
+        if (aisKey) payload.aisstream_key = aisKey;
+        if (shodanKey) payload.shodan_key = shodanKey;
+        if (ollamaUrl) payload.ollama_url = ollamaUrl;
+
+        try {
+          const res = await fetch(`${API_BASE}/system/config/keys`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            if (msgEl) {
+              msgEl.textContent = '✅ Ключи сохранены в защищенном хранилище.';
+              msgEl.className = 'text-[11px] text-emerald-400 font-mono';
+            }
+            this.log('[CONFIG] Пользовательские ключи live-потоков успешно сохранены.', 'success');
+            setTimeout(() => closeDialog(), 800);
+          } else {
+            if (msgEl) msgEl.textContent = '❌ ' + (data.error || 'Ошибка');
+          }
+        } catch (err) {
+          if (msgEl) msgEl.textContent = '❌ ' + err.message;
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'СОХРАНИТЬ КЛЮЧИ 💾';
+        }
+      });
+    }
   }
 };
 

@@ -1,5 +1,6 @@
 // ==========================================================================
 // ARGUS Tactical Threat Map & Autonomous GEOINT Telemetry Engine
+// Multi-Domain: NORAD Satellites, ADS-B Aviation, AIS Maritime & NASA FIRMS
 // ==========================================================================
 (function () {
   function getIpcToken() {
@@ -42,6 +43,7 @@
       this.layers = {
         sats: true,
         air: true,
+        maritime: true,
         hotspots: true,
         cyber: true
       };
@@ -63,6 +65,7 @@
       // Live Telemetry Collections
       this.satellites = [];
       this.aircraft = [];
+      this.maritime = [];
       this.hotspots = [];
 
       this.selectedEntity = { kind: 'node', data: this.nodes[0] };
@@ -100,34 +103,37 @@
           if (data.success) {
             this.satellites = data.satellites || [];
             this.aircraft = data.aircraft || [];
+            this.maritime = data.maritime || [];
             this.hotspots = data.hotspots || [];
 
             // Update badge counters
             const countSats = document.getElementById('count-sats');
             const countAir = document.getElementById('count-air');
+            const countShips = document.getElementById('count-ships');
             const countHotspots = document.getElementById('count-hotspots');
             if (countSats) countSats.textContent = this.satellites.length;
             if (countAir) countAir.textContent = this.aircraft.length;
+            if (countShips) countShips.textContent = this.maritime.length;
             if (countHotspots) countHotspots.textContent = this.hotspots.length;
 
-            // If selected entity is updated in latest telemetry, refresh HUD
-            if (this.selectedEntity && this.selectedEntity.kind === 'sat') {
-              const updated = this.satellites.find(s => s.id === this.selectedEntity.data.id);
-              if (updated) {
-                this.selectedEntity.data = updated;
-                this.updateHudCard();
-              }
-            } else if (this.selectedEntity && this.selectedEntity.kind === 'air') {
-              const updated = this.aircraft.find(a => a.icao24 === this.selectedEntity.data.icao24);
-              if (updated) {
-                this.selectedEntity.data = updated;
-                this.updateHudCard();
+            // Update selected entity if present in latest telemetry
+            if (this.selectedEntity) {
+              const { kind, data } = this.selectedEntity;
+              if (kind === 'sat') {
+                const updated = this.satellites.find(s => s.id === data.id);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'air') {
+                const updated = this.aircraft.find(a => a.icao24 === data.icao24);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'maritime') {
+                const updated = this.maritime.find(m => m.mmsi === data.mmsi);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
               }
             }
           }
         }
       } catch (err) {
-        // Silent fallback: continues rendering cached or local telemetry
+        // Fallback: continues rendering without throwing
       }
     }
 
@@ -143,6 +149,7 @@
       };
       bind('btn-layer-sats', 'sats');
       bind('btn-layer-air', 'air');
+      bind('btn-layer-maritime', 'maritime');
       bind('btn-layer-hotspots', 'hotspots');
       bind('btn-layer-cyber', 'cyber');
     }
@@ -162,7 +169,7 @@
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // 1. Check Satellites (if layer active)
+        // 1. Check Satellites
         if (this.layers.sats) {
           for (let sat of this.satellites) {
             const pt = this.project2D(sat.lat, sat.lon);
@@ -173,7 +180,7 @@
           }
         }
 
-        // 2. Check Aircraft (if layer active)
+        // 2. Check Aircraft
         if (this.layers.air) {
           for (let ac of this.aircraft) {
             const pt = this.project2D(ac.lat, ac.lon);
@@ -184,7 +191,18 @@
           }
         }
 
-        // 3. Check Hotspots (if layer active)
+        // 3. Check Maritime (Ships)
+        if (this.layers.maritime) {
+          for (let ship of this.maritime) {
+            const pt = this.project2D(ship.lat, ship.lon);
+            if (Math.hypot(mouseX - pt.x, mouseY - pt.y) < 16) {
+              this.selectEntity('maritime', ship);
+              return;
+            }
+          }
+        }
+
+        // 4. Check Hotspots
         if (this.layers.hotspots) {
           for (let h of this.hotspots) {
             const pt = this.project2D(h.lat, h.lon);
@@ -195,7 +213,7 @@
           }
         }
 
-        // 4. Check Cyber Nodes (if layer active)
+        // 5. Check Cyber Nodes
         if (this.layers.cyber) {
           for (let node of this.nodes) {
             const pt = this.project2D(node.lat, node.lon);
@@ -212,11 +230,12 @@
       this.selectedEntity = { kind, data };
       this.updateHudCard();
       if (window.argusApp && window.argusApp.log) {
-        const label = kind === 'sat' ? `Спутник NORAD: ${data.name}` :
-                      kind === 'air' ? `Воздушный борт ADS-B: ${data.callsign} (${data.model})` :
-                      kind === 'hotspot' ? `Термическая аномалия: ${data.name}` :
-                      `Тактический кибер-узел: ${data.name} (${data.ip})`;
-        window.argusApp.log(`[GEOINT HUD] ${label}`, 'threat');
+        const label = kind === 'sat' ? `[NORAD] ${data.name} (${data.operator})` :
+                      kind === 'air' ? `[ADS-B] ${data.callsign} (${data.model})` :
+                      kind === 'maritime' ? `[AIS] ${data.flag} ${data.name} (${data.type})` :
+                      kind === 'hotspot' ? `[FIRMS] ${data.name} [${data.brightness_k}K]` :
+                      `[CYBER] ${data.name} (${data.ip})`;
+        window.argusApp.log(`[GEOINT HUD] Выбран объект: ${label}`, 'threat');
       }
     }
 
@@ -256,37 +275,37 @@
         if (threatFill) threatFill.style.width = `${data.threat}%`;
 
       } else if (kind === 'sat') {
-        typeBadge.textContent = 'NORAD ORBITAL ASSET';
-        if (titleLabel) titleLabel.textContent = 'SATELLITE / NORAD ID';
+        typeBadge.textContent = `NORAD ORBITAL ASSET [${data.country}]`;
+        if (titleLabel) titleLabel.textContent = 'SPACECRAFT / NORAD ID';
         if (targetIp) targetIp.textContent = `${data.name} (#${data.norad_id})`;
-        if (coordsLabel) coordsLabel.textContent = 'SUB-SATELLITE POINT';
+        if (coordsLabel) coordsLabel.textContent = 'SUB-SATELLITE GROUND POINT';
         if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(2)}° N, ${data.lon.toFixed(2)}° E [Inc: ${data.inclination_deg}°]`;
-        if (detailsLabel) detailsLabel.textContent = 'ORBITAL PARAMETERS';
+        if (detailsLabel) detailsLabel.textContent = 'ORBITAL PARAMETERS & APOGEE';
         if (portsContainer) {
           portsContainer.innerHTML = `
             <div class="px-2 py-1 rounded bg-slate-900/90 border border-cyan-500/30 text-center">
               <div class="text-xs font-bold text-cyan-400 font-mono">${data.altitude_km} km</div>
-              <div class="text-[9px] text-slate-400 font-mono">Апогей/Высота</div>
+              <div class="text-[9px] text-slate-400 font-mono">Высота</div>
             </div>
             <div class="px-2 py-1 rounded bg-slate-900/90 border border-cyan-500/30 text-center">
               <div class="text-xs font-bold text-sky-300 font-mono">${data.velocity_kms} km/s</div>
               <div class="text-[9px] text-slate-400 font-mono">Скорость</div>
             </div>
             <div class="px-2 py-1 rounded bg-slate-900/90 border border-cyan-500/30 text-center">
-              <div class="text-xs font-bold text-emerald-400 font-mono">${data.type.slice(0, 10)}</div>
-              <div class="text-[9px] text-slate-400 font-mono">Назначение</div>
+              <div class="text-xs font-bold text-emerald-400 font-mono">${escapeHtml(data.type.slice(0, 10))}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Тип</div>
             </div>
           `;
         }
-        if (threatLabel) threatLabel.textContent = 'MISSION ROLE';
-        if (threatScore) threatScore.textContent = data.operator;
+        if (threatLabel) threatLabel.textContent = 'MISSION ROLE & OPERATOR';
+        if (threatScore) threatScore.textContent = `${data.operator} (${data.role.slice(0, 32)})`;
         if (threatFill) threatFill.style.width = '100%';
 
       } else if (kind === 'air') {
-        typeBadge.textContent = 'ADS-B AIRBORNE RADAR';
+        typeBadge.textContent = `ADS-B AIRBORNE RADAR [${data.country}]`;
         if (titleLabel) titleLabel.textContent = 'CALLSIGN / ICAO24';
         if (targetIp) targetIp.textContent = `${data.callsign} [${data.icao24.toUpperCase()}]`;
-        if (coordsLabel) coordsLabel.textContent = 'AIRSPACE POSITION';
+        if (coordsLabel) coordsLabel.textContent = 'AIRSPACE POSITION & HEADING';
         if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(2)}° N, ${data.lon.toFixed(2)}° E | Hdg: ${data.heading}°`;
         if (detailsLabel) detailsLabel.textContent = 'AVIONICS & KINEMATICS';
         if (portsContainer) {
@@ -300,14 +319,41 @@
               <div class="text-[9px] text-slate-400 font-mono">Скорость</div>
             </div>
             <div class="px-2 py-1 rounded bg-slate-900/90 border border-emerald-500/30 text-center">
-              <div class="text-xs font-bold text-amber-400 font-mono">${data.squawk}</div>
+              <div class="text-xs font-bold text-amber-400 font-mono">${escapeHtml(data.squawk)}</div>
               <div class="text-[9px] text-slate-400 font-mono">Squawk</div>
             </div>
           `;
         }
-        if (threatLabel) threatLabel.textContent = 'CATEGORY / AIRFRAME';
-        if (threatScore) threatScore.textContent = `${data.model} (${data.category})`;
-        if (threatFill) threatFill.style.width = '80%';
+        if (threatLabel) threatLabel.textContent = 'MODEL & OPERATOR';
+        if (threatScore) threatScore.textContent = `${data.model} // ${data.operator}`;
+        if (threatFill) threatFill.style.width = '85%';
+
+      } else if (kind === 'maritime') {
+        typeBadge.textContent = `AIS MARITIME COMBATANT // ${data.flag} ${data.country}`;
+        if (titleLabel) titleLabel.textContent = 'VESSEL NAME & CALLSIGN';
+        if (targetIp) targetIp.textContent = `${data.flag} ${data.name} [${data.callsign}]`;
+        if (coordsLabel) coordsLabel.textContent = 'COORDINATES & SEAWAY HEADING';
+        if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(2)}° N, ${data.lon.toFixed(2)}° E | Course: ${data.heading}°`;
+        if (detailsLabel) detailsLabel.textContent = 'FLEET SPECS & TONNAGE';
+        if (portsContainer) {
+          portsContainer.innerHTML = `
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-indigo-500/30 text-center">
+              <div class="text-xs font-bold text-indigo-400 font-mono">${data.speed_kts} kts</div>
+              <div class="text-[9px] text-slate-400 font-mono">Ход</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-indigo-500/30 text-center">
+              <div class="text-xs font-bold text-sky-300 font-mono">${data.displacement_t.toLocaleString()} t</div>
+              <div class="text-[9px] text-slate-400 font-mono">Тоннаж</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-indigo-500/30 text-center">
+              <div class="text-xs font-bold text-emerald-400 font-mono">${data.draught_m} m</div>
+              <div class="text-[9px] text-slate-400 font-mono">Осадка</div>
+            </div>
+          `;
+        }
+        if (threatLabel) threatLabel.textContent = 'DESTINATION & FORMATION';
+        if (threatScore) threatScore.textContent = `${data.destination} (${data.fleet})`;
+        if (threatFill) threatFill.style.width = '95%';
 
       } else if (kind === 'hotspot') {
         typeBadge.textContent = 'THERMAL ANOMALY (NASA FIRMS)';
@@ -349,7 +395,6 @@
     }
 
     drawWorldMap2D() {
-      // Cyber Grid
       this.ctx.strokeStyle = 'rgba(30, 41, 59, 0.40)';
       this.ctx.lineWidth = 0.5;
 
@@ -367,7 +412,6 @@
         this.ctx.stroke();
       }
 
-      // Greenwich and Equator reference axes
       const eq = this.project2D(0, 0);
       this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
       this.ctx.lineWidth = 1;
@@ -381,7 +425,6 @@
       this.ctx.lineTo(eq.x, this.height);
       this.ctx.stroke();
 
-      // Latitude Tropics lines
       const tropicN = this.project2D(23.436, 0);
       const tropicS = this.project2D(-23.436, 0);
       this.ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
@@ -413,7 +456,6 @@
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2 - arcHeight;
 
-        // Base faint arc
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.quadraticCurveTo(midX, midY, p2.x, p2.y);
@@ -421,7 +463,6 @@
         this.ctx.lineWidth = 1;
         this.ctx.stroke();
 
-        // Laser head
         const t = arc.progress;
         const headX = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * midX + t * t * p2.x;
         const headY = (1 - t) * (1 - t) * p1.y + 2 * (1 - t) * t * midY + t * t * p2.y;
@@ -478,9 +519,9 @@
         const pt = this.project2D(sat.lat, sat.lon);
         const isSelected = this.selectedEntity && this.selectedEntity.kind === 'sat' && this.selectedEntity.data.id === sat.id;
 
-        // 1. Draw Orbit Ground Track if available
+        // Ground track
         if (sat.ground_track && sat.ground_track.length > 1) {
-          this.ctx.strokeStyle = isSelected ? 'rgba(6, 182, 212, 0.45)' : 'rgba(6, 182, 212, 0.15)';
+          this.ctx.strokeStyle = isSelected ? 'rgba(6, 182, 212, 0.45)' : 'rgba(6, 182, 212, 0.12)';
           this.ctx.lineWidth = 1;
           this.ctx.setLineDash([3, 4]);
           this.ctx.beginPath();
@@ -491,7 +532,6 @@
               this.ctx.moveTo(ptTrack.x, ptTrack.y);
               started = true;
             } else {
-              // Prevent wrap-around visual glitches across the dateline
               if (Math.abs(p.lon) < 170) {
                 this.ctx.lineTo(ptTrack.x, ptTrack.y);
               } else {
@@ -503,31 +543,32 @@
           this.ctx.setLineDash([]);
         }
 
-        // 2. Pulsing sweep ring
+        // Radar beacon
         const pulse = (Math.sin(now + sat.norad_id) + 1) * 0.5;
-        this.ctx.strokeStyle = `rgba(6, 182, 212, ${0.3 + pulse * 0.5})`;
+        this.ctx.strokeStyle = `rgba(6, 182, 212, ${0.25 + pulse * 0.45})`;
         this.ctx.lineWidth = 1;
         this.ctx.beginPath();
-        this.ctx.arc(pt.x, pt.y, 8 + pulse * 10, 0, Math.PI * 2);
+        this.ctx.arc(pt.x, pt.y, 7 + pulse * 8, 0, Math.PI * 2);
         this.ctx.stroke();
 
-        // 3. Satellite Diamond Marker
+        // Diamond
         this.ctx.save();
         this.ctx.translate(pt.x, pt.y);
         this.ctx.rotate(Math.PI / 4);
         this.ctx.fillStyle = isSelected ? '#22d3ee' : '#06b6d4';
         this.ctx.shadowColor = '#22d3ee';
-        this.ctx.shadowBlur = isSelected ? 12 : 6;
-        this.ctx.fillRect(-3.5, -3.5, 7, 7);
+        this.ctx.shadowBlur = isSelected ? 12 : 5;
+        this.ctx.fillRect(-3, -3, 6, 6);
         this.ctx.restore();
 
-        // Label
-        this.ctx.fillStyle = isSelected ? '#e0f2fe' : '#67e8f9';
-        this.ctx.font = 'bold 9px JetBrains Mono, monospace';
-        this.ctx.fillText(`🛰️ ${sat.name}`, pt.x + 9, pt.y - 3);
-        this.ctx.fillStyle = '#94a3b8';
-        this.ctx.font = '8px JetBrains Mono, monospace';
-        this.ctx.fillText(`${sat.altitude_km}km`, pt.x + 9, pt.y + 7);
+        if (isSelected || Math.abs(sat.lat) < 55) {
+          this.ctx.fillStyle = isSelected ? '#e0f2fe' : '#67e8f9';
+          this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`🛰️ ${sat.name}`, pt.x + 8, pt.y - 3);
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`${sat.altitude_km}km [${sat.country}]`, pt.x + 8, pt.y + 6);
+        }
       }
     }
 
@@ -537,11 +578,11 @@
       for (let ac of this.aircraft) {
         const pt = this.project2D(ac.lat, ac.lon);
         const isSelected = this.selectedEntity && this.selectedEntity.kind === 'air' && this.selectedEntity.data.icao24 === ac.icao24;
-        const isRecon = ac.category && (ac.category.includes('Recon') || ac.category.includes('SIGINT') || ac.category.includes('AEW&C'));
+        const isDoomsdayOrVip = ac.category && (ac.category.includes('Doomsday') || ac.category.includes('Presidential'));
+        const isRecon = ac.category && (ac.category.includes('Recon') || ac.category.includes('SIGINT') || ac.category.includes('AWACS'));
 
-        const color = isRecon ? '#fbbf24' : '#10b981';
+        const color = isDoomsdayOrVip ? '#f43f5e' : (isRecon ? '#fbbf24' : '#10b981');
 
-        // Heading arrow vector
         const headingRad = (ac.heading - 90) * (Math.PI / 180);
         this.ctx.save();
         this.ctx.translate(pt.x, pt.y);
@@ -549,22 +590,73 @@
 
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
+        this.ctx.moveTo(5.5, 0);
+        this.ctx.lineTo(-3.5, -3.5);
+        this.ctx.lineTo(-1.5, 0);
+        this.ctx.lineTo(-3.5, 3.5);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.restore();
+
+        if (isSelected || isDoomsdayOrVip || isRecon || Math.abs(ac.lat) < 50) {
+          this.ctx.fillStyle = isSelected ? '#f8fafc' : color;
+          this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`✈️ ${ac.callsign}`, pt.x + 7, pt.y - 2);
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`${Math.round(ac.altitude_ft / 1000)}k ft [${ac.country}]`, pt.x + 7, pt.y + 6);
+        }
+      }
+    }
+
+    drawMaritime() {
+      if (!this.layers.maritime) return;
+
+      for (let ship of this.maritime) {
+        const pt = this.project2D(ship.lat, ship.lon);
+        const isSelected = this.selectedEntity && this.selectedEntity.kind === 'maritime' && this.selectedEntity.data.mmsi === ship.mmsi;
+        const isCarrier = ship.type && ship.type.includes('Carrier');
+        const isIcebreaker = ship.type && ship.type.includes('Icebreaker');
+        const isTanker = ship.type && (ship.type.includes('LNG') || ship.type.includes('VLCC'));
+
+        const color = isCarrier ? '#f59e0b' : (isIcebreaker ? '#22d3ee' : (isTanker ? '#ec4899' : '#818cf8'));
+
+        // Draw wake trail
+        const headingRad = (ship.heading - 90) * (Math.PI / 180);
+        const wakeLength = 12;
+        const wakeX = pt.x - Math.cos(headingRad) * wakeLength;
+        const wakeY = pt.y - Math.sin(headingRad) * wakeLength;
+        this.ctx.strokeStyle = 'rgba(129, 140, 248, 0.25)';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.moveTo(pt.x, pt.y);
+        this.ctx.lineTo(wakeX, wakeY);
+        this.ctx.stroke();
+
+        // Draw ship hull chevron
+        this.ctx.save();
+        this.ctx.translate(pt.x, pt.y);
+        this.ctx.rotate(headingRad);
+        this.ctx.fillStyle = color;
+        this.ctx.shadowColor = color;
+        this.ctx.shadowBlur = isSelected ? 10 : 4;
+        this.ctx.beginPath();
         this.ctx.moveTo(6, 0);
-        this.ctx.lineTo(-4, -4);
+        this.ctx.lineTo(-4, -3);
         this.ctx.lineTo(-2, 0);
-        this.ctx.lineTo(-4, 4);
+        this.ctx.lineTo(-4, 3);
         this.ctx.closePath();
         this.ctx.fill();
         this.ctx.restore();
 
         // Label
-        if (isSelected || isRecon || Math.abs(ac.lat) < 55) {
-          this.ctx.fillStyle = isSelected ? '#f8fafc' : color;
+        if (isSelected || isCarrier || isIcebreaker || Math.abs(ship.lat) < 45) {
+          this.ctx.fillStyle = isSelected ? '#ffffff' : color;
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`✈️ ${ac.callsign}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillText(`${ship.flag} ${ship.name}`, pt.x + 8, pt.y - 2);
           this.ctx.fillStyle = '#94a3b8';
-          this.ctx.font = '8px JetBrains Mono, monospace';
-          this.ctx.fillText(`${Math.round(ac.altitude_ft / 1000)}k ft`, pt.x + 8, pt.y + 7);
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`${ship.speed_kts} kts // ${ship.type.slice(0, 14)}`, pt.x + 8, pt.y + 6);
         }
       }
     }
@@ -578,14 +670,14 @@
         const isSelected = this.selectedEntity && this.selectedEntity.kind === 'hotspot' && this.selectedEntity.data.name === h.name;
 
         const pulse = (Math.sin(now + h.lat) + 1) * 0.5;
-        const grad = this.ctx.createRadialGradient(pt.x, pt.y, 1, pt.x, pt.y, 10 + pulse * 6);
+        const grad = this.ctx.createRadialGradient(pt.x, pt.y, 1, pt.x, pt.y, 9 + pulse * 5);
         grad.addColorStop(0, '#f43f5e');
         grad.addColorStop(0.5, 'rgba(245, 158, 11, 0.4)');
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         this.ctx.fillStyle = grad;
         this.ctx.beginPath();
-        this.ctx.arc(pt.x, pt.y, 10 + pulse * 6, 0, Math.PI * 2);
+        this.ctx.arc(pt.x, pt.y, 9 + pulse * 5, 0, Math.PI * 2);
         this.ctx.fill();
 
         this.ctx.fillStyle = '#f59e0b';
@@ -608,6 +700,7 @@
       this.drawCyberNodes();
       this.drawSatellites();
       this.drawAircraft();
+      this.drawMaritime();
       this.drawHotspots();
       requestAnimationFrame(() => this.animate());
     }

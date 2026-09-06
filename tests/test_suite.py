@@ -606,6 +606,89 @@ try:
 except Exception as e:
     record("40. AI SOC Copilot (818 Anthropic Skills)", False, str(e))
 
+# 41. Global Maritime Fleet & AIS Telemetry Engine
+try:
+    mari_res = client.get("/api/geoint/maritime")
+    mari_data = mari_res.json()
+    ships = mari_data.get("maritime", [])
+    carrier = next((s for s in ships if "FORD" in s.get("name", "")), None)
+    icebreaker = next((s for s in ships if "ARKTIKA" in s.get("name", "")), None)
+    countries = set(s.get("country") for s in ships)
+    passed = (
+        mari_res.status_code == 200
+        and mari_data.get("success") is True
+        and len(ships) >= 12
+        and carrier is not None
+        and icebreaker is not None
+        and len(countries) >= 5
+    )
+    record("41. Global Maritime Fleet & AIS Engine", passed, f"Tracked: {len(ships)} vessels across {len(countries)} nations | Flagship: {carrier.get('name') if carrier else 'N/A'}")
+except Exception as e:
+    record("41. Global Maritime Fleet & AIS Engine", False, str(e))
+
+# 42. Multi-Nation Satellite Constellation (20+ Spacecraft)
+try:
+    sats_res = client.get("/api/geoint/satellites")
+    sats_data = sats_res.json()
+    sats = sats_data.get("satellites", [])
+    sat_countries = set(s.get("country") for s in sats)
+    spy_sat = next((s for s in sats if "KEYHOLE" in s.get("name", "") or "USA" in s.get("name", "")), None)
+    passed = (
+        sats_res.status_code == 200
+        and sats_data.get("success") is True
+        and len(sats) >= 20
+        and len(sat_countries) >= 6
+        and spy_sat is not None
+    )
+    record("42. Multi-Nation Satellite Constellation", passed, f"Tracked: {len(sats)} spacecraft | Nations: {', '.join(sorted(sat_countries))}")
+except Exception as e:
+    record("42. Multi-Nation Satellite Constellation", False, str(e))
+
+# 43. Specialized Strategic & Tactical Aviation Fleet (25+ Aircraft)
+try:
+    air_res = client.get("/api/geoint/aircraft")
+    air_data = air_res.json()
+    planes = air_data.get("aircraft", [])
+    air_countries = set(p.get("country") for p in planes)
+    doomsday = next((p for p in planes if "Nightwatch" in p.get("model", "") or "Doomsday" in p.get("category", "")), None)
+    passed = (
+        air_res.status_code == 200
+        and air_data.get("success") is True
+        and len(planes) >= 20
+        and len(air_countries) >= 5
+        and doomsday is not None
+    )
+    record("43. Specialized Strategic Aviation Fleet", passed, f"Tracked: {len(planes)} aircraft | Doomsday: {doomsday.get('callsign') if doomsday else 'N/A'} ({doomsday.get('model') if doomsday else 'N/A'})")
+except Exception as e:
+    record("43. Specialized Strategic Aviation Fleet", False, str(e))
+
+# 44. Secure Live Feeds & API Keys Config Store
+try:
+    cfg_get = client.get("/api/system/config/keys")
+    get_data = cfg_get.json()
+    keys_obj = get_data.get("keys", {})
+
+    cfg_post = client.post(
+        "/api/system/config/keys",
+        json={"nasa_firms_key": "sec_ops_test_key_8899"}
+    )
+    post_data = cfg_post.json()
+
+    cfg_verify = client.get("/api/system/config/keys")
+    verify_data = cfg_verify.json()
+    firms_info = verify_data.get("keys", {}).get("nasa_firms_key", {})
+
+    passed = (
+        cfg_get.status_code == 200
+        and cfg_post.status_code == 200
+        and post_data.get("success") is True
+        and firms_info.get("configured") is True
+        and "••••••••" in firms_info.get("masked", "")
+    )
+    record("44. Secure Live Feeds & API Keys Store", passed, f"Keys status: OK | Masking verified: {firms_info.get('masked')}")
+except Exception as e:
+    record("44. Secure Live Feeds & API Keys Store", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)
@@ -615,5 +698,6 @@ print("================================================================")
 
 if total_passed < total_tests:
     sys.exit(1)
+
 
 

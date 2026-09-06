@@ -76,6 +76,12 @@
         <span class="text-slate-400">🇬🇧 EN</span>
       </button>
 
+      <!-- API Keys & Live Feeds Settings Modal Button -->
+      <button id="btn-open-config-keys" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-mono transition flex items-center space-x-1.5 text-slate-300 hover:text-sky-300" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
+        <span>⚙️</span>
+        <span class="hidden xl:inline">КЛЮЧИ & FEEDS</span>
+      </button>
+
       <!-- System Health -->
       <div id="system-health-badge" class="flex items-center text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> ONLINE
@@ -183,11 +189,15 @@
             </button>
             <button id="btn-layer-air" class="layer-pill active px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-emerald-500/30">
               <span>✈️</span>
-              <span>ADS-B (<span id="count-air">8</span>)</span>
+              <span>ADS-B (<span id="count-air">25</span>)</span>
+            </button>
+            <button id="btn-layer-maritime" class="layer-pill active px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-indigo-500/30">
+              <span>🚢</span>
+              <span>AIS FLOTILLA (<span id="count-ships">16</span>)</span>
             </button>
             <button id="btn-layer-hotspots" class="layer-pill active px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-amber-500/30">
               <span>🔥</span>
-              <span>FIRMS (<span id="count-hotspots">6</span>)</span>
+              <span>FIRMS (<span id="count-hotspots">9</span>)</span>
             </button>
             <button id="btn-layer-cyber" class="layer-pill active px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-sky-500/30">
               <span>⚡</span>
@@ -847,6 +857,105 @@
       </div>
     </div>
   </footer>
+
+  <!-- API Keys & Live Feeds Settings Modal Dialog -->
+  <dialog id="dialog-api-keys" class="p-0 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-2xl backdrop:bg-black/80 max-w-2xl w-full text-slate-100 font-mono">
+    <div class="p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-xl">⚙️</span>
+          <div>
+            <h3 class="text-sm font-bold text-sky-400 font-mono">LIVE-ИСТОЧНИКИ & API-КЛЮЧИ // ТАКТИЧЕСКИЙ КОНФИГ</h3>
+            <p class="text-[11px] text-slate-400 font-sans">Все базовые режимы работают оффлайн или через открытые шлюзы без обязательных ключей.</p>
+          </div>
+        </div>
+        <button id="btn-close-keys-dialog" class="text-slate-400 hover:text-slate-200 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">ESC</button>
+      </div>
+
+      <div class="space-y-3.5 max-h-[65vh] overflow-y-auto pr-1 text-xs">
+        <!-- CelesTrak Status -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-cyan-500/30 flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-base">🛰️</span>
+            <div>
+              <div class="font-bold text-cyan-400">CelesTrak NORAD (Космос & Спутники)</div>
+              <div class="text-[10px] text-slate-400">Орбиты МКС, Тяньгун, шпионских и навигационных спутников всех стран</div>
+            </div>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">🟢 LIVE (Zero-Key)</span>
+        </div>
+
+        <!-- OpenSky Credentials -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 font-bold text-emerald-400">
+              <span>✈️</span> <span>OpenSky Network (Авиация ADS-B)</span>
+            </div>
+            <span id="badge-opensky-status" class="text-[10px] text-slate-400">OPEN_MODE (Анонимный)</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Укажите логин/пароль с сайта opensky-network.org для повышенного лимита запросов.</p>
+          <div class="grid grid-cols-2 gap-2">
+            <input id="cfg-opensky-user" type="text" placeholder="OpenSky Username" class="bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-500">
+            <input id="cfg-opensky-pass" type="password" placeholder="OpenSky Password" class="bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <!-- AISStream Key -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 font-bold text-indigo-400">
+              <span>🚢</span> <span>AISStream (Морской флот & AIS)</span>
+            </div>
+            <span id="badge-ais-status" class="text-[10px] text-slate-400">OPEN_MODE (Тактический флот)</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Бесплатный ключ с aisstream.io для глобального стрима коммерческих судов и танкеров.</p>
+          <input id="cfg-ais-key" type="password" placeholder="AISStream API Key" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- NASA FIRMS Key -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 font-bold text-amber-400">
+              <span>🔥</span> <span>NASA FIRMS (Спутниковые термоточки)</span>
+            </div>
+            <span id="badge-firms-status" class="text-[10px] text-slate-400">OPEN_MODE</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Бесплатный MAP_KEY с firms.modaps.eosdis.nasa.gov для термоточек VIIRS 375m.</p>
+          <input id="cfg-firms-key" type="password" placeholder="NASA FIRMS MAP_KEY" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-amber-500">
+        </div>
+
+        <!-- Shodan Key -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 font-bold text-rose-400">
+              <span>🔎</span> <span>Shodan (Разведка открытых портов и хостов)</span>
+            </div>
+            <span id="badge-shodan-status" class="text-[10px] text-slate-400">Опционально</span>
+          </div>
+          <input id="cfg-shodan-key" type="password" placeholder="Shodan API Key" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-rose-500">
+        </div>
+
+        <!-- Ollama Host -->
+        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 font-bold text-sky-400">
+              <span>🤖</span> <span>Ollama Local Host (Оффлайн нейросеть)</span>
+            </div>
+            <span class="text-[10px] text-emerald-400">АКТИВНО</span>
+          </div>
+          <input id="cfg-ollama-url" type="text" placeholder="http://127.0.0.1:11434" value="http://127.0.0.1:11434" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-sky-500">
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <div id="cfg-save-msg" class="text-[11px] text-slate-400 font-mono"></div>
+        <div class="flex space-x-2">
+          <button id="btn-cancel-keys" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">Отмена</button>
+          <button id="btn-save-keys" class="px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold transition">СОХРАНИТЬ КЛЮЧИ 💾</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <!-- Universal Command Palette (⌘K) Dialog -->
   <dialog id="cmd-palette-dialog">
