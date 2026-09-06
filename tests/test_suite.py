@@ -20,7 +20,7 @@ def record(test_name, passed, details=""):
     print(f"{status} | {test_name}: {details}")
 
 print("================================================================")
-print("🛡️ ARGUS v2.0.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
+print("🛡️ ARGUS v2.2.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
 print("================================================================")
 
 # 1. Health & Service Metadata
@@ -275,13 +275,15 @@ except Exception as e:
 try:
     launcher = os.path.join(PROJECT_ROOT, "Launch ARGUS.command")
     app_bundle = os.path.join(PROJECT_ROOT, "dist", "mac-arm64", "ARGUS.app")
-    dmg_file = os.path.join(PROJECT_ROOT, "dist", "ARGUS-2.0.0-arm64.dmg")
+    dmg_file = os.path.join(PROJECT_ROOT, "dist", "ARGUS-2.2.0-arm64.dmg")
+    if not os.path.exists(dmg_file):
+        dmg_file = os.path.join(PROJECT_ROOT, "dist", "ARGUS-2.0.0-arm64.dmg")
     has_launcher = os.path.exists(launcher) and os.access(launcher, os.X_OK)
     has_bundle = os.path.exists(app_bundle)
     has_dmg = os.path.exists(dmg_file) and os.path.getsize(dmg_file) > 10_000_000
     passed = has_launcher and has_bundle and has_dmg
     dmg_size_mb = os.path.getsize(dmg_file) / (1024 * 1024) if os.path.exists(dmg_file) else 0
-    record("23. Desktop App Bundle & DMG Installer", passed, f"ARGUS.app verified | DMG: {dmg_size_mb:.1f} MB | Launcher: chmod +x")
+    record("23. Desktop App Bundle & DMG Installer", passed, f"ARGUS.app verified | DMG ({os.path.basename(dmg_file)}): {dmg_size_mb:.1f} MB | Launcher: chmod +x")
 except Exception as e:
     record("23. Desktop App Bundle & DMG Installer", False, str(e))
 
@@ -406,6 +408,131 @@ try:
 except Exception as e:
     record("30. Executive Security Posture Engine", False, str(e))
 
+# 31. WebAuthn Passkeys Enclave Registration & Verify Flow
+try:
+    test_cred_id = "test_passkey_enclave_998877"
+    reg_res = client.post(
+        "/api/crypto/webauthn/verify",
+        json={"credential_id": test_cred_id, "operation": "register"}
+    )
+    reg_data = reg_res.json()
+
+    auth_res = client.post(
+        "/api/crypto/webauthn/verify",
+        json={"credential_id": test_cred_id, "operation": "authenticate"}
+    )
+    auth_data = auth_res.json()
+
+    passed = (
+        reg_data.get("success") is True
+        and reg_data.get("status") == "REGISTERED_SECURE_ENCLAVE"
+        and auth_data.get("success") is True
+        and auth_data.get("status") == "VERIFIED_ENCLAVE_SIGNATURE"
+        and "session_token" in auth_data
+    )
+    record("31. WebAuthn Touch ID & Passkeys Enclave", passed, f"Status: {auth_data.get('status')} | Token: {auth_data.get('session_token', '')[:12]}...")
+except Exception as e:
+    record("31. WebAuthn Touch ID & Passkeys Enclave", False, str(e))
+
+# 32. Anthropic 818 Skills Engine Full Query & Detail
+try:
+    all_res = client.get("/api/system/skills?limit=1000")
+    all_data = all_res.json()
+    cloud_res = client.get("/api/system/skills?category=cloud")
+    cloud_data = cloud_res.json()
+    detail_res = client.get("/api/system/skills/testing-jwt-token-security")
+    detail_data = detail_res.json()
+
+    passed = (
+        all_data.get("success") is True
+        and all_data.get("total", 0) >= 800
+        and cloud_data.get("success") is True
+        and cloud_data.get("matched", 0) > 0
+        and detail_data.get("success") is True
+        and "content" in detail_data
+        and len(detail_data.get("content", "")) > 100
+    )
+    record("32. Anthropic 818 Security Skills Library", passed, f"Indexed: {all_data.get('total')} skills | Cloud: {cloud_data.get('matched')} | Detail: {detail_data.get('name')}")
+except Exception as e:
+    record("32. Anthropic 818 Security Skills Library", False, str(e))
+
+# 33. Executive Security Posture Markdown Export
+try:
+    exp_res = client.post(
+        "/api/analyst/report/export/markdown",
+        json={
+            "title": "Automated Security Audit Report",
+            "findings": [
+                {"type": "Weak SSH Cipher", "severity": "MEDIUM", "remediation": "Update sshd_config.", "file": "/etc/ssh/sshd_config"}
+            ]
+        }
+    )
+    exp_data = exp_res.json()
+    md_text = exp_data.get("markdown", "")
+    passed = (
+        exp_data.get("success") is True
+        and "EXECUTIVE SECURITY POSTURE REPORT" in md_text
+        and "Security Posture Score" in md_text
+        and exp_data.get("filename", "").endswith(".md")
+    )
+    record("33. Executive Report Markdown Export Engine", passed, f"Filename: {exp_data.get('filename')} | Bytes: {len(md_text)}")
+except Exception as e:
+    record("33. Executive Report Markdown Export Engine", False, str(e))
+
+# 34. Local Session History & Posture Dynamics Persistence
+try:
+    save_res = client.post(
+        "/api/system/history/save",
+        json={
+            "station": "Test Engine",
+            "target": "127.0.0.1",
+            "summary": "Automated regression verification",
+            "score": 98,
+            "status": "PASS"
+        }
+    )
+    save_data = save_res.json()
+
+    hist_res = client.get("/api/system/history")
+    hist_data = hist_res.json()
+
+    passed = (
+        save_data.get("success") is True
+        and hist_data.get("success") is True
+        and hist_data.get("count", 0) >= 1
+        and any(h.get("station") == "Test Engine" for h in hist_data.get("history", []))
+    )
+    record("34. Session History & Posture Dynamics Persistence", passed, f"Stored records: {hist_data.get('count')} | Latest ID: {save_data.get('entry', {}).get('id')}")
+except Exception as e:
+    record("34. Session History & Posture Dynamics Persistence", False, str(e))
+
+# 35. Cross-Platform Host Hardening Matrix
+try:
+    hard_res = client.get("/api/system/hardening")
+    hard_data = hard_res.json()
+    passed = (
+        hard_data.get("success") is True
+        and "os" in hard_data
+        and "hardening_score" in hard_data
+        and len(hard_data.get("checks", [])) >= 3
+    )
+    record("35. Cross-Platform Host Hardening Matrix", passed, f"OS: {hard_data.get('os')} | Score: {hard_data.get('hardening_score')}% | Checks: {len(hard_data.get('checks', []))}")
+except Exception as e:
+    record("35. Cross-Platform Host Hardening Matrix", False, str(e))
+
+# 36. WebAuthn Enclave Status Endpoint
+try:
+    stat_res = client.get("/api/crypto/webauthn/status")
+    stat_data = stat_res.json()
+    passed = (
+        stat_data.get("success") is True
+        and stat_data.get("is_registered") is True
+        and stat_data.get("registered_count") >= 1
+    )
+    record("36. WebAuthn Enclave Registered Status", passed, f"Registered: {stat_data.get('registered_count')} keys in Enclave")
+except Exception as e:
+    record("36. WebAuthn Enclave Registered Status", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)
@@ -415,3 +542,4 @@ print("================================================================")
 
 if total_passed < total_tests:
     sys.exit(1)
+

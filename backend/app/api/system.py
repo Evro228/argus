@@ -2,8 +2,10 @@ import json
 import logging
 import os
 import platform
+import secrets
 import shutil
 import subprocess
+from datetime import datetime, timezone
 from pydantic import BaseModel
 
 from fastapi import APIRouter
@@ -11,6 +13,7 @@ from backend.app.utils.crypto_vault import encrypt_vault_payload, decrypt_vault_
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
 
 # Global Air-Gapped State
 AIR_GAP_STATE = {
@@ -205,94 +208,220 @@ def vault_decrypt(req: VaultDecryptRequest):
 # --- System Hardening & Compliance Matrix ---
 @router.get("/hardening")
 def get_hardening_audit():
+    os_name = platform.system()
     checks = []
 
-    # 1. FileVault (Disk Encryption)
-    fdesetup_path = shutil.which("fdesetup") or "/usr/bin/fdesetup"
-    try:
-        out = subprocess.run(
-            [fdesetup_path, "status"], capture_output=True, text=True, timeout=2
-        )
-        status_str = (out.stdout or "").strip()
-        is_on = "FileVault is On" in status_str
-        checks.append(
-            {
-                "id": "filevault",
-                "name": "FileVault (Аппаратное шифрование диска)",
+    if os_name == "Darwin":
+        # 1. FileVault (Disk Encryption)
+        fdesetup_path = shutil.which("fdesetup") or "/usr/bin/fdesetup"
+        try:
+            out = subprocess.run(
+                [fdesetup_path, "status"], capture_output=True, text=True, timeout=2
+            )
+            status_str = (out.stdout or "").strip()
+            is_on = "FileVault is On" in status_str
+            checks.append(
+                {
+                    "id": "filevault",
+                    "name": "FileVault (Аппаратное шифрование диска)",
+                    "status": "PASS" if is_on else "WARN",
+                    "detail": status_str,
+                    "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault.",
+                }
+            )
+        except Exception as e:
+            logger.debug("FileVault check failed: %s", e)
+            checks.append(
+                {
+                    "id": "filevault",
+                    "name": "FileVault (Шифрование диска)",
+                    "status": "CHECK_REQUIRED",
+                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "remediation": "Проверьте статус FileVault в настройках macOS.",
+                }
+            )
+
+        # 2. Gatekeeper (Защита от запуска неподписанного софта)
+        spctl_path = shutil.which("spctl") or "/usr/sbin/spctl"
+        try:
+            out = subprocess.run(
+                [spctl_path, "--status"], capture_output=True, text=True, timeout=2
+            )
+            status_str = (out.stdout or "").strip()
+            is_active = "assessments enabled" in status_str
+            checks.append(
+                {
+                    "id": "gatekeeper",
+                    "name": "Apple Gatekeeper (Контроль подписей приложений)",
+                    "status": "PASS" if is_active else "CRITICAL",
+                    "detail": status_str,
+                    "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable",
+                }
+            )
+        except Exception as e:
+            logger.debug("Gatekeeper check failed: %s", e)
+            checks.append(
+                {
+                    "id": "gatekeeper",
+                    "name": "Apple Gatekeeper (Контроль подписей приложений)",
+                    "status": "CHECK_REQUIRED",
+                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "remediation": "Проверьте статус Gatekeeper в терминале: spctl --status",
+                }
+            )
+
+        # 3. System Integrity Protection (SIP)
+        csrutil_path = shutil.which("csrutil") or "/usr/bin/csrutil"
+        try:
+            out = subprocess.run(
+                [csrutil_path, "status"], capture_output=True, text=True, timeout=2
+            )
+            status_str = (out.stdout or "").strip()
+            is_enabled = "enabled" in status_str
+            checks.append(
+                {
+                    "id": "sip",
+                    "name": "System Integrity Protection (SIP)",
+                    "status": "PASS" if is_enabled else "WARN",
+                    "detail": status_str,
+                    "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным.",
+                }
+            )
+        except Exception as e:
+            logger.debug("SIP check failed: %s", e)
+            checks.append(
+                {
+                    "id": "sip",
+                    "name": "System Integrity Protection (SIP)",
+                    "status": "CHECK_REQUIRED",
+                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "remediation": "Проверьте статус SIP в терминале: csrutil status",
+                }
+            )
+
+        # 4. macOS Application Firewall
+        socketfilterfw = "/usr/libexec/ApplicationFirewall/socketfilterfw"
+        if os.path.exists(socketfilterfw):
+            try:
+                out = subprocess.run(
+                    [socketfilterfw, "--getglobalstate"], capture_output=True, text=True, timeout=2
+                )
+                fw_str = (out.stdout or "").strip()
+                fw_enabled = "enabled" in fw_str.lower()
+                checks.append(
+                    {
+                        "id": "macos_firewall",
+                        "name": "macOS Application Firewall (Брандмауэр)",
+                        "status": "PASS" if fw_enabled else "WARN",
+                        "detail": fw_str,
+                        "remediation": "Включите брандмауэр в Настройки -> Сеть -> Брандмауэр.",
+                    }
+                )
+            except Exception as e:
+                logger.debug("Firewall check failed: %s", e)
+
+    elif os_name == "Windows":
+        # Windows host hardening
+        ps_bin = shutil.which("powershell") or "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+        try:
+            out = subprocess.run(
+                [ps_bin, "-NoProfile", "-Command", "Get-BitLockerVolume -MountPoint C: | Select-Object -ExpandProperty ProtectionStatus"],
+                capture_output=True, text=True, timeout=3
+            )
+            bitlocker_status = (out.stdout or "").strip()
+            is_on = bitlocker_status == "1" or "on" in bitlocker_status.lower()
+            checks.append({
+                "id": "bitlocker",
+                "name": "BitLocker Drive Encryption (C:)",
                 "status": "PASS" if is_on else "WARN",
-                "detail": status_str,
-                "remediation": "Включите FileVault в Системных настройках -> Конфиденциальность и безопасность -> FileVault.",
-            }
-        )
-    except Exception as e:
-        logger.debug("FileVault check failed: %s", e)
-        checks.append(
-            {
-                "id": "filevault",
-                "name": "FileVault (Шифрование диска)",
+                "detail": f"ProtectionStatus: {bitlocker_status or 'N/A'}",
+                "remediation": "Включите шифрование диска BitLocker в панели управления Windows.",
+            })
+        except Exception as e:
+            logger.debug("BitLocker check failed: %s", e)
+            checks.append({
+                "id": "bitlocker",
+                "name": "BitLocker Drive Encryption",
                 "status": "CHECK_REQUIRED",
-                "detail": f"Не удалось выполнить проверку: {e!s}",
-                "remediation": "Проверьте статус FileVault в настройках macOS.",
-            }
-        )
+                "detail": str(e),
+                "remediation": "Проверьте состояние BitLocker через `manage-bde -status`.",
+            })
 
-    # 2. Gatekeeper (Защита от запуска неподписанного софта)
-    spctl_path = shutil.which("spctl") or "/usr/sbin/spctl"
-    try:
-        out = subprocess.run(
-            [spctl_path, "--status"], capture_output=True, text=True, timeout=2
-        )
-        status_str = (out.stdout or "").strip()
-        is_active = "assessments enabled" in status_str
-        checks.append(
-            {
-                "id": "gatekeeper",
-                "name": "Apple Gatekeeper (Контроль подписей приложений)",
+        try:
+            out = subprocess.run(
+                [ps_bin, "-NoProfile", "-Command", "Get-MpComputerStatus | Select-Object -ExpandProperty RealTimeProtectionEnabled"],
+                capture_output=True, text=True, timeout=3
+            )
+            rtp = (out.stdout or "").strip().lower()
+            is_active = rtp == "true"
+            checks.append({
+                "id": "defender",
+                "name": "Microsoft Defender (Real-Time Protection)",
                 "status": "PASS" if is_active else "CRITICAL",
-                "detail": status_str,
-                "remediation": "Включите Gatekeeper командой: sudo spctl --master-enable",
-            }
-        )
-    except Exception as e:
-        logger.debug("Gatekeeper check failed: %s", e)
-        checks.append(
-            {
-                "id": "gatekeeper",
-                "name": "Apple Gatekeeper (Контроль подписей приложений)",
+                "detail": f"RealTimeProtectionEnabled: {rtp}",
+                "remediation": "Активируйте защиту в режиме реального времени в Центре безопасности Windows.",
+            })
+        except Exception as e:
+            logger.debug("Defender check failed: %s", e)
+            checks.append({
+                "id": "defender",
+                "name": "Microsoft Defender",
                 "status": "CHECK_REQUIRED",
-                "detail": f"Не удалось выполнить проверку: {e!s}",
-                "remediation": "Проверьте статус Gatekeeper в терминале: spctl --status",
-            }
-        )
+                "detail": str(e),
+                "remediation": "Проверьте службу Defender в службах Windows.",
+            })
 
-    # 3. System Integrity Protection (SIP)
-    csrutil_path = shutil.which("csrutil") or "/usr/bin/csrutil"
-    try:
-        out = subprocess.run(
-            [csrutil_path, "status"], capture_output=True, text=True, timeout=2
-        )
-        status_str = (out.stdout or "").strip()
-        is_enabled = "enabled" in status_str
-        checks.append(
-            {
-                "id": "sip",
-                "name": "System Integrity Protection (SIP)",
-                "status": "PASS" if is_enabled else "WARN",
-                "detail": status_str,
-                "remediation": "SIP защищает системные папки от руткитов. Рекомендуется держать включенным.",
-            }
-        )
-    except Exception as e:
-        logger.debug("SIP check failed: %s", e)
-        checks.append(
-            {
-                "id": "sip",
-                "name": "System Integrity Protection (SIP)",
-                "status": "CHECK_REQUIRED",
-                "detail": f"Не удалось выполнить проверку: {e!s}",
-                "remediation": "Проверьте статус SIP в терминале: csrutil status",
-            }
-        )
+    else:
+        # Linux host hardening checks
+        is_luks = os.path.exists("/dev/mapper") and any("luks" in f.lower() or "crypt" in f.lower() for f in os.listdir("/dev/mapper") if os.path.isfile(f) or os.path.islink(f) or os.path.isdir(f))
+        checks.append({
+            "id": "luks",
+            "name": "LUKS Full Disk Encryption (/dev/mapper)",
+            "status": "PASS" if is_luks else "WARN",
+            "detail": "Encrypted block device active" if is_luks else "No cryptsetup LUKS mapping found",
+            "remediation": "Настройте полнодисковое шифрование LUKS при установке системы.",
+        })
+
+        apparmor_bin = shutil.which("apparmor_status")
+        selinux_bin = shutil.which("getenforce")
+        mac_status = "NONE"
+        if apparmor_bin:
+            try:
+                out = subprocess.run([apparmor_bin, "--enabled"], capture_output=True, timeout=2)
+                if out.returncode == 0:
+                    mac_status = "AppArmor Enforcing"
+            except Exception as e:
+                logger.debug("AppArmor check error: %s", e)
+        elif selinux_bin:
+            try:
+                out = subprocess.run([selinux_bin], capture_output=True, text=True, timeout=2)
+                mac_status = f"SELinux: {(out.stdout or '').strip()}"
+            except Exception as e:
+                logger.debug("SELinux check error: %s", e)
+
+        checks.append({
+            "id": "mac_lsm",
+            "name": "Linux Mandatory Access Control (AppArmor / SELinux)",
+            "status": "PASS" if mac_status != "NONE" else "WARN",
+            "detail": mac_status,
+            "remediation": "Включите модуль безопасности AppArmor или SELinux в ядре.",
+        })
+
+        ufw_bin = shutil.which("ufw")
+        is_ufw_active = False
+        if ufw_bin:
+            try:
+                out = subprocess.run([ufw_bin, "status"], capture_output=True, text=True, timeout=2)
+                is_ufw_active = "active" in (out.stdout or "").lower()
+            except Exception as e:
+                logger.debug("UFW check error: %s", e)
+        checks.append({
+            "id": "linux_firewall",
+            "name": "Linux Firewall (UFW / Netfilter)",
+            "status": "PASS" if is_ufw_active else "WARN",
+            "detail": "UFW Active" if is_ufw_active else "UFW Inactive or not installed",
+            "remediation": "Включите фаервол: sudo ufw enable",
+        })
 
     # Calculate overall hardening score
     passed = sum(1 for c in checks if c["status"] == "PASS")
@@ -300,11 +429,13 @@ def get_hardening_audit():
 
     return {
         "success": True,
+        "os": os_name,
         "hardening_score": score,
         "total_checks": len(checks),
         "passed_checks": passed,
         "checks": checks,
     }
+
 
 
 # --- Knowledge & CheatSheet Hub ---
@@ -396,26 +527,55 @@ def _load_skills():
     return []
 
 
+CATEGORY_KEYWORDS = {
+    "cloud": ["cloud", "aws", "azure", "gcp", "s3", "iam", "kubernetes", "k8s", "container"],
+    "malware": ["malware", "reverse", "yara", "ghidra", "decompile", "ransomware", "trojan", "pe", "elf", "payload"],
+    "forensics": ["forensic", "memory", "volatility", "wireshark", "pcap", "disk", "evtx", "dump", "mft", "kape"],
+    "hunting": ["hunt", "siem", "splunk", "elastic", "sigma", "detection", "suricata", "zeek", "edr", "incident"],
+    "zero-trust": ["zero trust", "iam", "auth", "token", "jwt", "saml", "pam", "rbac", "passkey", "credential", "mfa"],
+    "web": ["web", "xss", "sqli", "csrf", "ssrf", "api", "burp", "owasp", "http", "oauth", "cors", "injection"],
+}
+
+
 @router.get("/skills")
-def get_argus_skills(q: str = None, limit: int = 50):
+def get_argus_skills(q: str = None, category: str = None, limit: int = 100):
     all_skills = _load_skills()
-    if not q:
-        filtered = all_skills[:limit]
-    else:
-        query_lower = q.lower()
+    filtered = all_skills
+
+    # Category filter
+    if category and category.lower() != "all":
+        cat_key = category.lower().strip()
+        keywords = CATEGORY_KEYWORDS.get(cat_key, [cat_key])
         filtered = [
             s
-            for s in all_skills
+            for s in filtered
+            if any(
+                kw in s.get("name", "").lower() or kw in s.get("description", "").lower()
+                for kw in keywords
+            )
+        ]
+
+    # Text query filter
+    if q and q.strip():
+        query_lower = q.lower().strip()
+        filtered = [
+            s
+            for s in filtered
             if query_lower in s.get("name", "").lower()
             or query_lower in s.get("description", "").lower()
-        ][:limit]
+        ]
+
+    effective_limit = min(max(limit, 1), 1000)
+    result_slice = filtered[:effective_limit]
 
     return {
         "success": True,
         "total": len(all_skills),
-        "count": len(filtered),
-        "skills": filtered,
+        "matched": len(filtered),
+        "count": len(result_slice),
+        "skills": result_slice,
     }
+
 
 
 @router.get("/skills/{skill_name}")
@@ -430,3 +590,63 @@ def get_skill_detail(skill_name: str):
         return {"success": True, "name": clean_name, "content": content}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+# --- Local Session History & Posture Dynamics Persistence ---
+HISTORY_FILE = os.path.expanduser("~/.argus_session_history.json")
+
+
+def _read_history():
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, list) else []
+    except Exception as e:
+        logger.warning("Не удалось прочитать историю сессий: %s", e)
+        return []
+
+
+def _write_history(entries):
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(entries[:100], f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning("Не удалось сохранить историю сессий: %s", e)
+
+
+class HistoryEntry(BaseModel):
+    station: str
+    target: str | None = None
+    summary: str
+    score: int | None = None
+    status: str = "COMPLETED"
+
+
+@router.get("/history")
+def get_session_history():
+    entries = _read_history()
+    return {
+        "success": True,
+        "count": len(entries),
+        "history": entries,
+    }
+
+
+@router.post("/history/save")
+def save_session_history_entry(entry: HistoryEntry):
+    record = {
+        "id": secrets.token_hex(6),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "station": entry.station,
+        "target": entry.target,
+        "summary": entry.summary,
+        "score": entry.score,
+        "status": entry.status,
+    }
+    entries = _read_history()
+    entries.insert(0, record)
+    _write_history(entries)
+    return {"success": True, "entry": record}
+

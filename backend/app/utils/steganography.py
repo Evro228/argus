@@ -117,7 +117,7 @@ def reveal_message(stego_text: str, password: str = None) -> dict:
         data = json.loads(raw_payload)
         if isinstance(data, dict) and "salt" in data and "ct" in data:
             is_encrypted = True
-    except Exception:
+    except Exception:  # nosec B110 - payload might be raw plaintext string
         pass
 
     if is_encrypted:

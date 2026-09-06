@@ -12,7 +12,7 @@ if platform.system() in ("Darwin", "Linux"):
     try:
         import resource
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    except Exception:
+    except Exception:  # nosec B110 - optional OS core dump suppression
         pass
 
 
@@ -58,7 +58,7 @@ class SecureBuffer:
     def __del__(self):
         try:
             self.wipe()
-        except Exception:
+        except Exception:  # nosec B110 - destructor safety
             pass
 
 

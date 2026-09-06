@@ -22,7 +22,7 @@
       <div>
         <div class="flex items-center space-x-2">
           <span class="font-black tracking-wider text-base uppercase bg-gradient-to-r from-slate-100 via-sky-200 to-sky-400 bg-clip-text text-transparent font-mono">ARGUS</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30">v2.0.0</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30">v2.2.0</span>
         </div>
         <div class="text-[10px] text-slate-400 font-mono" data-i18n="appSubtitle">Tactical Intelligence & Defense Cockpit</div>
       </div>
@@ -130,6 +130,12 @@
           <button data-tab="analyst" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
             <span class="text-base">📋</span>
             <span>Security Analyst</span>
+          </button>
+
+          <button data-tab="playbooks" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-sky-400/90 hover:bg-slate-900 hover:text-sky-300 border border-transparent transition text-left">
+            <span class="text-base">📚</span>
+            <span data-i18n="stationPlaybooks">Tactics & Playbooks</span>
+            <span class="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">818</span>
           </button>
         </div>
       </div>
@@ -394,6 +400,7 @@
         <div class="flex items-center space-x-2 overflow-x-auto pb-1">
           <button class="tool-picker-pill active" data-tool="audit-secrets">🔑 Git Secret Scanner (TruffleHog)</button>
           <button class="tool-picker-pill" data-tool="audit-docker">🐳 CIS Docker Hardening</button>
+          <button class="tool-picker-pill" data-tool="audit-knowledge">📚 Knowledge & Wordlists</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
         </div>
 
@@ -409,6 +416,20 @@
             <div class="text-slate-500 py-6 text-center">Укажите путь к локальному репозиторию для выявления утекших токенов, ключей AWS/SSH и паролей.</div>
           </div>
         </div>
+
+        <!-- Curated Knowledge & Wordlists Card -->
+        <div class="tool-card argus-panel p-4 hidden" data-card="audit-knowledge">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+            <h3 class="text-sm font-bold font-mono text-amber-400 flex items-center space-x-2">
+              <span>📚</span> <span>CURATED KNOWLEDGE & RECON WORDLISTS HUB</span>
+            </h3>
+            <span class="text-[10px] font-mono text-slate-400">GOLD STANDARD REPOSITORIES</span>
+          </div>
+          <p class="text-xs text-slate-400 font-mono mb-3">Официальные курируемые репозитории, словари SecLists, базы инъекций PayloadsAllTheThings и руководства OWASP для автономного аудита.</p>
+          <div id="knowledge-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+            <div class="text-slate-500 py-4 text-center col-span-2">Загрузка каталога знаний...</div>
+          </div>
+        </div>
       </div>
 
       <!-- ========================================================= -->
@@ -422,6 +443,7 @@
           <button class="tool-picker-pill" data-tool="vault-stego">👁️ Zero-Width Stego</button>
           <button class="tool-picker-pill" data-tool="vault-burn">🔥 Burn Notes</button>
           <button class="tool-picker-pill" data-tool="vault-veracrypt">🗄️ AES-256 Vault</button>
+          <button class="tool-picker-pill" data-tool="vault-webauthn">👆 Touch ID / Passkeys</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
         </div>
 
@@ -493,6 +515,28 @@
                 <button id="vault-decrypt-btn" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition">РАСШИФРОВАТЬ 🔓</button>
               </div>
               <div id="vault-result-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[10px] hidden break-all"></div>
+            </div>
+          </div>
+
+          <!-- WebAuthn Passkeys / Touch ID Card -->
+          <div class="tool-card argus-panel p-4 md:col-span-2" data-card="vault-webauthn">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+              <h3 class="text-sm font-bold font-mono text-emerald-400 flex items-center space-x-2">
+                <span>👆</span> <span>W3C WEBAUTHN / TOUCH ID PASSKEYS ENCLAVE</span>
+              </h3>
+              <span id="webauthn-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-400 border border-slate-700">ГОТОВ К ПРИВЯЗКЕ</span>
+            </div>
+            <p class="text-xs text-slate-400 font-mono mb-3">Аппаратная биометрическая аутентификация через Apple Secure Enclave / Windows Hello TPM 2.0. Приватный ключ никогда не покидает защищённый чип устройства.</p>
+            <div class="space-y-3 text-xs font-mono">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button id="btn-webauthn-register" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40">
+                  <span>🔑</span> <span>Привязать Touch ID / Passkey</span>
+                </button>
+                <button id="btn-webauthn-authenticate" class="py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-sky-950/40">
+                  <span>👆</span> <span>Вход по биометрии (Touch ID)</span>
+                </button>
+              </div>
+              <div id="webauthn-result-box" class="p-3 rounded-lg bg-slate-900 border border-slate-800 hidden select-all break-all text-[11px] space-y-1"></div>
             </div>
           </div>
         </div>
@@ -611,16 +655,24 @@
       <!-- ========================================================= -->
       <div id="tab-analyst" class="tab-content space-y-4 hidden">
         <div class="tool-card argus-panel p-4">
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
             <div>
               <h3 class="text-sm font-bold font-mono text-sky-400 flex items-center space-x-2">
                 <span>📊</span> <span>EXECUTIVE POSTURE & SECURITY AUDIT DASHBOARD</span>
               </h3>
               <p class="text-slate-400 text-xs">Комплексный скоринг защищенности рабочей станции: FileVault, SIP, Gatekeeper, открытые порты и аудит кода.</p>
             </div>
-            <button id="btn-generate-analyst-report" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">
-              СОСТАВИТЬ ОТЧЕТ ⚡
-            </button>
+            <div class="flex items-center space-x-2">
+              <button id="btn-generate-analyst-report" class="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition shadow-lg shadow-sky-950/40">
+                СОСТАВИТЬ ОТЧЕТ ⚡
+              </button>
+              <button id="btn-export-markdown-report" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono font-bold text-xs rounded-lg transition flex items-center space-x-1.5">
+                <span>📄</span> <span>Экспорт (.md)</span>
+              </button>
+              <button id="btn-print-pdf-report" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono font-bold text-xs rounded-lg transition flex items-center space-x-1.5">
+                <span>🖨️</span> <span>Печать / PDF</span>
+              </button>
+            </div>
           </div>
 
           <div id="analyst-report-container" class="space-y-4">
@@ -646,6 +698,83 @@
               <div class="text-xs font-bold font-mono text-slate-300">ПРИОРИТИЗИРОВАННЫЙ ПЛАН УСТРАНЕНИЯ РИСКОВ (ACTIONABLE REMEDIATIONS):</div>
               <div id="analyst-remediations-list" class="space-y-1 text-xs font-mono text-slate-400">
                 <div>Нажмите «Составить отчет» для анализа состояния хоста и сканирований.</div>
+              </div>
+            </div>
+
+            <!-- Session History & Audit Log Persistence Card -->
+            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
+              <div class="flex justify-between items-center">
+                <div class="text-xs font-bold font-mono text-slate-300">ИСТОРИЯ СЕССИЙ И АКТИВНОСТИ (SESSION LOGS):</div>
+                <span id="history-count-badge" class="text-[10px] font-mono text-slate-500">0 записей</span>
+              </div>
+              <div id="analyst-history-list" class="space-y-1 text-xs font-mono text-slate-400 max-h-48 overflow-y-auto pr-1">
+                <div class="text-slate-500 text-center py-3">История сессий пуста. Запустите аудит или расчет отчета.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 9: TACTICS & PLAYBOOKS HUB (ANTHROPIC 818) -->
+      <div id="tab-playbooks" class="tab-content space-y-4 hidden">
+        <div class="rounded-2xl bg-slate-950/80 border border-slate-800/80 p-5 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+                <span>📚</span>
+                <span>ТАКТИЧЕСКИЙ ХАБ ПЛЕЙБУКОВ БЕЗОПАСНОСТИ (ANTHROPIC 818)</span>
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5 font-mono">818 пошаговых сценариев реагирования, аудита и харденинга по стандартам MITRE ATT&CK и NIST CSF.</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="playbooks-counter" class="text-xs font-mono text-sky-400 px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 font-bold">818 Плейбуков</span>
+            </div>
+          </div>
+
+          <!-- Search & Category Filter Bar -->
+          <div class="space-y-2">
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
+              <input 
+                id="playbooks-search-input" 
+                type="text" 
+                placeholder="Поиск тактик и плейбуков (напр. ransomware, aws, active directory, docker, phishing, memory)..." 
+                class="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+              >
+            </div>
+
+            <!-- Quick category chips -->
+            <div id="playbooks-category-chips" class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <button data-cat="all" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 text-[11px] font-bold">Все (818)</button>
+              <button data-cat="cloud" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Cloud & AWS/Azure</button>
+              <button data-cat="malware" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Malware & Reverse</button>
+              <button data-cat="forensics" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Forensics & Memory</button>
+              <button data-cat="hunting" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Threat Hunting & SIEM</button>
+              <button data-cat="zero-trust" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Zero Trust & IAM</button>
+              <button data-cat="web" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Web & API Security</button>
+            </div>
+          </div>
+
+          <!-- Playbooks Explorer (Two Columns) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div class="lg:col-span-5 space-y-2">
+              <div class="text-[11px] font-bold font-mono text-slate-400 flex justify-between items-center px-1">
+                <span>СПИСОК ТАКТИК:</span>
+                <span id="playbooks-matched-count" class="text-slate-500 text-[10px]">Загрузка...</span>
+              </div>
+              <div id="playbooks-list-container" class="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
+                <div class="text-xs text-sky-400 text-center py-8">Загрузка плейбуков безопасности...</div>
+              </div>
+            </div>
+
+            <!-- Right: Playbook Detailed Reader -->
+            <div class="lg:col-span-7 rounded-xl bg-slate-900/90 border border-slate-800 p-4 space-y-3 min-h-[500px]">
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <div class="font-bold text-slate-200 text-xs font-mono truncate mr-2" id="playbook-detail-title">Выберите плейбук из списка слева</div>
+                <button id="btn-copy-playbook" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white text-[10px] font-mono shrink-0 hidden">📋 Копировать Markdown</button>
+              </div>
+              <div id="playbook-detail-body" class="text-xs text-slate-300 font-mono space-y-2 max-h-[450px] overflow-y-auto leading-relaxed pr-2">
+                <div class="text-slate-500 text-center py-20">Нажмите на любой плейбук из списка, чтобы открыть полное руководство с пошаговыми командами и матрицей MITRE ATT&CK.</div>
               </div>
             </div>
           </div>

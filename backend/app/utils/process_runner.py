@@ -59,7 +59,7 @@ async def run_command_stream(
         try:
             process.kill()
             await process.wait()
-        except Exception:
+        except Exception:  # nosec B110 - best effort cleanup
             pass
         return {
             "success": False,

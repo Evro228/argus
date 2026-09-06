@@ -22,6 +22,7 @@
       stationForensics: "Цифровая криминалистика",
       stationOpsec: "OPSEC & DLP Санитайзер",
       stationAnalyst: "ИИ Сводный Аналитик",
+      stationPlaybooks: "Тактики & Плейбуки",
       
       // God's Eye HUD
       liveAttackStream: "ЖИВОЙ ПОТОК АТАК",
@@ -101,6 +102,7 @@
       stationForensics: "Forensics Lab",
       stationOpsec: "OPSEC & DLP Sanitizer",
       stationAnalyst: "Executive AI Analyst",
+      stationPlaybooks: "Tactics & Playbooks",
       
       // God's Eye HUD
       liveAttackStream: "LIVE ATTACK STREAM",
