@@ -734,6 +734,40 @@ try:
 except Exception as e:
     record("45. Global Open CCTV & Russian Cities Engine", False, str(e))
 
+# 46. Curated GitHub Open Cameras Repositories & Datasets Registry
+try:
+    sources_res = client.get("/api/cameras/sources")
+    sources_data = sources_res.json()
+    repos = sources_data.get("repositories", [])
+    gh_cams_res = client.get("/api/cameras?source=github")
+    gh_cams_data = gh_cams_res.json()
+    gh_cams = gh_cams_data.get("cameras", [])
+    
+    live_env = next((r for r in repos if "Live-Environment-Streams" in r.get("name", "")), None)
+    open_traffic = next((r for r in repos if "OpenTrafficCamMap" in r.get("name", "")), None)
+    sentinel = next((r for r in repos if "sentinel-feed-grid" in r.get("name", "")), None)
+    
+    la_cam = next((c for c in gh_cams if "CAM_GH_US_LA_01" == c.get("id")), None)
+    lon_cam = next((c for c in gh_cams if "CAM_GH_UK_LON_06" == c.get("id")), None)
+
+    passed = (
+        sources_res.status_code == 200
+        and sources_data.get("success") is True
+        and len(repos) >= 8
+        and live_env is not None
+        and open_traffic is not None
+        and sentinel is not None
+        and gh_cams_res.status_code == 200
+        and len(gh_cams) >= 12
+        and all(c.get("source_repo") is not None for c in gh_cams)
+        and la_cam is not None
+        and lon_cam is not None
+        and sources_data.get("total_catalog_count", 0) >= 80
+    )
+    record("46. GitHub Open Cameras Repositories & Feeds", passed, f"Indexed: {len(repos)} GitHub repositories | Sourced: {len(gh_cams)} live traffic/metro feeds | Total: {sources_data.get('total_catalog_count')}")
+except Exception as e:
+    record("46. GitHub Open Cameras Repositories & Feeds", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

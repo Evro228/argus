@@ -990,14 +990,25 @@
               <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
             </div>
             <div class="text-[11px] text-slate-400 font-mono">
-              Открытые камеры видеонаблюдения: 🇷🇺 РФ (52 города) • 🌍 Мир (18 стратегических узлов и проливов)
+              Открытые камеры видеонаблюдения: 🇷🇺 РФ (52) • 🌍 Мир (18) • 📦 GitHub Датасеты (15)
             </div>
           </div>
         </div>
 
-        <!-- Grid Layout Selectors & Close Button -->
+        <!-- View Switcher, Grid Layout Selectors & Close Button -->
         <div class="flex items-center space-x-3 font-mono">
+          <!-- View Switcher (Wall vs Repos) -->
           <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+            <button id="btn-cctv-view-wall" class="px-2.5 py-0.5 rounded bg-teal-500/30 text-teal-200 font-bold border border-teal-500/40 transition flex items-center space-x-1">
+              <span>🖥️</span> <span>ВИДЕОСТЕНА</span>
+            </button>
+            <button id="btn-cctv-view-repos" class="px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white transition flex items-center space-x-1">
+              <span>📦</span> <span>GITHUB РЕПОЗИТОРИИ (<span id="cctv-repos-count">9</span>)</span>
+            </button>
+          </div>
+
+          <!-- Grid Selectors (Active in Wall mode) -->
+          <div id="cctv-grid-controls" class="flex items-center space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
             <span class="text-[10px] text-slate-500 px-1.5 uppercase font-bold">Сетка:</span>
             <button id="btn-grid-1x1" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white transition">1×1</button>
             <button id="btn-grid-2x2" class="px-2 py-0.5 rounded bg-teal-500/30 text-teal-200 font-bold border border-teal-500/40 transition">2×2</button>
@@ -1008,46 +1019,70 @@
         </div>
       </div>
 
-      <!-- Search & District Filter Toolbar -->
-      <div class="px-5 py-2.5 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-        <!-- Search Input -->
-        <div class="relative flex-1 min-w-[280px]">
-          <span class="absolute left-3 top-2 text-slate-500 text-xs font-mono">🔎</span>
-          <input 
-            id="cctv-search-input" 
-            type="text" 
-            placeholder="Поиск города, региона или пролива (Москва, Владивосток, Сочи, Сургут, Казань, Tokyo, Panama)..."
-            class="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-slate-100 placeholder-slate-500 outline-none focus:border-teal-500"
-          >
+      <!-- VIEW 1: VIDEO WALL -->
+      <div id="cctv-view-wall-panel" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <!-- Search & District Filter Toolbar -->
+        <div class="px-5 py-2.5 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+          <!-- Search Input -->
+          <div class="relative flex-1 min-w-[280px]">
+            <span class="absolute left-3 top-2 text-slate-500 text-xs font-mono">🔎</span>
+            <input 
+              id="cctv-search-input" 
+              type="text" 
+              placeholder="Поиск города, региона или пролива (Москва, Владивосток, Сочи, Сургут, Казань, Tokyo, Panama)..."
+              class="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-slate-100 placeholder-slate-500 outline-none focus:border-teal-500"
+            >
+          </div>
+
+          <!-- Region Filter Pills -->
+          <div class="flex items-center space-x-1 overflow-x-auto text-[11px] font-mono">
+            <button data-cctv-filter="ALL" class="cctv-filter-btn active px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">ВСЕ (<span id="cctv-count-total">85</span>)</button>
+            <button data-cctv-filter="RU" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800">🇷🇺 РФ (52)</button>
+            <button data-cctv-filter="GITHUB" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-purple-300 hover:bg-slate-800 border border-purple-800/40">📦 GITHUB (15)</button>
+            <button data-cctv-filter="ЦФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ЦФО</button>
+            <button data-cctv-filter="СЗФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">СЗФО</button>
+            <button data-cctv-filter="ПФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ПФО</button>
+            <button data-cctv-filter="Уральский ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">УрФО</button>
+            <button data-cctv-filter="Сибирский ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">СФО</button>
+            <button data-cctv-filter="Дальневосточный ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ДВФО</button>
+            <button data-cctv-filter="Южный ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ЮФО/СКФО</button>
+            <button data-cctv-filter="GLOBAL" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800">🌍 МИР (18)</button>
+          </div>
         </div>
 
-        <!-- Region Filter Pills -->
-        <div class="flex items-center space-x-1 overflow-x-auto text-[11px] font-mono">
-          <button data-cctv-filter="ALL" class="cctv-filter-btn active px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">ВСЕ (<span id="cctv-count-total">70</span>)</button>
-          <button data-cctv-filter="RU" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800">🇷🇺 РФ (52)</button>
-          <button data-cctv-filter="ЦФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ЦФО</button>
-          <button data-cctv-filter="СЗФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">СЗФО</button>
-          <button data-cctv-filter="ПФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ПФО</button>
-          <button data-cctv-filter="Уральский ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">УрФО</button>
-          <button data-cctv-filter="Сибирский ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">СФО</button>
-          <button data-cctv-filter="Дальневосточный ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ДВФО</button>
-          <button data-cctv-filter="Южный ФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ЮФО/СКФО</button>
-          <button data-cctv-filter="GLOBAL" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800">🌍 МИР (18)</button>
+        <!-- Quick City Switcher Pills -->
+        <div id="cctv-cities-bar" class="px-5 py-2 bg-slate-950/60 border-b border-slate-800/60 flex items-center space-x-1.5 overflow-x-auto text-[10px] font-mono shrink-0">
+          <span class="text-slate-500 uppercase font-bold shrink-0">Города:</span>
+          <div id="cctv-cities-pills-list" class="flex items-center space-x-1.5">
+            <!-- Injected dynamically by app.js -->
+          </div>
+        </div>
+
+        <!-- Main Video Wall Grid Viewport -->
+        <div class="flex-1 p-4 overflow-y-auto bg-slate-950/90">
+          <div id="cctv-grid-container" class="grid grid-cols-2 gap-3 min-h-full">
+            <!-- Camera Feed Cards injected dynamically -->
+          </div>
         </div>
       </div>
 
-      <!-- Quick City Switcher Pills -->
-      <div id="cctv-cities-bar" class="px-5 py-2 bg-slate-950/60 border-b border-slate-800/60 flex items-center space-x-1.5 overflow-x-auto text-[10px] font-mono shrink-0">
-        <span class="text-slate-500 uppercase font-bold shrink-0">Города:</span>
-        <div id="cctv-cities-pills-list" class="flex items-center space-x-1.5">
-          <!-- Injected dynamically by app.js -->
+      <!-- VIEW 2: GITHUB OPEN REPOSITORIES CATALOG -->
+      <div id="cctv-view-repos-panel" class="flex-1 p-5 overflow-y-auto bg-slate-950/90 hidden space-y-4">
+        <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 flex items-start justify-between">
+          <div>
+            <h3 class="text-sm font-bold font-mono text-purple-300 flex items-center space-x-2">
+              <span>🐙</span> <span>РЕПОЗИТОРИИ ОТКРЫТЫХ КАМЕР & GEOJSON ДАТАСЕТЫ НА GITHUB</span>
+            </h3>
+            <p class="text-xs text-slate-400 font-mono mt-1">
+              Проверенные открытые репозитории с базами уличных и дорожных камер (DOT, HLS, GeoJSON, RTSP). Все потоки 100% легальны и доступны без API-ключей.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold shrink-0">
+            9 РЕПОЗИТОРИЕВ
+          </span>
         </div>
-      </div>
-
-      <!-- Main Video Wall Grid Viewport -->
-      <div class="flex-1 p-4 overflow-y-auto bg-slate-950/90">
-        <div id="cctv-grid-container" class="grid grid-cols-2 gap-3 min-h-full">
-          <!-- Camera Feed Cards injected dynamically -->
+        <div id="cctv-repos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Populated by JS -->
         </div>
       </div>
 

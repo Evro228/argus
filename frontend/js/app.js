@@ -2003,14 +2003,23 @@ const App = {
     const gridContainer = document.getElementById('cctv-grid-container');
     const footerClock = document.getElementById('cctv-footer-clock');
     const activeCountEl = document.getElementById('cctv-active-count');
+    const btnViewWall = document.getElementById('btn-cctv-view-wall');
+    const btnViewRepos = document.getElementById('btn-cctv-view-repos');
+    const panelWall = document.getElementById('cctv-view-wall-panel');
+    const panelRepos = document.getElementById('cctv-view-repos-panel');
+    const gridControls = document.getElementById('cctv-grid-controls');
+    const reposGrid = document.getElementById('cctv-repos-grid');
+    const reposCountEl = document.getElementById('cctv-repos-count');
 
     if (!dialog) return;
 
     let currentLayout = '2x2';
     let currentFilter = 'ALL';
     let currentCity = null;
+    let currentView = 'wall';
     let cachedCameras = [];
     let cachedCities = [];
+    let cachedRepos = [];
     let clockInterval = null;
 
     const updateClock = () => {
@@ -2019,6 +2028,28 @@ const App = {
       const playerClock = document.getElementById('cam-player-clock');
       if (playerClock) playerClock.textContent = nowStr;
     };
+
+    const switchView = (view) => {
+      currentView = view;
+      if (view === 'wall') {
+        if (btnViewWall) btnViewWall.className = 'px-2.5 py-0.5 rounded bg-teal-500/30 text-teal-200 font-bold border border-teal-500/40 transition flex items-center space-x-1';
+        if (btnViewRepos) btnViewRepos.className = 'px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white transition flex items-center space-x-1';
+        if (panelWall) panelWall.classList.remove('hidden');
+        if (panelRepos) panelRepos.classList.add('hidden');
+        if (gridControls) gridControls.classList.remove('hidden');
+        renderGrid();
+      } else {
+        if (btnViewWall) btnViewWall.className = 'px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white transition flex items-center space-x-1';
+        if (btnViewRepos) btnViewRepos.className = 'px-2.5 py-0.5 rounded bg-purple-500/30 text-purple-200 font-bold border border-purple-500/40 transition flex items-center space-x-1';
+        if (panelWall) panelWall.classList.add('hidden');
+        if (panelRepos) panelRepos.classList.remove('hidden');
+        if (gridControls) gridControls.classList.add('hidden');
+        renderRepos();
+      }
+    };
+
+    if (btnViewWall) btnViewWall.addEventListener('click', () => switchView('wall'));
+    if (btnViewRepos) btnViewRepos.addEventListener('click', () => switchView('repos'));
 
     const setLayout = (layout) => {
       currentLayout = layout;
@@ -2053,20 +2084,29 @@ const App = {
 
     const loadData = async () => {
       try {
-        const [camsRes, citiesRes] = await Promise.all([
+        const [camsRes, citiesRes, reposRes] = await Promise.all([
           fetch('/api/cameras?limit=300', { headers: getAuthHeaders() }),
-          fetch('/api/cameras/cities', { headers: getAuthHeaders() })
+          fetch('/api/cameras/cities', { headers: getAuthHeaders() }),
+          fetch('/api/cameras/sources', { headers: getAuthHeaders() })
         ]);
         if (camsRes.ok) {
           const camsData = await camsRes.json();
           cachedCameras = camsData.cameras || [];
           const countTotal = document.getElementById('cctv-count-total');
           if (countTotal) countTotal.textContent = cachedCameras.length;
+          const countGh = document.getElementById('cctv-count-github');
+          if (countGh) countGh.textContent = camsData.github_catalog_count || cachedCameras.filter(c => c.source_repo).length;
         }
         if (citiesRes.ok) {
           const citiesData = await citiesRes.json();
           cachedCities = citiesData.cities || [];
           renderCityPills();
+        }
+        if (reposRes.ok) {
+          const reposData = await reposRes.json();
+          cachedRepos = reposData.repositories || [];
+          if (reposCountEl) reposCountEl.textContent = cachedRepos.length;
+          renderRepos();
         }
         renderGrid();
       } catch (err) {
@@ -2102,6 +2142,79 @@ const App = {
       });
     };
 
+    const renderRepos = () => {
+      if (!reposGrid) return;
+      reposGrid.innerHTML = '';
+
+      cachedRepos.forEach(repo => {
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-purple-500/50 shadow-md flex flex-col justify-between transition space-y-3';
+        
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <a href="${escapeHtml(repo.url)}" target="_blank" class="text-xs font-bold font-mono text-purple-300 hover:text-purple-200 hover:underline flex items-center space-x-1.5">
+                  <span>🐙</span>
+                  <span>${escapeHtml(repo.name)}</span>
+                  <span class="text-[10px] text-slate-500">↗</span>
+                </a>
+                <div class="text-[11px] font-mono text-slate-400 font-semibold mt-0.5">${escapeHtml(repo.title)}</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                ${escapeHtml(repo.stars)}
+              </span>
+            </div>
+
+            <p class="text-[11px] text-slate-300 font-sans leading-relaxed mb-3">
+              ${escapeHtml(repo.description)}
+            </p>
+
+            <div class="flex flex-wrap gap-1.5 text-[10px] font-mono mb-2">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">📦 ${escapeHtml(repo.volume)}</span>
+              <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30">📡 ${escapeHtml(repo.format)}</span>
+              <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30">🌐 ${escapeHtml(repo.coverage)}</span>
+            </div>
+
+            <div class="text-[10px] text-slate-400 font-mono space-y-0.5 pt-2 border-t border-slate-800/80">
+              <div class="text-slate-500 font-semibold text-[9px] uppercase">Ключевые возможности:</div>
+              ${(repo.features || []).map(f => `<div class="text-slate-400 flex items-center space-x-1"><span>•</span><span>${escapeHtml(f)}</span></div>`).join('')}
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+            <a href="${escapeHtml(repo.url)}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition flex items-center space-x-1">
+              <span>🔗</span> <span>GitHub</span>
+            </a>
+            <button class="btn-filter-repo-cams px-3 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold transition flex items-center space-x-1">
+              <span>⚡</span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ</span>
+            </button>
+          </div>
+        `;
+
+        const filterBtn = card.querySelector('.btn-filter-repo-cams');
+        if (filterBtn) {
+          filterBtn.addEventListener('click', () => {
+            switchView('wall');
+            if (searchInput) searchInput.value = repo.name;
+            currentFilter = 'ALL';
+            filterBtns.forEach(b => {
+              b.classList.remove('active', 'bg-teal-500/20', 'text-teal-300', 'border-teal-500/40', 'font-bold');
+              b.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
+            });
+            const allBtn = document.querySelector('.cctv-filter-btn[data-cctv-filter="ALL"]');
+            if (allBtn) {
+              allBtn.classList.add('active', 'bg-teal-500/20', 'text-teal-300', 'border-teal-500/40', 'font-bold');
+              allBtn.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+            }
+            renderGrid();
+          });
+        }
+
+        reposGrid.appendChild(card);
+      });
+    };
+
     const renderGrid = () => {
       if (!gridContainer) return;
       gridContainer.innerHTML = '';
@@ -2112,6 +2225,7 @@ const App = {
         if (currentCity && cam.city !== currentCity) return false;
         if (currentFilter === 'RU' && cam.country !== 'RU') return false;
         if (currentFilter === 'GLOBAL' && cam.country === 'RU') return false;
+        if (currentFilter === 'GITHUB' && !cam.source_repo) return false;
         if (['ЦФО', 'СЗФО', 'ПФО', 'Уральский ФО', 'Сибирский ФО', 'Дальневосточный ФО', 'Южный ФО'].includes(currentFilter)) {
           if (!cam.district || !cam.district.toLowerCase().includes(currentFilter.toLowerCase())) return false;
         }
@@ -2120,7 +2234,9 @@ const App = {
                         cam.city.toLowerCase().includes(searchVal) ||
                         (cam.city_en && cam.city_en.toLowerCase().includes(searchVal)) ||
                         (cam.region && cam.region.toLowerCase().includes(searchVal)) ||
-                        (cam.district && cam.district.toLowerCase().includes(searchVal));
+                        (cam.district && cam.district.toLowerCase().includes(searchVal)) ||
+                        (cam.source_repo && cam.source_repo.toLowerCase().includes(searchVal)) ||
+                        (cam.operator && cam.operator.toLowerCase().includes(searchVal));
           if (!match) return false;
         }
         return true;
@@ -2140,7 +2256,7 @@ const App = {
           <div class="col-span-full py-16 text-center font-mono">
             <div class="text-3xl mb-2">📹</div>
             <div class="text-slate-400 text-sm font-bold">Камеры не найдены по заданному фильтру</div>
-            <div class="text-slate-600 text-xs mt-1">Попробуйте ввести другой город (например: Москва, Владивосток, Казань, Сочи)</div>
+            <div class="text-slate-600 text-xs mt-1">Попробуйте ввести другой город (например: Москва, Владивосток, Казань, Сочи, Los Angeles)</div>
           </div>
         `;
         return;
@@ -2150,16 +2266,25 @@ const App = {
         const card = document.createElement('div');
         card.className = 'group relative rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/60 overflow-hidden shadow-lg flex flex-col transition cursor-pointer';
 
+        const sourceBadge = cam.source_repo ? `
+          <span class="px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/40 text-purple-300 text-[9px] font-mono font-bold truncate max-w-[130px]" title="${escapeHtml(cam.source_repo)}">
+            🐙 ${escapeHtml(cam.source_repo.split('/')[1] || cam.source_repo)}
+          </span>
+        ` : '';
+
         card.innerHTML = `
           <div class="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
             <img src="${escapeHtml(cam.snapshot_url)}" alt="${escapeHtml(cam.name)}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
             
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 p-2.5 flex flex-col justify-between pointer-events-none">
               <div class="flex justify-between items-start">
-                <span class="px-2 py-0.5 rounded bg-black/70 border border-teal-500/40 text-teal-300 text-[10px] font-mono font-bold flex items-center space-x-1">
-                  <span>${cam.flag}</span>
-                  <span>${escapeHtml(cam.city)}</span>
-                </span>
+                <div class="flex items-center space-x-1.5">
+                  <span class="px-2 py-0.5 rounded bg-black/70 border border-teal-500/40 text-teal-300 text-[10px] font-mono font-bold flex items-center space-x-1">
+                    <span>${cam.flag}</span>
+                    <span>${escapeHtml(cam.city)}</span>
+                  </span>
+                  ${sourceBadge}
+                </div>
                 <span class="px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-400 text-[9px] font-mono font-bold flex items-center space-x-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
                   <span>REC</span>
