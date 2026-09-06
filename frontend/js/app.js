@@ -23,6 +23,8 @@ const App = {
     this.checkHealth();
     this.fetchUserIp();
     this.bindForms();
+    this.initCommandPalette();
+    this.initAirGapToggle();
 
     this.log('ARGUS Tactical Cockpit инициализирован. Все подсистемы в норме.', 'system');
 
@@ -592,6 +594,133 @@ const App = {
     setTimeout(() => {
       this.log(`[VAULT] Зашифрованный контейнер [${name}] успешно инициализирован в защищенном хранилище!`, 'success');
     }, 600);
+  },
+
+  initAirGapToggle() {
+    this.isAirGapped = false;
+    const btn = document.getElementById('btn-airgap-toggle');
+    if (btn) {
+      btn.addEventListener('click', () => this.toggleAirGap());
+    }
+  },
+
+  toggleAirGap() {
+    this.isAirGapped = !this.isAirGapped;
+    const badge = document.getElementById('btn-airgap-toggle');
+    const label = document.getElementById('airgap-label');
+    if (!badge || !label) return;
+
+    if (this.isAirGapped) {
+      badge.className = 'airgap-badge stealth';
+      label.textContent = 'AIR-GAP: ON (STEALTH)';
+      this.log('[SECURITY] Режим Air-Gapped АКТИВИРОВАН. Внешние сетевые запросы заблокированы. Все проверки идут по локальным базам.', 'warn');
+    } else {
+      badge.className = 'airgap-badge online';
+      label.textContent = 'AIR-GAP: OFF';
+      this.log('[SECURITY] Режим Air-Gapped выключен. Подключен Live Threat Stream.', 'info');
+    }
+  },
+
+  initCommandPalette() {
+    const dialog = document.getElementById('cmd-palette-dialog');
+    const input = document.getElementById('cmd-palette-input');
+    const resultsContainer = document.getElementById('cmd-palette-results');
+    const closeBtn = document.getElementById('cmd-palette-close');
+    const topSearchInput = document.getElementById('cmd-search-input');
+
+    if (!dialog || !input || !resultsContainer) return;
+
+    const commands = [
+      { id: 'geoint', title: '🛰️ Тактическая карта угроз (GEOINT)', category: 'Навигация', action: () => this.switchTab('geoint'), kbd: '⌘1' },
+      { id: 'network', title: '📡 Сетевой радар & Nmap (Network Recon)', category: 'Навигация', action: () => this.switchTab('network'), kbd: '⌘2' },
+      { id: 'osint', title: '👤 Разведка по открытым источникам (OSINT)', category: 'Навигация', action: () => this.switchTab('osint'), kbd: '⌘3' },
+      { id: 'audit', title: '🔑 Аудит секретов и кода (Code Audit)', category: 'Навигация', action: () => this.switchTab('audit'), kbd: '⌘4' },
+      { id: 'crypto', title: '🔐 Криптографический сейф (Crypto Stronghold)', category: 'Навигация', action: () => this.switchTab('crypto'), kbd: '⌘5' },
+      { id: 'forensics', title: '🔬 Цифровая криминалистика (Forensics Lab)', category: 'Навигация', action: () => this.switchTab('forensics'), kbd: '⌘6' },
+      { id: 'opsec', title: '🥷 Операционная безопасность & DLP (OPSEC)', category: 'Навигация', action: () => this.switchTab('opsec'), kbd: '⌘7' },
+      { id: 'analyst', title: '📊 Отчет ИИ-аналитика (Executive Posture)', category: 'Навигация', action: () => this.switchTab('analyst'), kbd: '⌘8' },
+      { id: 'airgap', title: '🛡️ Переключить Air-Gapped Stealth Mode', category: 'Безопасность', action: () => this.toggleAirGap(), kbd: '⌘S' },
+      { id: 'clear', title: '🧹 Очистить буфер SOC терминала', category: 'Система', action: () => {
+        const consoleEl = document.getElementById('terminal-logs');
+        if (consoleEl) consoleEl.innerHTML = '';
+        this.log('[SOC] Буфер терминала очищен.');
+      }, kbd: '⌘L' }
+    ];
+
+    const renderResults = (query = '') => {
+      resultsContainer.innerHTML = '';
+      const q = query.toLowerCase().trim();
+      const filtered = commands.filter(c => c.title.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) || c.id.includes(q));
+
+      if (filtered.length === 0) {
+        resultsContainer.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Команд не найдено</div>';
+        return;
+      }
+
+      filtered.forEach((cmd, idx) => {
+        const item = document.createElement('div');
+        item.className = `cmd-item ${idx === 0 ? 'selected' : ''}`;
+        item.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span>${escapeHtml(cmd.title)}</span>
+          </div>
+          <span class="cmd-kbd">${escapeHtml(cmd.kbd)}</span>
+        `;
+        item.addEventListener('click', () => {
+          cmd.action();
+          dialog.close();
+        });
+        resultsContainer.appendChild(item);
+      });
+    };
+
+    const openDialog = () => {
+      dialog.showModal();
+      input.value = '';
+      renderResults();
+      input.focus();
+    };
+
+    if (topSearchInput) {
+      topSearchInput.addEventListener('focus', () => {
+        topSearchInput.blur();
+        openDialog();
+      });
+      topSearchInput.addEventListener('click', () => openDialog());
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => dialog.close());
+    }
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    input.addEventListener('input', () => renderResults(input.value));
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const first = resultsContainer.querySelector('.cmd-item');
+        if (first) first.click();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (dialog.open) dialog.close();
+        else openDialog();
+      }
+      if (e.metaKey || e.ctrlKey) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 8) {
+          const tabOrder = ['geoint', 'network', 'osint', 'audit', 'crypto', 'forensics', 'opsec', 'analyst'];
+          e.preventDefault();
+          this.switchTab(tabOrder[num - 1]);
+        }
+      }
+    });
   }
 };
 
