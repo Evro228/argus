@@ -98,7 +98,16 @@ async def scan_target_ports(req: ScanHostRequest):
         }
 
     # Native Python Async Socket Scanner (Works everywhere without dependencies)
-    open_ports = []
+    # Load local CVE database for zero-external-call correlation
+    import json
+    import os
+    cve_path = os.path.join(os.path.dirname(__file__), "..", "data", "cve_signatures.json")
+    local_cves = []
+    try:
+        with open(cve_path, "r", encoding="utf-8") as f:
+            local_cves = json.load(f)
+    except Exception:
+        pass
 
     async def probe_port(port: int, service: str):
         try:
@@ -106,13 +115,20 @@ async def scan_target_ports(req: ScanHostRequest):
             reader, writer = await asyncio.wait_for(conn, timeout=1.5)
             writer.close()
             await writer.wait_closed()
+            
+            # Correlate with local CVE database
+            srv_lower = service.lower()
+            matched_cves = [
+                c for c in local_cves
+                if c["service"] in srv_lower or (srv_lower == "ssh" and c["service"] == "openssh") or (srv_lower in ["http", "http-alt"] and c["service"] in ["apache", "nginx"])
+            ]
+
             return {
                 "port": port,
                 "service": service,
                 "state": "OPEN",
-                "risk": "HIGH"
-                if port in [21, 23, 445, 3389, 6379, 27017]
-                else "NORMAL",
+                "risk": "CRITICAL" if any(c.get("severity") == "CRITICAL" for c in matched_cves) or port in [21, 23, 445] else ("HIGH" if port in [3389, 6379, 27017] else "NORMAL"),
+                "cves": matched_cves
             }
         except Exception:
             return None

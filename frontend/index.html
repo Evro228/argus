@@ -355,17 +355,42 @@
           <!-- Leak & Breach Verification -->
           <div class="tool-card argus-panel p-4" data-card="osint-leaks">
             <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
-              <span>✉️</span> <span>BREACH & LEAK RECON (HIBP)</span>
+              <span>✉️</span> <span>AUTONOMOUS BREACH & LEAK INTEL</span>
             </h3>
-            <div class="flex space-x-2 mb-3">
-              <input id="breach-email-input" type="email" placeholder="target@domain.com" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-              <button id="breach-check-btn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ</button>
-            </div>
-            <div id="breach-result-box" class="hidden p-3 rounded-lg bg-slate-900/80 border border-slate-800 text-xs font-mono space-y-2">
-              <div class="text-slate-300">Сформированы верифицированные запросы в базы утечек:</div>
+            
+            <!-- Email Breach Check Form -->
+            <div class="mb-3">
+              <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА КОМПРОМЕТАЦИИ EMAIL</div>
               <div class="flex space-x-2">
-                <a id="breach-hibp-link" target="_blank" class="px-3 py-1 rounded bg-slate-800 text-sky-400 hover:bg-slate-700">Have I Been Pwned ↗</a>
-                <a id="breach-dehashed-link" target="_blank" class="px-3 py-1 rounded bg-slate-800 text-sky-400 hover:bg-slate-700">DeHashed ↗</a>
+                <input id="breach-email-input" type="email" placeholder="target@domain.com" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
+                <button id="breach-check-btn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ</button>
+              </div>
+            </div>
+
+            <!-- In-App Breach Intelligence Box (Zero External Redirects) -->
+            <div id="breach-result-box" class="hidden p-3 rounded-lg bg-slate-900/90 border border-amber-500/30 text-xs font-mono space-y-2 mb-3">
+              <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                <span class="text-slate-300 font-bold" id="breach-target-label">target@domain.com</span>
+                <span id="breach-risk-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">HIGH RISK</span>
+              </div>
+              <div id="breach-intel-details" class="text-slate-400 text-[11px] space-y-1">
+                <!-- Injected dynamically -->
+              </div>
+              <div class="hidden">
+                <a id="breach-hibp-link" target="_blank"></a>
+                <a id="breach-dehashed-link" target="_blank"></a>
+              </div>
+            </div>
+
+            <!-- Password Breach & Exposure Checker -->
+            <div class="pt-3 border-t border-slate-800/80">
+              <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА ПАРОЛЯ ПО БАЗЕ УТЕЧЕК (K-ANONYMITY & OFFLINE)</div>
+              <div class="flex space-x-2 mb-2">
+                <input id="breach-pass-input" type="password" placeholder="Введите пароль для проверки" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
+                <button id="breach-pass-btn" class="px-3 py-1.5 bg-rose-500/80 hover:bg-rose-500 text-white font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ ПАРОЛЬ</button>
+              </div>
+              <div id="pass-breach-result" class="hidden p-2 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono">
+                <!-- Injected dynamically -->
               </div>
             </div>
           </div>

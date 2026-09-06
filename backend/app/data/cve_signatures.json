@@ -1,0 +1,175 @@
+[
+  {
+    "service": "openssh",
+    "cve_id": "CVE-2024-6387",
+    "title": "regreSSHion: RCE in OpenSSH Server",
+    "affected_versions": [
+      "8.5p1",
+      "8.6p1",
+      "8.7p1",
+      "8.8p1",
+      "8.9p1",
+      "9.0p1",
+      "9.1p1",
+      "9.2p1",
+      "9.3p1",
+      "9.4p1",
+      "9.5p1",
+      "9.6p1",
+      "9.7p1"
+    ],
+    "cvss": 8.1,
+    "severity": "HIGH",
+    "description": "Уязвимость состояния гонки сигналов (race condition) в функции обработки таймаутов SIGALRM сервера OpenSSH (sshd), позволяющая удалённому неаутентифицированному злоумышленнику выполнить произвольный код с привилегиями root.",
+    "remediation": "Обновите OpenSSH до версии 9.8p1 или выше, либо временно установите LoginGraceTime 0 в sshd_config."
+  },
+  {
+    "service": "openssh",
+    "cve_id": "CVE-2023-38408",
+    "title": "OpenSSH PKCS#11 Provider Remote Code Execution",
+    "affected_versions": [
+      "5.5p1",
+      "6.",
+      "7.",
+      "8.",
+      "9.0p1",
+      "9.1p1",
+      "9.2p1",
+      "9.3p1"
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Удалённое выполнение произвольного кода через перенаправленный ssh-agent при загрузке провайдера PKCS#11.",
+    "remediation": "Обновите OpenSSH до версии 9.3p2 или выше. Не используйте непроверенное перенаправление ssh-agent."
+  },
+  {
+    "service": "apache",
+    "cve_id": "CVE-2021-41773",
+    "title": "Apache HTTP Server Path Traversal & RCE",
+    "affected_versions": [
+      "2.4.49",
+      "2.4.50"
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Уязвимость обхода каталога (Path Traversal) и удаленного выполнения кода через некорректную нормализацию URL-адресов.",
+    "remediation": "Обновите Apache HTTP Server до версии 2.4.51 или выше."
+  },
+  {
+    "service": "apache",
+    "cve_id": "CVE-2022-22720",
+    "title": "Apache HTTP Server HTTP Request Smuggling",
+    "affected_versions": [
+      "2.4.52",
+      "2.4.51",
+      "2.4.50"
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Контрабанда HTTP-запросов (Request Smuggling) из-за переполнения целочисленного значения при чтении тела запроса.",
+    "remediation": "Обновите Apache HTTP Server до 2.4.53+."
+  },
+  {
+    "service": "nginx",
+    "cve_id": "CVE-2021-23017",
+    "title": "Nginx DNS Resolver 1-byte Memory Overwrite",
+    "affected_versions": [
+      "0.6.18",
+      "1.0.",
+      "1.1.",
+      "1.2.",
+      "1.3.",
+      "1.4.",
+      "1.5.",
+      "1.6.",
+      "1.7.",
+      "1.8.",
+      "1.9.",
+      "1.10.",
+      "1.11.",
+      "1.12.",
+      "1.13.",
+      "1.14.",
+      "1.15.",
+      "1.16.",
+      "1.17.",
+      "1.18.",
+      "1.19."
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Перезапись 1 байта памяти в DNS-резолвере nginx при обработке некорректного ответа DNS-сервера, приводящая к RCE.",
+    "remediation": "Обновите nginx до версии 1.20.1 или 1.21.0+."
+  },
+  {
+    "service": "redis",
+    "cve_id": "CVE-2022-0543",
+    "title": "Redis Lua Sandbox Escape & RCE",
+    "affected_versions": [
+      "5.",
+      "6."
+    ],
+    "cvss": 10.0,
+    "severity": "CRITICAL",
+    "description": "Побег из песочницы Lua в дистрибутивах Debian/Ubuntu из-за динамической сборки пакета, открывающий доступ к пакету package.loadlib().",
+    "remediation": "Обновите пакет redis-server из официального репозитория дистрибутива."
+  },
+  {
+    "service": "vsftpd",
+    "cve_id": "CVE-2011-2523",
+    "title": "vsftpd 2.3.4 Backdoor Command Execution",
+    "affected_versions": [
+      "2.3.4"
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Внедренный бэкдор в исходный код vsftpd 2.3.4: при вводе смайлика :) в имени пользователя открывается шелл root на порту 6200/tcp.",
+    "remediation": "Немедленно удалите версию vsftpd 2.3.4 и установите актуальный релиз."
+  },
+  {
+    "service": "samba",
+    "cve_id": "CVE-2017-7494",
+    "title": "SambaCry: Remote Code Execution from a Writable Share",
+    "affected_versions": [
+      "3.5.",
+      "4.0.",
+      "4.1.",
+      "4.2.",
+      "4.3.",
+      "4.4.",
+      "4.5.",
+      "4.6."
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Загрузка разделяемой библиотеки .so в общедоступный сетевой ресурс SMB с последующим её выполнением сервером Samba.",
+    "remediation": "Обновите Samba до 4.6.4, 4.5.10 или 4.4.14, либо добавьте nt pipe support = no в smb.conf."
+  },
+  {
+    "service": "mysql",
+    "cve_id": "CVE-2012-2122",
+    "title": "MySQL / MariaDB Authentication Bypass",
+    "affected_versions": [
+      "5.1.",
+      "5.5."
+    ],
+    "cvss": 7.5,
+    "severity": "HIGH",
+    "description": "Обход аутентификации из-за ошибки memcmp(): в среднем 1 из 256 попыток входа с неверным паролем будет успешным.",
+    "remediation": "Обновите MySQL до версии 5.1.63, 5.5.24 или MariaDB до 5.1.62, 5.2.12, 5.3.6, 5.5.23+."
+  },
+  {
+    "service": "jenkins",
+    "cve_id": "CVE-2024-23897",
+    "title": "Jenkins CLI Arbitrary File Read & RCE",
+    "affected_versions": [
+      "2.441",
+      "2.440",
+      "2.439"
+    ],
+    "cvss": 9.8,
+    "severity": "CRITICAL",
+    "description": "Чтение произвольных файлов сервера через аргументы args4j в CLI Jenkins, ведущее к захвату ключей сессий и RCE.",
+    "remediation": "Обновите Jenkins до версии 2.442 или 2.426.3 LTS, либо отключите встроенный CLI-сервер."
+  }
+]

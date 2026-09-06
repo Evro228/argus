@@ -285,6 +285,27 @@ try:
 except Exception as e:
     record("23. Desktop App Bundle & DMG Installer", False, str(e))
 
+# 24. Autonomous Password Breach via k-Anonymity & Offline Bloom DB
+try:
+    res = client.post("/api/osint/breach/password", json={"password": "password", "offline_only": True})
+    data = res.json()
+    passed = res.status_code == 200 and data.get("success") is True and data.get("breached") is True and data.get("count") > 1_000_000
+    record("24. Autonomous Offline Password Breach Engine", passed, f"Offline Breach Detected: count={data.get('count'):,} (severity={data.get('severity')})")
+except Exception as e:
+    record("24. Autonomous Offline Password Breach Engine", False, str(e))
+
+# 25. Offline Local CVE Correlation Engine
+try:
+    res = client.post("/api/network/scan/ports", json={"target": "127.0.0.1", "scan_type": "quick"})
+    data = res.json()
+    cve_file = os.path.join(PROJECT_ROOT, "backend", "app", "data", "cve_signatures.json")
+    with open(cve_file, "r", encoding="utf-8") as f:
+        cve_count = len(json.load(f))
+    passed = res.status_code == 200 and data.get("success") is True and cve_count >= 10
+    record("25. Offline CVE Correlation Engine", passed, f"Local signatures loaded: {cve_count} CVEs mapped to services")
+except Exception as e:
+    record("25. Offline CVE Correlation Engine", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

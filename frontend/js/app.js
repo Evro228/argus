@@ -272,6 +272,12 @@ const App = {
       breachBtn.addEventListener('click', () => this.checkBreach());
     }
 
+    // OSINT Password Breach Check
+    const breachPassBtn = document.getElementById('breach-pass-btn');
+    if (breachPassBtn) {
+      breachPassBtn.addEventListener('click', () => this.checkPasswordBreach());
+    }
+
     // Network Port Scan
     const netBtn = document.getElementById('net-scan-btn');
     if (netBtn) {
@@ -370,7 +376,7 @@ const App = {
     const email = input.value.trim();
     if (!email) return alert('Введите email!');
 
-    this.log(`[BREACH] Проверка компрометации: ${email}`, 'system');
+    this.log(`[BREACH] Автономный анализ компрометации: ${email}`, 'system');
     try {
       const res = await fetch(`${API_BASE}/osint/breach/check`, {
         method: 'POST',
@@ -379,13 +385,83 @@ const App = {
       });
       const data = await res.json();
       if (data.success) {
-        document.getElementById('breach-result-box').classList.remove('hidden');
-        document.getElementById('breach-hibp-link').href = data.hibp_url;
-        document.getElementById('breach-dehashed-link').href = data.dehashed_url;
-        this.log(`[BREACH] Сформированы верификационные ссылки HIBP для ${email}.`, 'success');
+        const box = document.getElementById('breach-result-box');
+        box.classList.remove('hidden');
+        document.getElementById('breach-target-label').textContent = data.email;
+        
+        const riskBadge = document.getElementById('breach-risk-badge');
+        riskBadge.textContent = `${data.domain_risk} RISK`;
+        riskBadge.className = data.domain_risk === 'HIGH' 
+          ? "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30"
+          : "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
+
+        const detailsBox = document.getElementById('breach-intel-details');
+        let html = `<div>Обнаружено исторических инцидентов в категории: <span class="text-amber-400 font-bold">${escapeHtml(data.historical_breaches_count || 0)}</span></div>`;
+        if (data.breaches && data.breaches.length > 0) {
+          html += `<div class="space-y-1.5 mt-2">`;
+          data.breaches.forEach(b => {
+            html += `
+              <div class="p-2 rounded bg-slate-950 border border-slate-800">
+                <div class="flex justify-between font-bold text-slate-200">
+                  <span>${escapeHtml(b.name)}</span>
+                  <span class="text-rose-400 font-mono text-[10px]">${escapeHtml(b.date)}</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(b.description || '')}</div>
+                <div class="text-[9px] text-sky-400 font-mono mt-1">Скомпрометировано: ${escapeHtml((b.data_classes || []).join(', '))}</div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+        detailsBox.innerHTML = html;
+
+        if (document.getElementById('breach-hibp-link')) {
+          document.getElementById('breach-hibp-link').href = data.hibp_url || '#';
+        }
+        this.log(`[BREACH] Автономный анализ завершен: найдено ${data.historical_breaches_count || 0} связанных инцидентов.`, 'success');
       }
     } catch (e) {
       this.log(`[BREACH] Ошибка: ${e.message}`, 'error');
+    }
+  },
+
+  async checkPasswordBreach() {
+    const input = document.getElementById('breach-pass-input');
+    const password = input.value;
+    if (!password) return alert('Введите пароль для проверки!');
+
+    const resultBox = document.getElementById('pass-breach-result');
+    resultBox.classList.remove('hidden');
+    resultBox.innerHTML = `<span class="text-sky-400">Проверка по хэш-индексу...</span>`;
+
+    try {
+      const res = await fetch(`${API_BASE}/osint/breach/password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, offline_only: false })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.breached) {
+          resultBox.innerHTML = `
+            <div class="text-rose-400 font-bold flex items-center space-x-1.5">
+              <span>💥</span> <span>ПАРОЛЬ СКОМПРОМЕТИРОВАН</span>
+            </div>
+            <div class="text-slate-300 mt-1">Обнаружен в <span class="font-bold text-rose-300">${escapeHtml(data.count.toLocaleString())}</span> публичных утечках.</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.recommendation)}</div>
+          `;
+        } else {
+          resultBox.innerHTML = `
+            <div class="text-emerald-400 font-bold flex items-center space-x-1.5">
+              <span>🛡️</span> <span>ПАРОЛЬ БЕЗОПАСЕН</span>
+            </div>
+            <div class="text-slate-300 mt-1">Совпадений в базе скомпрометированных ключей не найдено.</div>
+          `;
+        }
+        this.log(`[PASS-BREACH] Проверка пароля завершена: ${data.breached ? 'Скомпрометирован' : 'Чист'}`, data.breached ? 'error' : 'success');
+      }
+    } catch (e) {
+      resultBox.innerHTML = `<span class="text-rose-400">Ошибка: ${escapeHtml(e.message)}</span>`;
     }
   },
 
@@ -411,8 +487,33 @@ const App = {
         this.log(`[NMAP] Обнаружено открытых портов: ${data.open_ports.length} на ${target}`, 'success');
         data.open_ports.forEach(p => {
           const row = document.createElement('div');
-          row.className = "p-2 rounded bg-slate-900 border border-slate-800 flex justify-between";
-          row.innerHTML = `<span class="text-emerald-400 font-bold">${escapeHtml(p.port)}/TCP</span> <span class="text-slate-300">${escapeHtml(p.service)}</span> <span class="text-slate-500">${escapeHtml(p.state)}</span>`;
+          row.className = "p-2 rounded bg-slate-900 border border-slate-800 space-y-1";
+          
+          let cveHtml = '';
+          if (p.cves && p.cves.length > 0) {
+            cveHtml = `
+              <div class="mt-1 pt-1 border-t border-slate-800 text-[10px] space-y-1">
+                ${p.cves.map(c => `
+                  <div class="p-1 rounded bg-slate-950 border border-rose-500/30 text-slate-300 flex justify-between">
+                    <span><span class="text-rose-400 font-bold">${escapeHtml(c.cve_id)}</span>: ${escapeHtml(c.title)}</span>
+                    <span class="text-rose-400 font-mono font-bold">CVSS ${escapeHtml(c.cvss)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
+
+          row.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="text-emerald-400 font-bold font-mono">${escapeHtml(p.port)}/TCP</span> 
+                <span class="text-slate-300 font-mono ml-2">${escapeHtml(p.service)}</span>
+                ${p.cves && p.cves.length > 0 ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">⚠️ ${p.cves.length} CVE</span>` : ''}
+              </div>
+              <span class="text-slate-500 font-mono text-[10px]">${escapeHtml(p.state)}</span>
+            </div>
+            ${cveHtml}
+          `;
           resultsBox.appendChild(row);
         });
       } else {

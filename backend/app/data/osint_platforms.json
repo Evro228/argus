@@ -1,0 +1,198 @@
+[
+  {
+    "name": "GitHub",
+    "category": "Dev",
+    "url": "https://github.com/{}",
+    "check_url": "https://github.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Telegram",
+    "category": "Messenger",
+    "url": "https://t.me/{}",
+    "check_url": "https://t.me/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "GitLab",
+    "category": "Dev",
+    "url": "https://gitlab.com/{}",
+    "check_url": "https://gitlab.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Reddit",
+    "category": "Forum",
+    "url": "https://www.reddit.com/user/{}",
+    "check_url": "https://www.reddit.com/user/{}/about.json",
+    "not_found_code": 404
+  },
+  {
+    "name": "Docker Hub",
+    "category": "Dev",
+    "url": "https://hub.docker.com/u/{}",
+    "check_url": "https://hub.docker.com/v2/users/{}/",
+    "not_found_code": 404
+  },
+  {
+    "name": "HackerNews",
+    "category": "Forum",
+    "url": "https://news.ycombinator.com/user?id={}",
+    "check_url": "https://hacker-news.firebaseio.com/v0/user/{}.json",
+    "not_found_code": 404
+  },
+  {
+    "name": "Medium",
+    "category": "Blogging",
+    "url": "https://medium.com/@{}",
+    "check_url": "https://medium.com/@{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Steam",
+    "category": "Gaming",
+    "url": "https://steamcommunity.com/id/{}",
+    "check_url": "https://steamcommunity.com/id/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Pinterest",
+    "category": "Social",
+    "url": "https://www.pinterest.com/{}/",
+    "check_url": "https://www.pinterest.com/{}/",
+    "not_found_code": 404
+  },
+  {
+    "name": "Mastodon",
+    "category": "Social",
+    "url": "https://mastodon.social/@{}",
+    "check_url": "https://mastodon.social/@{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Pastebin",
+    "category": "Dev",
+    "url": "https://pastebin.com/u/{}",
+    "check_url": "https://pastebin.com/u/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Gravatar",
+    "category": "Avatar",
+    "url": "https://gravatar.com/{}",
+    "check_url": "https://gravatar.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Chess.com",
+    "category": "Gaming",
+    "url": "https://www.chess.com/member/{}",
+    "check_url": "https://api.chess.com/pub/player/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Disqus",
+    "category": "Forum",
+    "url": "https://disqus.com/by/{}/",
+    "check_url": "https://disqus.com/by/{}/",
+    "not_found_code": 404
+  },
+  {
+    "name": "Vimeo",
+    "category": "Media",
+    "url": "https://vimeo.com/{}",
+    "check_url": "https://vimeo.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "SoundCloud",
+    "category": "Media",
+    "url": "https://soundcloud.com/{}",
+    "check_url": "https://soundcloud.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Keybase",
+    "category": "Crypto",
+    "url": "https://keybase.io/{}",
+    "check_url": "https://keybase.io/_/api/1.0/user/lookup.json?usernames={}",
+    "not_found_code": 404
+  },
+  {
+    "name": "VK",
+    "category": "Social",
+    "url": "https://vk.com/{}",
+    "check_url": "https://vk.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "DeviantArt",
+    "category": "Media",
+    "url": "https://www.deviantart.com/{}",
+    "check_url": "https://www.deviantart.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Habr",
+    "category": "Dev",
+    "url": "https://habr.com/ru/users/{}/",
+    "check_url": "https://habr.com/ru/users/{}/",
+    "not_found_code": 404
+  },
+  {
+    "name": "Twitch",
+    "category": "Media",
+    "url": "https://www.twitch.tv/{}",
+    "check_url": "https://www.twitch.tv/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Behance",
+    "category": "Design",
+    "url": "https://www.behance.net/{}",
+    "check_url": "https://www.behance.net/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Dribbble",
+    "category": "Design",
+    "url": "https://dribbble.com/{}",
+    "check_url": "https://dribbble.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Replit",
+    "category": "Dev",
+    "url": "https://replit.com/@{}",
+    "check_url": "https://replit.com/@{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Kaggle",
+    "category": "Dev",
+    "url": "https://www.kaggle.com/{}",
+    "check_url": "https://www.kaggle.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Patreon",
+    "category": "Finance",
+    "url": "https://www.patreon.com/{}",
+    "check_url": "https://www.patreon.com/{}",
+    "not_found_code": 404
+  },
+  {
+    "name": "Substack",
+    "category": "Blogging",
+    "url": "https://{}.substack.com",
+    "check_url": "https://{}.substack.com",
+    "not_found_code": 404
+  },
+  {
+    "name": "ProductHunt",
+    "category": "Dev",
+    "url": "https://www.producthunt.com/@{}",
+    "check_url": "https://www.producthunt.com/@{}",
+    "not_found_code": 404
+  }
+]
