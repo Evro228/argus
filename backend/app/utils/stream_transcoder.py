@@ -14,8 +14,13 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
+import tempfile
+
 # Base temporary directory for transcode chunks
-TRANSCODE_BASE_DIR = "/Users/slava/Antigravity/tmp/transcode"
+_default_tmp = "/Users/slava/Antigravity/tmp/transcode"
+if not os.path.exists("/Users/slava"):
+    _default_tmp = os.path.join(tempfile.gettempdir(), "argus_transcode")
+TRANSCODE_BASE_DIR = os.environ.get("ARGUS_TRANSCODE_DIR", _default_tmp)
 
 
 class RTSPStreamTranscoder:
