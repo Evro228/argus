@@ -164,13 +164,28 @@ async def scan_target_ports(req: ScanHostRequest):
 
 @router.post("/cert/inspect")
 def inspect_ssl_cert(req: CertCheckRequest):
-    host = (
-        req.host.strip()
-        .replace("http://", "")
-        .replace("https://", "")
-        .split("/")[0]
-        .split(":")[0]
-    )
+    try:
+        host = sanitize_target_host(req.host)
+    except ValueError as err:
+        return {"success": False, "error": str(err)}
+
+    if not (1 <= req.port <= 65535):
+        return {"success": False, "error": "Недопустимый номер порта (1-65535)."}
+
+    from backend.app.api.system import is_air_gap_enabled
+    if is_air_gap_enabled():
+        is_private = False
+        try:
+            ip_obj = ipaddress.ip_address(host)
+            is_private = ip_obj.is_private or ip_obj.is_loopback
+        except ValueError:
+            is_private = host in ("localhost", "127.0.0.1")
+        if not is_private:
+            return {
+                "success": False,
+                "error": "Режим Air-Gapped Stealth Mode АКТИВИРОВАН. Проверка внешних SSL-сертификатов заблокирована.",
+            }
+
     try:
         ctx = ssl.create_default_context()
         with socket.create_connection((host, req.port), timeout=3.0) as sock:

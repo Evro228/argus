@@ -190,7 +190,7 @@ except Exception as e:
 
 # 16. OPSEC: Data Loss Prevention & Pasteguard Sanitizer
 try:
-    dirty_text = "Секретный токен api_key: 9f8a8c8e8d8c8b8a7f6e5d4c3b2a10ff и почта ceo@corp.com, телефон +7 999 123-4567, карта 4276 1234 5678 9012"
+    dirty_text = "Секретный токен api_key: MOCK_ARGUS_TEST_SECRET_TOKEN_445566778899 и почта ceo@corp.com, телефон +7 999 123-4567, карта 4276 1234 5678 9012"
     res = client.post("/api/opsec/sanitize", json={"text": dirty_text})
     data = res.json()
     clean = data.get("sanitized_text", "")

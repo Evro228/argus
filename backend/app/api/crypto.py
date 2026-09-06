@@ -199,6 +199,13 @@ def create_burn_note(req: BurnNoteCreateRequest):
 
 @router.get("/burn-note/read/{token}")
 def read_burn_note(token: str):
+    # V-09: Token format validation (secrets.token_urlsafe produces URL-safe chars)
+    if not token or len(token) > 64 or not re.fullmatch(r"[A-Za-z0-9_-]+", token):
+        return {
+            "success": False,
+            "error": "Некорректный синтаксис токена записки.",
+        }
+
     # Purge expired with wipe
     now = time.time()
     for k in list(EPHEMERAL_NOTES.keys()):

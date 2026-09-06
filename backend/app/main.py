@@ -40,19 +40,30 @@ app.add_middleware(
     allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Content-Type",
+        "X-ARGUS-Token",
+        "X-API-Key",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+    ],
 )
 
 # Rate limiting & Security Headers Middleware
 RATE_LIMIT_WINDOW = 60
 RATE_LIMIT_MAX_REQUESTS = 600
 client_request_history = defaultdict(list)
+_last_rate_limit_cleanup = time.time()
 
 # Host validation to block DNS Rebinding
 VALID_HOSTS = {"127.0.0.1", "localhost", "testserver"}
 
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
+    global _last_rate_limit_cleanup
+
     # 1. DNS Rebinding Protection: Verify Host header
     host_header = request.headers.get("host", "").split(":")[0]
     if host_header and host_header not in VALID_HOSTS and not host_header.startswith("127."):
@@ -61,10 +72,29 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             content={"success": False, "error": "Запрещенный заголовок Host (DNS Rebinding Protection)."},
         )
 
-    # 2. Apply rate limiting to API endpoints
+    # 2. Apply rate limiting to API endpoints with Memory Leak GC (V-05)
     if request.url.path.startswith("/api/"):
         client_ip = request.client.host if request.client else "127.0.0.1"
         now = time.time()
+
+        # Periodic garbage collection for stale IP tracking entries (every 60s)
+        if now - _last_rate_limit_cleanup > 60:
+            stale_ips = [
+                ip for ip, ts in client_request_history.items()
+                if not ts or (now - ts[-1] > RATE_LIMIT_WINDOW * 2)
+            ]
+            for ip in stale_ips:
+                client_request_history.pop(ip, None)
+            # Hard cap on tracked unique clients to prevent memory exhaustion
+            if len(client_request_history) > 2000:
+                oldest_ips = sorted(
+                    client_request_history.keys(),
+                    key=lambda k: client_request_history[k][-1] if client_request_history[k] else 0
+                )[:500]
+                for ip in oldest_ips:
+                    client_request_history.pop(ip, None)
+            _last_rate_limit_cleanup = now
+
         timestamps = [t for t in client_request_history[client_ip] if now - t < RATE_LIMIT_WINDOW]
 
         if len(timestamps) >= RATE_LIMIT_MAX_REQUESTS:
@@ -80,10 +110,13 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
     ipc_token = os.getenv("ARGUS_IPC_TOKEN", "").strip()
     if ipc_token and request.url.path.startswith("/api/") and request.url.path != "/api/health":
         import secrets
+        auth_header = request.headers.get("Authorization") or ""
+        auth_token = auth_header[7:].strip() if auth_header.startswith("Bearer ") else auth_header.strip()
         provided_token = (
             request.headers.get("X-ARGUS-Token")
             or request.headers.get("X-API-Key")
-            or request.headers.get("Authorization", "").replace("Bearer ", "")
+            or auth_token
+            or ""
         ).strip()
 
         # Constant-time comparison defeats timing side-channels
@@ -97,6 +130,9 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
 # API Routers

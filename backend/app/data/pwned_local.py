@@ -87,6 +87,16 @@ OFFLINE_TOP_BREACHED_HASHES = {
 async def check_password_breach_automated(password: str, offline_only: bool = False) -> Dict[str, Any]:
     if not password:
         return {"breached": False, "count": 0, "source": "empty"}
+
+    # V-08: Bounded input to prevent CPU exhaustion on oversized strings
+    if len(password) > 1024:
+        return {
+            "breached": False,
+            "count": 0,
+            "source": "rejected_length",
+            "severity": "NORMAL",
+            "recommendation": "Длина пароля превышает допустимый лимит 1024 символов."
+        }
     
     sha1 = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
     

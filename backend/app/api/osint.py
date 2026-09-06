@@ -128,6 +128,23 @@ async def search_username(req: UsernameSearchRequest):
         async def check_site(site: dict[str, Any]):
             check_url = site["check_url"].format(username)
             profile_url = site["url"].format(username)
+
+            # SSRF Protection: Validate URL scheme and target host (V-10)
+            from urllib.parse import urlparse
+            import ipaddress
+            parsed = urlparse(check_url)
+            if parsed.scheme != "https":
+                return None
+            hostname = parsed.hostname or ""
+            if hostname in ("localhost", "127.0.0.1", "0.0.0.0") or hostname.endswith(".local"):
+                return None
+            try:
+                ip_obj = ipaddress.ip_address(hostname)
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or str(ip_obj) == "169.254.169.254":
+                    return None
+            except ValueError:
+                pass
+
             try:
                 resp = await client.get(check_url)
                 # Reddit special check

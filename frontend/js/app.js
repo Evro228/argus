@@ -11,14 +11,29 @@ function escapeHtml(str) {
   }[c]));
 }
 
-function getApiHeaders(extra = {}) {
-  const headers = { 'Content-Type': 'application/json', ...extra };
-  const token = window.__ARGUS_IPC_TOKEN__ || localStorage.getItem('argus_ipc_token') || '';
+function getIpcToken() {
+  if (window.argusNative && typeof window.argusNative.getIpcToken === 'function') {
+    try {
+      const token = window.argusNative.getIpcToken();
+      if (token) return token;
+    } catch (_) {}
+  }
+  return window.__ARGUS_IPC_TOKEN__ || localStorage.getItem('argus_ipc_token') || '';
+}
+
+function getAuthHeaders(extra = {}) {
+  const headers = { ...extra };
+  const token = getIpcToken();
   if (token) {
     headers['X-ARGUS-Token'] = token;
   }
   return headers;
 }
+
+function getApiHeaders(extra = {}) {
+  return getAuthHeaders({ 'Content-Type': 'application/json', ...extra });
+}
+
 
 const App = {
   activeTab: 'geoint', // Main Screen starts on God's Eye View & Tactical Threat Map
@@ -237,7 +252,7 @@ const App = {
 
   async fetchUserIp() {
     try {
-      const res = await fetch(`${API_BASE}/network/my-ip`);
+      const res = await fetch(`${API_BASE}/network/my-ip`, { headers: getApiHeaders() });
       const data = await res.json();
       if (data.success) {
         const wanEl = document.getElementById('val-wan-ip');
@@ -253,7 +268,7 @@ const App = {
 
   async checkHealth() {
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await fetch(`${API_BASE}/health`, { headers: getApiHeaders() });
       const data = await res.json();
       if (data.status === 'online') {
         const badge = document.getElementById('system-health-badge');
@@ -354,7 +369,7 @@ const App = {
     try {
       const res = await fetch(`${API_BASE}/osint/search/username`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify({ username })
       });
       const data = await res.json();
@@ -396,7 +411,7 @@ const App = {
     try {
       const res = await fetch(`${API_BASE}/osint/breach/check`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify({ email })
       });
       const data = await res.json();
@@ -453,7 +468,7 @@ const App = {
     try {
       const res = await fetch(`${API_BASE}/osint/breach/password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify({ password, offline_only: false })
       });
       const data = await res.json();
@@ -493,7 +508,7 @@ const App = {
     try {
       const res = await fetch(`${API_BASE}/network/scan/ports`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify({ target, scan_type: 'quick' })
       });
       const data = await res.json();
@@ -542,7 +557,7 @@ const App = {
 
   async loadWifiStatus() {
     try {
-      const res = await fetch(`${API_BASE}/network/wifi/status`);
+      const res = await fetch(`${API_BASE}/network/wifi/status`, { headers: getApiHeaders() });
       const data = await res.json();
       if (data.success && data.current_network) {
         document.getElementById('wifi-ssid-val').textContent = data.current_network.ssid;
@@ -564,7 +579,7 @@ const App = {
     try {
       const res = await fetch(`${API_BASE}/audit/scan/path`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify({ path })
       });
       const data = await res.json();
@@ -826,7 +841,7 @@ const App = {
       try {
         const res = await fetch(`${API_BASE}/forensics/image/exif`, {
           method: 'POST',
-          headers: window.__ARGUS_IPC_TOKEN__ ? { 'X-ARGUS-Token': window.__ARGUS_IPC_TOKEN__ } : {},
+          headers: getAuthHeaders(),
           body: formData
         });
         const data = await res.json();
@@ -888,7 +903,7 @@ const App = {
       try {
         const res = await fetch(`${API_BASE}/forensics/pdf/inspect`, {
           method: 'POST',
-          headers: window.__ARGUS_IPC_TOKEN__ ? { 'X-ARGUS-Token': window.__ARGUS_IPC_TOKEN__ } : {},
+          headers: getAuthHeaders(),
           body: formData
         });
         const data = await res.json();

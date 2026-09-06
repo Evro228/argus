@@ -181,7 +181,20 @@ def scan_directory_path(req: ScanPathRequest):
 
     for fpath in files_to_scan:
         try:
-            with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+            real_fpath = os.path.realpath(fpath)
+            if not os.path.isfile(real_fpath):
+                continue
+
+            # Ensure resolved path does not traverse into blocked prefixes
+            if any(real_fpath == p or real_fpath.startswith(p + "/") for p in blocked_prefixes):
+                continue
+
+            # Ensure resolved path does not contain blocked credential folders
+            real_parts = set(os.path.normpath(real_fpath).split(os.sep))
+            if any(b in real_parts for b in blocked_dir_names):
+                continue
+
+            with open(real_fpath, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read(500000)  # Read up to 500KB per file
                 rel_path = (
                     os.path.relpath(fpath, target_path)

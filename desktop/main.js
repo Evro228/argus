@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
@@ -11,6 +11,17 @@ let pythonProcess = null;
 const PORT = 8800;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
 const ARGUS_IPC_TOKEN = crypto.randomBytes(32).toString('hex');
+
+// Secure IPC handlers for preload bridge
+ipcMain.on('get-ipc-token', (event) => {
+  event.returnValue = ARGUS_IPC_TOKEN;
+});
+
+ipcMain.on('open-external', (event, url) => {
+  if (typeof url === 'string' && (url.startsWith('http:') || url.startsWith('https:'))) {
+    shell.openExternal(url);
+  }
+});
 
 function getRootDir() {
   if (app.isPackaged) {
@@ -118,9 +129,10 @@ function createWindow() {
     backgroundColor: '#0a0e15',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true,
+      sandbox: false,
       webSecurity: true,
       allowRunningInsecureContent: false
     }

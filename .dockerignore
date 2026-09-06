@@ -1,13 +1,24 @@
 .git
+.github
 .gitignore
 .env
+.env.*
 .venv
 venv/
 node_modules/
 dist/
+build/
 uploads/
 reports/
 tmp/
+tests/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 *.log
+.DS_Store
+Launch ARGUS.command
+run.bat
+run.sh
+council/
