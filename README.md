@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Version](https://img.shields.io/badge/Version-2.2.0-emerald.svg)]()
+[![Version](https://img.shields.io/badge/Version-2.7.0-emerald.svg)]()
 [![Status](https://img.shields.io/badge/Status-Active%20Production-emerald.svg)]()
 [![OWASP ASVS](https://img.shields.io/badge/OWASP%20ASVS-Compliant%20(20%2F20)-brightgreen.svg)]()
 [![Tests](https://img.shields.io/badge/Tests-36%2F36%20PASS%20(100%25)-success.svg)]()

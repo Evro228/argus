@@ -1,6 +1,6 @@
 {
   "name": "argus",
-  "version": "2.2.0",
+  "version": "2.7.0",
   "description": "ARGUS // Tactical Intelligence & Defense Cockpit",
   "main": "desktop/main.js",
   "scripts": {

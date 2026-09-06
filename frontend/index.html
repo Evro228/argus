@@ -23,7 +23,7 @@
       <div>
         <div class="flex items-center space-x-2">
           <span class="font-black tracking-wider text-base uppercase bg-gradient-to-r from-slate-100 via-sky-200 to-sky-400 bg-clip-text text-transparent font-mono">ARGUS</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30">v2.2.0</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30">v2.7.0</span>
         </div>
         <div class="text-[10px] text-slate-400 font-mono" data-i18n="appSubtitle">Tactical Intelligence & Defense Cockpit</div>
       </div>
@@ -336,6 +336,7 @@
           <button class="tool-picker-pill" data-tool="net-topology">🌐 Ingress Topology</button>
           <button class="tool-picker-pill" data-tool="net-telemetry">⚡ Gateway Telematics</button>
           <button class="tool-picker-pill" data-tool="net-wifi">📶 Wi-Fi & RF Recon</button>
+          <button class="tool-picker-pill" data-tool="net-rf">📻 RF Spectrum & WebSDR</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
         </div>
 
@@ -419,6 +420,55 @@
             </div>
           </div>
         </div>
+
+        <!-- RF Spectrum & WebSDR Grid Card -->
+        <div class="tool-card argus-panel p-4" data-card="net-rf">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
+                <span>📻</span> <span>RF SPECTRUM & GLOBAL WEBSDR GRID</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono mt-0.5">
+                Мониторинг радиочастот гражданской авиации (121.5 MHz), морской безопасности (VHF Ch 16) и онлайн WebSDR приемников.
+              </p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button id="btn-refresh-rf" class="px-2.5 py-1 text-xs font-mono rounded bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700">ОБНОВИТЬ СПЕКТР ↻</button>
+            </div>
+          </div>
+
+          <!-- Radio Waterfall Canvas -->
+          <div class="relative w-full h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden mb-3">
+            <canvas id="rf-waterfall-canvas" class="w-full h-full block"></canvas>
+            <div class="absolute top-2 left-3 text-[10px] font-mono text-cyan-400 pointer-events-none">
+              LIVE SPECTRUM FFT: <span id="rf-center-label">121.500 MHz (VHF Guard)</span> • SPAN: 2.0 MHz
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+            <!-- Frequencies Directory -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+              <div class="text-slate-300 font-bold flex justify-between">
+                <span>АВАРИЙНЫЕ & ТАКТИЧЕСКИЕ ЧАСТОТЫ</span>
+                <span class="text-[10px] text-slate-500">ICAO / IMO</span>
+              </div>
+              <div id="rf-frequencies-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Global WebSDR Receivers -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+              <div class="text-slate-300 font-bold flex justify-between">
+                <span>ОТКРЫТЫЕ ПРИЕМНИКИ WEBSDR</span>
+                <span class="text-[10px] text-emerald-400">ONLINE</span>
+              </div>
+              <div id="rf-receivers-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ========================================================= -->
@@ -429,9 +479,34 @@
         <!-- Subsection Tool Picker -->
         <div class="flex items-center space-x-2 overflow-x-auto pb-1">
           <button class="tool-picker-pill active" data-tool="osint-username">👤 Username Recon (Sherlock)</button>
+          <button class="tool-picker-pill" data-tool="osint-synapse">🕸️ Synapse Entity Graph</button>
           <button class="tool-picker-pill" data-tool="osint-leaks">✉️ Leak Check (HIBP)</button>
           <button class="tool-picker-pill" data-tool="osint-dorks">🔎 Dorks Studio</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
+        </div>
+
+        <!-- Interactive 2D Synapse Entity Graph Card -->
+        <div class="tool-card argus-panel p-4" data-card="osint-synapse">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
+                <span>🕸️</span> <span>SYNAPSE // 2D TOPOLOGICAL ENTITY GRAPH</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono mt-0.5">
+                Интерактивная визуализация цифрового следа сущности (никнейм, email, сервисы, домены) с физикой связей на 60 FPS Canvas.
+              </p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button id="btn-graph-reset" class="px-2.5 py-1 text-xs font-mono rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">⟲ СБРОС ВИДА</button>
+              <button id="btn-graph-physics" class="px-2.5 py-1 text-xs font-mono rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30">⏸ ФИЗИКА</button>
+            </div>
+          </div>
+          <div class="relative w-full h-80 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+            <canvas id="osint-synapse-canvas" class="w-full h-full block cursor-grab"></canvas>
+            <div class="absolute bottom-2 left-3 text-[10px] font-mono text-slate-500 pointer-events-none">
+              💡 Перетаскивание узлов мышью • Колесо: Зум • Клик: Открыть сервис в браузере • Зеленый: Подтвержден
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -652,6 +727,7 @@
         <div class="flex items-center space-x-2 overflow-x-auto pb-1">
           <button class="tool-picker-pill active" data-tool="forensics-exif">📸 EXIF & GPS Recon</button>
           <button class="tool-picker-pill" data-tool="forensics-pdf">📄 Dangerzone PDF Audit</button>
+          <button class="tool-picker-pill" data-tool="forensics-threats">⚡ YARA & Sigma Threats</button>
           <button class="tool-picker-pill" data-tool="all">👁️ Overview All</button>
         </div>
 
@@ -687,6 +763,49 @@
               <div id="pdf-results-box" class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2 hidden">
                 <!-- Injected dynamically -->
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- YARA & Sigma Threat Inspector Card -->
+        <div class="tool-card argus-panel p-4" data-card="forensics-threats">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-sm font-bold font-mono text-amber-400 flex items-center space-x-2">
+                <span>⚡</span> <span>YARA & SIGMA // MALWARE & LOLBIN THREAT DETECTOR</span>
+              </h3>
+              <p class="text-xs text-slate-400 font-mono mt-0.5">
+                Автономный сигнатурный анализ веб-шеллов (c99/r57/b374k/WSO), реверс-шеллов, обфусцированного PowerShell и LOLBins.
+              </p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="threat-rules-count-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/30">11 сигнатур загружено</span>
+            </div>
+          </div>
+          <div class="space-y-3 text-xs font-mono">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="md:col-span-2 space-y-2">
+                <textarea id="threat-scan-input" rows="4" placeholder="Вставьте код скрипта, лог процесса или подозрительную полезную нагрузку для анализа..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-slate-200 text-xs font-mono focus:border-amber-500/50 outline-none"></textarea>
+                <div class="flex items-center space-x-2">
+                  <button id="threat-scan-btn" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-lg transition text-xs">СКАНИРОВАТЬ СИГНАТУРЫ ⚡</button>
+                  <label class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg cursor-pointer transition text-xs border border-slate-700">
+                    📁 Выбрать файл
+                    <input type="file" id="threat-file-input" class="hidden">
+                  </label>
+                  <span id="threat-scan-filename" class="text-slate-500 text-[11px] truncate max-w-xs"></span>
+                </div>
+              </div>
+              <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 space-y-1.5 text-[11px]">
+                <div class="text-slate-400 font-bold mb-1">СИГНАТУРНЫЙ КАТАЛОГ:</div>
+                <div class="text-slate-500 flex items-center justify-between"><span>WebShells (c99/r57/eval):</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-500 flex items-center justify-between"><span>Reverse TCP Connect-back:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-500 flex items-center justify-between"><span>PowerShell Memory Exec:</span> <span class="text-amber-400 font-bold">HIGH</span></div>
+                <div class="text-slate-500 flex items-center justify-between"><span>Mimikatz LSASS Dump:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-500 flex items-center justify-between"><span>LOLBins (certutil/bitsadmin):</span> <span class="text-amber-400 font-bold">HIGH</span></div>
+              </div>
+            </div>
+            <div id="threat-scan-results" class="hidden p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+              <!-- Injected dynamically -->
             </div>
           </div>
         </div>
@@ -1279,6 +1398,36 @@
         </div>
       </div>
 
+      <!-- Telegram Bot Alerts Configuration Block -->
+      <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="text-base">✈️</span>
+            <div>
+              <div class="font-bold text-sky-400">TELEGRAM BOT PUSH-АЛЕРТЫ</div>
+              <div class="text-[10px] text-slate-400">Оповещение оператора об инцидентах и аномалиях в сети</div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="watcher-tg-toggle" class="sr-only peer">
+              <div class="w-8 h-4 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-sky-500"></div>
+            </label>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <input id="watcher-tg-token" type="password" placeholder="Bot Token (e.g. 123456:ABC...)" class="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-200 focus:border-sky-500/50 outline-none">
+          <input id="watcher-tg-chatid" type="text" placeholder="Chat ID (e.g. 987654321 / -100...)" class="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-200 focus:border-sky-500/50 outline-none">
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <span id="watcher-tg-status" class="text-[10px] text-slate-500">Air-Gap: в режиме Stealth отправка блокируется</span>
+          <div class="flex items-center space-x-1.5">
+            <button id="btn-watcher-tg-save" class="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold">СОХРАНИТЬ</button>
+            <button id="btn-watcher-tg-test" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-[10px] border border-slate-700">ТЕСТ СВЯЗИ</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Alerts Feed -->
       <div>
         <div class="flex items-center justify-between mb-2 text-xs text-slate-400">
@@ -1318,6 +1467,7 @@
 
   <!-- Scripts -->
   <script src="/js/i18n.js"></script>
+  <script src="/js/osint_graph.js"></script>
   <script src="/js/geoint.js"></script>
   <script src="/js/app.js"></script>
 </body>

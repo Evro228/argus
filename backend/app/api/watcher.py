@@ -13,11 +13,62 @@ import time
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+import httpx
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from backend.app.api.system import is_air_gap_enabled
 
 router = APIRouter()
+
+# ----------------------------------------------------------------------
+# TELEGRAM NOTIFICATIONS CONFIGURATION
+# ----------------------------------------------------------------------
+TELEGRAM_CONFIG: Dict[str, Any] = {
+    "enabled": False,
+    "bot_token": "",
+    "chat_id": "",
+    "min_severity": "WARNING",  # INFO, WARNING, CRITICAL
+}
+
+
+async def dispatch_telegram_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
+    if is_air_gap_enabled():
+        return {"success": False, "error": "Air-Gap Stealth Mode активен: отправка в Telegram заблокирована"}
+
+    if not TELEGRAM_CONFIG.get("enabled"):
+        return {"success": False, "error": "Telegram оповещения отключены в настройках"}
+
+    token = TELEGRAM_CONFIG.get("bot_token", "").strip()
+    chat_id = TELEGRAM_CONFIG.get("chat_id", "").strip()
+    if not token or not chat_id:
+        return {"success": False, "error": "Не указан Bot Token или Chat ID"}
+
+    sev = alert.get("severity", "INFO")
+    icons = {"CRITICAL": "🚨", "WARNING": "⚠️", "INFO": "ℹ️"}
+    icon = icons.get(sev, "🛡️")
+
+    text = (
+        f"{icon} *ARGUS Tactical Alert* [_{sev}_]\n\n"
+        f"📍 *Компонент:* `{alert.get('category', 'SYSTEM')}`\n"
+        f"🎯 *Событие:* *{alert.get('title', 'Тревога')}*\n"
+        f"📝 {alert.get('message', '')}\n\n"
+        f"⏱️ `{alert.get('timestamp', '')}`"
+    )
+
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                url,
+                json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+            )
+            if resp.status_code == 200:
+                return {"success": True, "message": "Алерт успешно доставлен в Telegram"}
+            else:
+                return {"success": False, "error": f"Ошибка Telegram API: {resp.text}"}
+    except Exception as e:
+        return {"success": False, "error": f"Ошибка соединения: {e!s}"}
 
 
 class WatcherDaemon:
@@ -78,6 +129,17 @@ class WatcherDaemon:
         self.alerts.insert(0, alert)
         if len(self.alerts) > 50:
             self.alerts = self.alerts[:50]
+
+        # Trigger telegram notification if threshold met
+        sev_order = {"INFO": 1, "WARNING": 2, "CRITICAL": 3}
+        min_sev = TELEGRAM_CONFIG.get("min_severity", "WARNING")
+        if sev_order.get(severity, 1) >= sev_order.get(min_sev, 2):
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(dispatch_telegram_alert(alert))
+            except RuntimeError:
+                pass
+
         return alert
 
     async def _run_loop(self):
@@ -238,3 +300,72 @@ async def trigger_test_alert():
         "success": True,
         "alert": alert,
     }
+
+
+class TelegramConfigModel(BaseModel):
+    enabled: bool | None = None
+    bot_token: str | None = None
+    chat_id: str | None = None
+    min_severity: str | None = None
+
+
+@router.get("/telegram/config")
+@router.get("/telegram/config/")
+def get_telegram_config():
+    """
+    Возвращает текущий статус интеграции с Telegram Bot API (токен маскируется).
+    """
+    raw_token = TELEGRAM_CONFIG.get("bot_token", "")
+    masked_token = f"{raw_token[:6]}••••••••{raw_token[-4:]}" if len(raw_token) > 10 else ("Configured" if raw_token else "")
+    return {
+        "success": True,
+        "enabled": TELEGRAM_CONFIG.get("enabled", False),
+        "bot_configured": bool(raw_token),
+        "masked_token": masked_token,
+        "chat_id": TELEGRAM_CONFIG.get("chat_id", ""),
+        "min_severity": TELEGRAM_CONFIG.get("min_severity", "WARNING"),
+        "air_gap_mode": is_air_gap_enabled(),
+    }
+
+
+@router.post("/telegram/config")
+@router.post("/telegram/config/")
+def set_telegram_config(cfg: TelegramConfigModel):
+    """
+    Обновляет параметры бота Telegram для отправки алертов сторожа.
+    """
+    if cfg.enabled is not None:
+        TELEGRAM_CONFIG["enabled"] = cfg.enabled
+    if cfg.bot_token is not None:
+        TELEGRAM_CONFIG["bot_token"] = cfg.bot_token.strip()
+    if cfg.chat_id is not None:
+        TELEGRAM_CONFIG["chat_id"] = cfg.chat_id.strip()
+    if cfg.min_severity is not None:
+        TELEGRAM_CONFIG["min_severity"] = cfg.min_severity.upper()
+
+    return get_telegram_config()
+
+
+@router.post("/telegram/test")
+@router.post("/telegram/test/")
+async def send_telegram_test():
+    """
+    Отправляет тестовое уведомление в Telegram для верификации связки.
+    """
+    if is_air_gap_enabled():
+        return {
+            "success": False,
+            "error": "Air-Gap Stealth Mode активен: внешние сетевые запросы заблокированы.",
+            "air_gap_enforced": True,
+        }
+
+    test_alert = {
+        "id": "ALT_TG_VERIFY",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "category": "TELEGRAM_VERIFY",
+        "severity": "CRITICAL",
+        "title": "ARGUS // Проверка канала Telegram",
+        "message": "Тестовая тактическая тревога. Связь между сторожем ARGUS и оператором успешно установлена.",
+    }
+    return await dispatch_telegram_alert(test_alert)
+

@@ -239,3 +239,160 @@ async def check_password_breach(req: PasswordBreachRequest):
         "success": True,
         **res
     }
+
+
+class OSINTGraphRequest(BaseModel):
+    target: str
+    target_type: str = "username"  # username, email, domain
+    profiles: list[dict[str, Any]] | None = None
+
+
+@router.post("/graph/build")
+async def build_osint_graph(req: OSINTGraphRequest):
+    """
+    Генерирует топологический граф связей сущностей (Synapse Entity Graph)
+    для интерактивной 2D симуляции связей цели в интерфейсе.
+    """
+    clean_target = req.target.strip()
+    if not clean_target:
+        clean_target = "UNKNOWN_ENTITY"
+
+    nodes = []
+    links = []
+
+    # 1. Central Target Node
+    nodes.append({
+        "id": "target",
+        "label": clean_target,
+        "type": "target",
+        "category": "Target",
+        "size": 24,
+        "color": "#38bdf8",
+        "glow": True,
+        "metadata": {"type": req.target_type, "identifier": clean_target},
+    })
+
+    # Categories config
+    cat_colors = {
+        "Dev": "#818cf8",
+        "Social": "#c084fc",
+        "Messenger": "#2dd4bf",
+        "Forum": "#fb923c",
+        "Blogging": "#f472b6",
+        "Breach": "#f87171",
+        "Security": "#34d399",
+        "General": "#94a3b8",
+    }
+
+    # If profiles were provided (from username scan)
+    profiles = req.profiles or []
+    seen_categories = set()
+
+    if profiles:
+        for p in profiles:
+            cat = p.get("category", "General")
+            seen_categories.add(cat)
+
+            # Category cluster node
+            cat_node_id = f"cat_{cat.lower()}"
+            if not any(n["id"] == cat_node_id for n in nodes):
+                nodes.append({
+                    "id": cat_node_id,
+                    "label": cat.upper(),
+                    "type": "category",
+                    "category": cat,
+                    "size": 16,
+                    "color": cat_colors.get(cat, "#94a3b8"),
+                    "glow": False,
+                    "metadata": {"count": 1},
+                })
+                links.append({
+                    "source": "target",
+                    "target": cat_node_id,
+                    "weight": 2.5,
+                    "color": "#38bdf840",
+                    "type": "hierarchy",
+                })
+
+            # Platform node
+            plat_id = f"plat_{p.get('name', 'node').lower()}"
+            is_found = p.get("status") == "Found"
+            nodes.append({
+                "id": plat_id,
+                "label": p.get("name", "Unknown"),
+                "type": "platform",
+                "category": cat,
+                "size": 12,
+                "color": "#10b981" if is_found else "#64748b",
+                "status": p.get("status", "Unknown"),
+                "url": p.get("url", ""),
+                "glow": is_found,
+                "metadata": p,
+            })
+            links.append({
+                "source": cat_node_id,
+                "target": plat_id,
+                "weight": 1.2,
+                "color": "#10b98160" if is_found else "#47556940",
+                "type": "affiliation",
+            })
+    else:
+        # Default synthesized topology for preview / target exploration
+        default_clusters = [
+            ("Dev", ["GitHub", "GitLab", "HackerNews"]),
+            ("Social", ["Reddit", "Twitter/X", "Medium"]),
+            ("Messenger", ["Telegram", "Keybase"]),
+            ("Breach", ["HaveIBeenPwned", "DeHashed"]),
+        ]
+        for cat, items in default_clusters:
+            cat_node_id = f"cat_{cat.lower()}"
+            nodes.append({
+                "id": cat_node_id,
+                "label": cat.upper(),
+                "type": "category",
+                "category": cat,
+                "size": 16,
+                "color": cat_colors.get(cat, "#94a3b8"),
+                "glow": False,
+                "metadata": {"count": len(items)},
+            })
+            links.append({
+                "source": "target",
+                "target": cat_node_id,
+                "weight": 2.5,
+                "color": "#38bdf840",
+                "type": "hierarchy",
+            })
+            for item in items:
+                plat_id = f"plat_{item.lower().replace('/', '_')}"
+                nodes.append({
+                    "id": plat_id,
+                    "label": item,
+                    "type": "platform",
+                    "category": cat,
+                    "size": 11,
+                    "color": "#94a3b8",
+                    "status": "Ready",
+                    "url": f"https://google.com/search?q={clean_target}+{item}",
+                    "glow": False,
+                    "metadata": {"platform": item},
+                })
+                links.append({
+                    "source": cat_node_id,
+                    "target": plat_id,
+                    "weight": 1.0,
+                    "color": "#47556940",
+                    "type": "potential",
+                })
+
+    return {
+        "success": True,
+        "target": clean_target,
+        "target_type": req.target_type,
+        "total_nodes": len(nodes),
+        "total_links": len(links),
+        "clusters_count": len(seen_categories) if seen_categories else 4,
+        "nodes": nodes,
+        "links": links,
+    }
+

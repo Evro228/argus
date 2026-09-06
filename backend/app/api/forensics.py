@@ -221,3 +221,62 @@ async def inspect_pdf_security(file: UploadFile = File(...)):
         "warnings": warnings,
         "dangerzone_advice": "Для открытия подозрительного файла используйте Dangerzone для безопасной конвертации в пиксели.",
     }
+
+
+# ----------------------------------------------------------------------
+# YARA & SIGMA THREAT INSPECTOR ENGINE
+# ----------------------------------------------------------------------
+from pydantic import BaseModel
+from backend.app.utils.threat_rules import GLOBAL_THREAT_ENGINE
+
+
+class ThreatScanRequest(BaseModel):
+    content: str
+    custom_rules: list[dict] | None = None
+    target_name: str | None = "payload.txt"
+
+
+@router.get("/rules/catalog")
+@router.get("/rules/catalog/")
+def get_threat_rules_catalog():
+    """
+    Возвращает каталог встроенных сигнатур YARA и правил обнаружения Sigma.
+    """
+    return GLOBAL_THREAT_ENGINE.get_catalog()
+
+
+@router.post("/rules/scan")
+@router.post("/rules/scan/")
+def scan_text_threat_rules(req: ThreatScanRequest):
+    """
+    Сканирует переданный текст или код на наличие сигнатур веб-шеллов,
+    бэкдоров, подозрительных команд PowerShell и LOLBins.
+    """
+    res = GLOBAL_THREAT_ENGINE.scan_text(req.content, req.custom_rules)
+    return {
+        **res,
+        "target_name": req.target_name,
+    }
+
+
+@router.post("/rules/scan/file")
+@router.post("/rules/scan/file/")
+async def scan_file_threat_rules(file: UploadFile = File(...)):
+    """
+    Сканирует загруженный файл на наличие сигнатур вредоносного ПО YARA/Sigma.
+    """
+    try:
+        contents = await read_limited_file(file)
+    except HTTPException as e:
+        return {"success": False, "error": e.detail}
+
+    text_repr = contents.decode("latin-1", errors="ignore")
+    res = GLOBAL_THREAT_ENGINE.scan_text(text_repr)
+    safe_name = re.sub(r"[^a-zA-Z0-9_.-]", "_", file.filename or "file.bin")[:100]
+
+    return {
+        **res,
+        "filename": safe_name,
+        "size_bytes": len(contents),
+    }
+

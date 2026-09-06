@@ -371,8 +371,44 @@ def get_hardening_audit():
                 "remediation": "Проверьте службу Defender в службах Windows.",
             })
 
+        # 3. User Account Control (UAC)
+        try:
+            out = subprocess.run(
+                ["reg", "query", r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "/v", "EnableLUA"],
+                capture_output=True, text=True, timeout=2
+            )
+            uac_on = "0x1" in (out.stdout or "")
+            checks.append({
+                "id": "uac",
+                "name": "User Account Control (UAC)",
+                "status": "PASS" if uac_on else "WARN",
+                "detail": "EnableLUA: 0x1 (Active)" if uac_on else "EnableLUA: Inactive or Modified",
+                "remediation": "Включите максимальный уровень защиты UAC в настройках учетных записей Windows.",
+            })
+        except Exception as e:
+            logger.debug("UAC check failed: %s", e)
+
+        # 4. Windows Firewall Profiles
+        try:
+            out = subprocess.run(
+                ["netsh", "advfirewall", "show", "allprofiles"],
+                capture_output=True, text=True, timeout=2
+            )
+            fw_text = (out.stdout or "").lower()
+            fw_on = "state" in fw_text and "on" in fw_text
+            checks.append({
+                "id": "win_firewall",
+                "name": "Windows Defender Firewall",
+                "status": "PASS" if fw_on else "WARN",
+                "detail": "All Profiles Active" if fw_on else "One or more profiles disabled",
+                "remediation": "Включите брандмауэр для всех профилей: netsh advfirewall set allprofiles state on",
+            })
+        except Exception as e:
+            logger.debug("WinFirewall check failed: %s", e)
+
     else:
         # Linux host hardening checks
+        # 1. LUKS Encryption
         is_luks = os.path.exists("/dev/mapper") and any("luks" in f.lower() or "crypt" in f.lower() for f in os.listdir("/dev/mapper") if os.path.isfile(f) or os.path.islink(f) or os.path.isdir(f))
         checks.append({
             "id": "luks",
@@ -382,6 +418,7 @@ def get_hardening_audit():
             "remediation": "Настройте полнодисковое шифрование LUKS при установке системы.",
         })
 
+        # 2. Mandatory Access Control (AppArmor / SELinux)
         apparmor_bin = shutil.which("apparmor_status")
         selinux_bin = shutil.which("getenforce")
         mac_status = "NONE"
@@ -407,6 +444,7 @@ def get_hardening_audit():
             "remediation": "Включите модуль безопасности AppArmor или SELinux в ядре.",
         })
 
+        # 3. Linux Firewall (UFW / iptables / nftables)
         ufw_bin = shutil.which("ufw")
         is_ufw_active = False
         if ufw_bin:
@@ -421,6 +459,42 @@ def get_hardening_audit():
             "status": "PASS" if is_ufw_active else "WARN",
             "detail": "UFW Active" if is_ufw_active else "UFW Inactive or not installed",
             "remediation": "Включите фаервол: sudo ufw enable",
+        })
+
+        # 4. Kernel ASLR Hardening
+        aslr_active = False
+        if os.path.exists("/proc/sys/kernel/randomize_va_space"):
+            try:
+                with open("/proc/sys/kernel/randomize_va_space", "r") as f:
+                    val = f.read().strip()
+                    aslr_active = val in ("1", "2")
+            except Exception:
+                pass
+        checks.append({
+            "id": "kernel_aslr",
+            "name": "Kernel ASLR (Address Space Layout Randomization)",
+            "status": "PASS" if aslr_active else "WARN",
+            "detail": "Full ASLR (randomize_va_space=2)" if aslr_active else "ASLR Inactive or non-Linux host",
+            "remediation": "Включите ASLR: sysctl -w kernel.randomize_va_space=2",
+        })
+
+        # 5. SSH Root Login Hardening
+        ssh_root_blocked = False
+        sshd_config = "/etc/ssh/sshd_config"
+        if os.path.exists(sshd_config):
+            try:
+                with open(sshd_config, "r", errors="ignore") as f:
+                    cfg = f.read().lower()
+                    if "permitrootlogin no" in cfg or "permitrootlogin prohibit-password" in cfg:
+                        ssh_root_blocked = True
+            except Exception:
+                pass
+        checks.append({
+            "id": "ssh_root",
+            "name": "SSH Daemon Hardening (Root Login Blocked)",
+            "status": "PASS" if ssh_root_blocked else "WARN",
+            "detail": "PermitRootLogin Restricted" if ssh_root_blocked else "Check /etc/ssh/sshd_config",
+            "remediation": "Установите 'PermitRootLogin no' в /etc/ssh/sshd_config и перезапустите sshd.",
         })
 
     # Calculate overall hardening score

@@ -57,8 +57,12 @@ const App = {
     this.bindCctvMatrix();
     this.initWatcher();
     this.loadLanAssetsCached();
+    this.initOsintSynapse();
+    this.bindThreatInspector();
+    this.bindRfSpectrum();
+    this.bindTelegramWatcher();
 
-    this.log('ARGUS Tactical Cockpit инициализирован. Все подсистемы в норме.', 'system');
+    this.log('ARGUS Tactical Cockpit v2.7.0 инициализирован. Все подсистемы в норме.', 'system');
 
     // Initialize Tactical Threat Map on Main Screen
     setTimeout(() => {
@@ -401,6 +405,7 @@ const App = {
 
       if (data.success && data.profiles.length > 0) {
         this.log(`[OSINT] Найдено ${data.found_count} подтвержденных аккаунтов для @${username}!`, 'success');
+        this.updateOsintSynapseGraph(username, data.profiles);
         data.profiles.forEach(p => {
           const item = document.createElement('div');
           item.className = "p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between";
@@ -2870,6 +2875,9 @@ const App = {
 
       const closePlayer = () => {
         switchToSnapshot();
+        if (streamInfo && streamInfo.is_rtsp) {
+          fetch(`/api/cameras/transcode/stop?camera_id=${cameraId}`, { method: 'POST', headers: getAuthHeaders() }).catch(() => {});
+        }
         if (typeof dialog.close === 'function') dialog.close();
         else dialog.removeAttribute('open');
       };
@@ -2884,8 +2892,422 @@ const App = {
     } catch (err) {
       this.log('[CCTV] Ошибка открытия камеры: ' + err.message, 'error');
     }
+  },
+
+  // -------------------------------------------------------------
+  // OSINT SYNAPSE ENTITY GRAPH (2D FORCE SIMULATION)
+  // -------------------------------------------------------------
+  synapseGraphInstance: null,
+
+  initOsintSynapse() {
+    const canvas = document.getElementById('osint-synapse-canvas');
+    if (!canvas || !window.SynapseGraph) return;
+
+    this.synapseGraphInstance = new window.SynapseGraph('osint-synapse-canvas');
+
+    const resetBtn = document.getElementById('btn-graph-reset');
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        const input = document.getElementById('osint-username-input');
+        const target = (input && input.value.trim()) || 'OPERATOR_NODE';
+        this.updateOsintSynapseGraph(target, null);
+      };
+    }
+
+    const physicsBtn = document.getElementById('btn-graph-physics');
+    if (physicsBtn) {
+      physicsBtn.onclick = () => {
+        if (!this.synapseGraphInstance) return;
+        this.synapseGraphInstance.isSimulating = !this.synapseGraphInstance.isSimulating;
+        physicsBtn.textContent = this.synapseGraphInstance.isSimulating ? '⏸ ФИЗИКА' : '▶ ФИЗИКА';
+      };
+    }
+
+    // Default synthesized topology preview
+    setTimeout(() => {
+      this.updateOsintSynapseGraph('OPERATOR_ASSET', null);
+    }, 200);
+  },
+
+  async updateOsintSynapseGraph(target, profiles) {
+    if (!this.synapseGraphInstance) return;
+    try {
+      const res = await fetch(`${API_BASE}/osint/graph/build`, {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify({
+          target: target || 'TARGET_ENTITY',
+          target_type: target && target.includes('@') ? 'email' : 'username',
+          profiles: profiles || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.synapseGraphInstance.setData(data);
+        this.log(`[OSINT/SYNAPSE] Топологический граф связей цели «${escapeHtml(target)}» построен (${data.total_nodes} узлов, ${data.total_links} связей).`, 'info');
+      }
+    } catch (e) {
+      console.error('Failed to build OSINT synapse graph:', e);
+    }
+  },
+
+  // -------------------------------------------------------------
+  // FORENSICS LAB // YARA & SIGMA THREAT INSPECTOR
+  // -------------------------------------------------------------
+  bindThreatInspector() {
+    const scanBtn = document.getElementById('threat-scan-btn');
+    const fileInput = document.getElementById('threat-file-input');
+    const filenameLabel = document.getElementById('threat-scan-filename');
+
+    // Load initial catalog stats
+    fetch(`${API_BASE}/forensics/rules/catalog`, { headers: getApiHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        const badge = document.getElementById('threat-rules-count-badge');
+        if (badge && data.success) {
+          badge.textContent = `${data.total_signatures} сигнатур (YARA: ${data.total_yara_rules}, Sigma: ${data.total_sigma_rules})`;
+        }
+      })
+      .catch(() => {});
+
+    if (fileInput) {
+      fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          if (filenameLabel) filenameLabel.textContent = `Файл: ${file.name} (${(file.size / 1024).toFixed(1)} КБ)`;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const inputEl = document.getElementById('threat-scan-input');
+            if (inputEl) inputEl.value = event.target.result.slice(0, 50000);
+          };
+          reader.readAsText(file);
+        }
+      };
+    }
+
+    if (scanBtn) {
+      scanBtn.onclick = async () => {
+        const input = document.getElementById('threat-scan-input');
+        const content = input ? input.value.trim() : '';
+        if (!content) return alert('Введите текст/скрипт или выберите файл для сканирования!');
+
+        this.log('[THREATS] Запуск сигнатурного сканирования YARA & Sigma...', 'system');
+        scanBtn.disabled = true;
+        scanBtn.textContent = 'СКАНИРОВАНИЕ...';
+
+        try {
+          const res = await fetch(`${API_BASE}/forensics/rules/scan`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify({ content, target_name: 'payload_buffer.txt' }),
+          });
+          const data = await res.json();
+          this.renderThreatScanResults(data);
+        } catch (err) {
+          this.log(`[THREATS] Ошибка: ${err.message}`, 'error');
+        } finally {
+          scanBtn.disabled = false;
+          scanBtn.textContent = 'СКАНИРОВАТЬ СИГНАТУРЫ ⚡';
+        }
+      };
+    }
+  },
+
+  renderThreatScanResults(data) {
+    const box = document.getElementById('threat-scan-results');
+    if (!box) return;
+    box.classList.remove('hidden');
+    box.innerHTML = '';
+
+    const isThreat = data.matched_rules_count > 0;
+    const sevColors = {
+      CRITICAL: 'text-rose-400 bg-rose-500/20 border-rose-500/40',
+      HIGH: 'text-amber-400 bg-amber-500/20 border-amber-500/40',
+      MEDIUM: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/40',
+      CLEAN: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40',
+    };
+    const badgeClass = sevColors[data.max_severity] || sevColors.CLEAN;
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center justify-between border-b border-slate-800 pb-2 mb-2';
+    header.innerHTML = `
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-200">РЕЗУЛЬТАТ АНАЛИЗА:</span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${data.verdict} (${data.max_severity})</span>
+      </div>
+      <span class="text-[10px] text-slate-400">Проверено правил: ${data.total_rules_evaluated} • Совпадений: ${data.matched_rules_count}</span>
+    `;
+    box.appendChild(header);
+
+    if (!isThreat) {
+      const cleanMsg = document.createElement('div');
+      cleanMsg.className = 'text-center py-4 text-emerald-400 text-xs font-mono';
+      cleanMsg.textContent = '✅ Сигнатур вредоносного ПО, веб-шеллов или подозрительных LOLBins не обнаружено.';
+      box.appendChild(cleanMsg);
+      this.log('[THREATS] Файл чист. Угроз не обнаружено.', 'success');
+      return;
+    }
+
+    this.log(`[THREATS] ВНИМАНИЕ: Зафиксировано ${data.matched_rules_count} вредоносных паттернов!`, 'warn');
+
+    data.matches.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1 text-xs font-mono';
+      const mBadge = sevColors[m.severity] || sevColors.MEDIUM;
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-100 flex items-center space-x-1.5">
+            <span class="px-1.5 py-0.2 rounded text-[9px] bg-slate-800 text-sky-400 border border-slate-700">${escapeHtml(m.engine)}</span>
+            <span>${escapeHtml(m.name)}</span>
+          </span>
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${mBadge}">${escapeHtml(m.severity)}</span>
+        </div>
+        <div class="text-[11px] text-slate-400">${escapeHtml(m.description)}</div>
+        <div class="text-[10px] text-slate-500 font-mono">
+          Паттерны: ${m.matches.map(p => `<code class="text-rose-300 bg-rose-950/40 px-1 py-0.5 rounded">${escapeHtml(p.snippet || p.pattern)}</code>`).join(' ')}
+        </div>
+      `;
+      box.appendChild(card);
+    });
+  },
+
+  // -------------------------------------------------------------
+  // NETWORK & RF SPECTRUM / WEBSDR GRID
+  // -------------------------------------------------------------
+  bindRfSpectrum() {
+    const refreshBtn = document.getElementById('btn-refresh-rf');
+    if (refreshBtn) {
+      refreshBtn.onclick = () => this.loadRfSpectrum();
+    }
+    this.loadRfSpectrum();
+  },
+
+  async loadRfSpectrum() {
+    const freqBox = document.getElementById('rf-frequencies-list');
+    const recBox = document.getElementById('rf-receivers-list');
+
+    try {
+      // 1. Frequencies
+      const resF = await fetch(`${API_BASE}/network/rf/frequencies`, { headers: getApiHeaders() });
+      if (resF.ok) {
+        const dataF = await resF.json();
+        if (freqBox && dataF.frequencies) {
+          freqBox.innerHTML = '';
+          dataF.frequencies.forEach(f => {
+            const row = document.createElement('div');
+            row.className = 'p-1.5 rounded bg-slate-950/70 border border-slate-800 flex items-center justify-between text-[11px]';
+            const prioColor = f.priority === 'CRITICAL' ? 'text-rose-400 bg-rose-500/10 border-rose-500/30' : 'text-sky-400 bg-sky-500/10 border-sky-500/30';
+            row.innerHTML = `
+              <div>
+                <span class="font-bold text-slate-200">${escapeHtml(f.frequency)}</span>
+                <span class="text-slate-500 text-[10px] ml-1.5">${escapeHtml(f.name)}</span>
+              </div>
+              <span class="px-1.5 py-0.5 rounded text-[9px] border ${prioColor}">${escapeHtml(f.band)}</span>
+            `;
+            freqBox.appendChild(row);
+          });
+        }
+      }
+
+      // 2. Receivers
+      const resR = await fetch(`${API_BASE}/network/rf/receivers`, { headers: getApiHeaders() });
+      if (resR.ok) {
+        const dataR = await resR.json();
+        if (recBox && dataR.receivers) {
+          recBox.innerHTML = '';
+          dataR.receivers.forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'p-1.5 rounded bg-slate-950/70 border border-slate-800 flex items-center justify-between text-[11px]';
+            row.innerHTML = `
+              <div>
+                <div class="font-bold text-slate-200">${escapeHtml(r.name)}</div>
+                <div class="text-slate-500 text-[10px]">${escapeHtml(r.location)} • ${escapeHtml(r.coverage)}</div>
+              </div>
+              <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-[10px] transition">ПОДКЛЮЧИТЬСЯ ↗</a>
+            `;
+            recBox.appendChild(row);
+          });
+        }
+      }
+
+      // 3. Render Canvas Waterfall
+      this.renderRfWaterfallCanvas();
+    } catch (err) {
+      console.error('Error loading RF spectrum:', err);
+    }
+  },
+
+  renderRfWaterfallCanvas() {
+    const canvas = document.getElementById('rf-waterfall-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = (rect.width || 600) * dpr;
+    canvas.height = (rect.height || 120) * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width || 600;
+    const h = rect.height || 120;
+
+    // Draw dark radar background
+    ctx.fillStyle = '#060b13';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw frequency grid lines
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+
+    // Fetch spectrum and draw FFT curve
+    fetch(`${API_BASE}/network/rf/waterfall?center_mhz=121.5&bandwidth_mhz=2.0`, { headers: getApiHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.spectrum || !data.spectrum.length) return;
+        const pts = data.spectrum;
+        const step = w / (pts.length - 1);
+
+        // Draw glowing spectrum area
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        pts.forEach((p, i) => {
+          // Map power (-95 to -30 dBm) to height
+          const norm = Math.max(0, Math.min(1, (p.power_dbm + 95) / 65));
+          const y = h - (norm * (h - 15)) - 5;
+          ctx.lineTo(i * step, y);
+        });
+        ctx.lineTo(w, h);
+        ctx.closePath();
+
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, '#06b6d480');
+        grad.addColorStop(1, '#06b6d405');
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Stroke peak line
+        ctx.beginPath();
+        pts.forEach((p, i) => {
+          const norm = Math.max(0, Math.min(1, (p.power_dbm + 95) / 65));
+          const y = h - (norm * (h - 15)) - 5;
+          if (i === 0) ctx.moveTo(0, y);
+          else ctx.lineTo(i * step, y);
+        });
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      })
+      .catch(() => {});
+  },
+
+  // -------------------------------------------------------------
+  // WATCHER DAEMON // TELEGRAM BOT ALERTING INTEGRATION
+  // -------------------------------------------------------------
+  bindTelegramWatcher() {
+    const toggle = document.getElementById('watcher-tg-toggle');
+    const tokenInput = document.getElementById('watcher-tg-token');
+    const chatIdInput = document.getElementById('watcher-tg-chatid');
+    const saveBtn = document.getElementById('btn-watcher-tg-save');
+    const testBtn = document.getElementById('btn-watcher-tg-test');
+    const statusLabel = document.getElementById('watcher-tg-status');
+
+    const refreshTgStatus = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/watcher/telegram/config`, { headers: getApiHeaders() });
+        if (!res.ok) return;
+        const cfg = await res.json();
+        if (toggle) toggle.checked = cfg.enabled;
+        if (chatIdInput && cfg.chat_id) chatIdInput.value = cfg.chat_id;
+        if (tokenInput && cfg.bot_configured) tokenInput.placeholder = cfg.masked_token || 'Настроен';
+        if (statusLabel) {
+          if (cfg.air_gap_mode) {
+            statusLabel.textContent = '🔒 Air-Gap Stealth: отправка во внешнюю сеть заблокирована';
+            statusLabel.className = 'text-[10px] text-amber-400';
+          } else if (cfg.enabled && cfg.bot_configured) {
+            statusLabel.textContent = '✅ Telegram бот подключен и готов к рассылке алертов';
+            statusLabel.className = 'text-[10px] text-emerald-400';
+          } else {
+            statusLabel.textContent = 'Оповещения отключены или не заполнены данные бота';
+            statusLabel.className = 'text-[10px] text-slate-500';
+          }
+        }
+      } catch (e) {
+        console.error('Error loading Telegram config:', e);
+      }
+    };
+
+    refreshTgStatus();
+
+    if (toggle) {
+      toggle.onchange = async () => {
+        try {
+          await fetch(`${API_BASE}/watcher/telegram/config`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify({ enabled: toggle.checked }),
+          });
+          refreshTgStatus();
+        } catch (e) {
+          this.log(`[WATCHER/TG] Ошибка: ${e.message}`, 'error');
+        }
+      };
+    }
+
+    if (saveBtn) {
+      saveBtn.onclick = async () => {
+        const token = tokenInput ? tokenInput.value.trim() : '';
+        const chatId = chatIdInput ? chatIdInput.value.trim() : '';
+        try {
+          const body = {};
+          if (token) body.bot_token = token;
+          if (chatId) body.chat_id = chatId;
+          body.enabled = toggle ? toggle.checked : true;
+
+          const res = await fetch(`${API_BASE}/watcher/telegram/config`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+            body: JSON.stringify(body),
+          });
+          if (res.ok) {
+            this.log('[WATCHER/TG] Конфигурация Telegram бота успешно сохранена.', 'success');
+            refreshTgStatus();
+            if (tokenInput) tokenInput.value = '';
+          }
+        } catch (e) {
+          this.log(`[WATCHER/TG] Ошибка сохранения: ${e.message}`, 'error');
+        }
+      };
+    }
+
+    if (testBtn) {
+      testBtn.onclick = async () => {
+        this.log('[WATCHER/TG] Отправка тестового алерта в Telegram...', 'system');
+        try {
+          const res = await fetch(`${API_BASE}/watcher/telegram/test`, {
+            method: 'POST',
+            headers: getApiHeaders(),
+          });
+          const data = await res.json();
+          if (data.success) {
+            this.log('✅ Тестовый алерт успешно доставлен в чат Telegram!', 'success');
+            alert('Тестовый алерт успешно доставлен в Telegram!');
+          } else {
+            this.log(`[WATCHER/TG] Ошибка доставки: ${data.error}`, 'warn');
+            alert(`Ошибка доставки: ${data.error}`);
+          }
+        } catch (e) {
+          this.log(`[WATCHER/TG] Ошибка: ${e.message}`, 'error');
+        }
+      };
+    }
   }
 };
 
 window.argusApp = App;
 document.addEventListener('DOMContentLoaded', () => App.init());
+

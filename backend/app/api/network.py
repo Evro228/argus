@@ -567,3 +567,227 @@ async def get_discovered_lan_devices():
     }
 
 
+# ----------------------------------------------------------------------
+# WEBSDR & RADIO FREQUENCY (RF) SPECTRUM DIRECTORY
+# ----------------------------------------------------------------------
+RF_FREQUENCIES_CATALOG = [
+    {
+        "id": "FREQ_CIVIL_AIR_GUARD",
+        "frequency": "121.500 MHz",
+        "freq_mhz": 121.500,
+        "band": "VHF",
+        "modulation": "AM",
+        "name": "Civil Aviation Emergency Guard",
+        "category": "Aviation",
+        "priority": "CRITICAL",
+        "description": "Международная авиационная аварийная частота гражданских судов и маяков ELT.",
+    },
+    {
+        "id": "FREQ_MIL_AIR_GUARD",
+        "frequency": "243.000 MHz",
+        "freq_mhz": 243.000,
+        "band": "UHF",
+        "modulation": "AM",
+        "name": "Military Aircraft Emergency Guard",
+        "category": "Military",
+        "priority": "CRITICAL",
+        "description": "Аварийная частота военной авиации НАТО и объединенных сил (MAD).",
+    },
+    {
+        "id": "FREQ_MARINE_CH16",
+        "frequency": "156.800 MHz",
+        "freq_mhz": 156.800,
+        "band": "VHF Marine",
+        "modulation": "FM",
+        "name": "Maritime Distress & Calling (Channel 16)",
+        "category": "Maritime",
+        "priority": "CRITICAL",
+        "description": "Международный канал бедствия, безопасности и вызова морской подвижной службы.",
+    },
+    {
+        "id": "FREQ_COSPAS_SARSAT",
+        "frequency": "406.025 MHz",
+        "freq_mhz": 406.025,
+        "band": "UHF Satellite",
+        "modulation": "Digital Phase",
+        "name": "COSPAS-SARSAT Emergency Beacon",
+        "category": "Satellite",
+        "priority": "CRITICAL",
+        "description": "Спутниковый аварийный радиобуй (EPIRB / ELT) глобальной системы спасения.",
+    },
+    {
+        "id": "FREQ_ISS_VOICE",
+        "frequency": "145.800 MHz",
+        "freq_mhz": 145.800,
+        "band": "VHF Amateur",
+        "modulation": "FM",
+        "name": "ISS Crew Voice Downlink",
+        "category": "Space",
+        "priority": "INFO",
+        "description": "Голосовой канал радиосвязи экипажа Международной Космической Станции (МКС).",
+    },
+    {
+        "id": "FREQ_AIS_MARINE_1",
+        "frequency": "161.975 MHz",
+        "freq_mhz": 161.975,
+        "band": "VHF Marine",
+        "modulation": "GMSK",
+        "name": "AIS Channel A (Automatic Identification)",
+        "category": "Maritime",
+        "priority": "MONITOR",
+        "description": "Телеметрия автоматической идентификационной системы морских судов (AIS 87B).",
+    },
+    {
+        "id": "FREQ_NOAA_WEATHER",
+        "frequency": "137.100 MHz",
+        "freq_mhz": 137.100,
+        "band": "VHF Satellite",
+        "modulation": "FM (APT)",
+        "name": "NOAA Weather Satellite Direct Broadcast",
+        "category": "Weather",
+        "priority": "MONITOR",
+        "description": "Прямая трансляция снимков облачности и штормов метеоспутников NOAA.",
+    },
+    {
+        "id": "FREQ_AIR_TO_AIR",
+        "frequency": "123.450 MHz",
+        "freq_mhz": 123.450,
+        "band": "VHF Aviation",
+        "modulation": "AM",
+        "name": "Air-to-Air Tactical Chatter",
+        "category": "Aviation",
+        "priority": "INFO",
+        "description": "Международный неофициальный канал связи пилотов воздушных судов на эшелоне.",
+    },
+]
+
+GLOBAL_WEBSDR_RECEIVERS = [
+    {
+        "id": "SDR_TWENTE_NL",
+        "name": "University of Twente WebSDR (Wideband)",
+        "location": "Enschede, Netherlands",
+        "coordinates": [52.242, 6.858],
+        "coverage": "0 kHz — 29.16 MHz (Continuous HF)",
+        "status": "ONLINE",
+        "url": "http://websdr.ewi.utwente.nl:8901/",
+        "audio_stream": "http://websdr.ewi.utwente.nl:8901/m.html",
+        "antenna": "Mini-Whip Active broadband",
+    },
+    {
+        "id": "SDR_SOUTHAMPTON_UK",
+        "name": "Southampton Coastal WebSDR",
+        "location": "Southampton, United Kingdom",
+        "coordinates": [50.909, -1.404],
+        "coverage": "VHF Airband (118-137 MHz) & Marine VHF",
+        "status": "ONLINE",
+        "url": "http://southamptonsdr.co.uk:8901/",
+        "audio_stream": "http://southamptonsdr.co.uk:8901/",
+        "antenna": "Collinear VHF Dipole Array",
+    },
+    {
+        "id": "SDR_UTAH_USA",
+        "name": "Northern Utah KiwiSDR Array",
+        "location": "Corinne, Utah, USA",
+        "coordinates": [41.551, -112.110],
+        "coverage": "10 kHz — 30 MHz Shortwave",
+        "status": "ONLINE",
+        "url": "http://kiwisdr.ece.utah.edu:8073/",
+        "audio_stream": "http://kiwisdr.ece.utah.edu:8073/",
+        "antenna": "W7RNA 8-circle Directional Array",
+    },
+    {
+        "id": "SDR_MOSCOW_RU",
+        "name": "Moscow Metropolitan WebSDR",
+        "location": "Москва, Россия",
+        "coordinates": [55.755, 37.617],
+        "coverage": "HF Civil & Regional Bands",
+        "status": "ONLINE",
+        "url": "http://websdr.ru:8901/",
+        "audio_stream": "http://websdr.ru:8901/",
+        "antenna": "Wideband Magnetic Loop",
+    },
+    {
+        "id": "SDR_TOKYO_JP",
+        "name": "Tokyo Kanto WebSDR",
+        "location": "Tokyo, Japan",
+        "coordinates": [35.676, 139.650],
+        "coverage": "HF / Pacific Aeronautical Bands",
+        "status": "ONLINE",
+        "url": "http://websdr.tokyo:8901/",
+        "audio_stream": "http://websdr.tokyo:8901/",
+        "antenna": "Multi-band HF Dipole",
+    },
+]
+
+
+@router.get("/rf/frequencies")
+@router.get("/rf/frequencies/")
+def get_rf_frequencies(category: str | None = None):
+    """
+    Возвращает каталог международных аварийных, авиационных и морских радиочастот.
+    """
+    items = RF_FREQUENCIES_CATALOG
+    if category and category.lower() != "all":
+        items = [f for f in items if f.get("category", "").lower() == category.lower()]
+    return {
+        "success": True,
+        "total_frequencies": len(items),
+        "frequencies": items,
+    }
+
+
+@router.get("/rf/receivers")
+@router.get("/rf/receivers/")
+def get_websdr_receivers():
+    """
+    Возвращает глобальный реестр открытых онлайн-приемников WebSDR и KiwiSDR.
+    """
+    return {
+        "success": True,
+        "total_receivers": len(GLOBAL_WEBSDR_RECEIVERS),
+        "receivers": GLOBAL_WEBSDR_RECEIVERS,
+    }
+
+
+@router.get("/rf/waterfall")
+@router.get("/rf/waterfall/")
+def get_rf_waterfall_telemetry(center_mhz: float = 121.5, bandwidth_mhz: float = 2.0):
+    """
+    Генерирует тактическую спектрограмму (FFT Waterfall data) для Canvas-визуализатора радиоспектра.
+    """
+    import math
+    import random
+
+    bins = 128
+    spectrum = []
+    step = bandwidth_mhz / bins
+    start_freq = center_mhz - (bandwidth_mhz / 2)
+
+    for i in range(bins):
+        f = start_freq + (i * step)
+        # Baseline noise floor: -95 dBm to -88 dBm
+        power = -92.0 + random.uniform(-3.0, 3.0)
+
+        # Inject known signals if near catalog frequencies
+        for cat_f in RF_FREQUENCIES_CATALOG:
+            delta = abs(f - cat_f["freq_mhz"])
+            if delta < step * 1.5:
+                # Strong peak signal
+                power += random.uniform(25.0, 45.0)
+
+        spectrum.append({
+            "freq_mhz": round(f, 4),
+            "power_dbm": round(power, 1),
+            "snr": max(0, round(power + 95.0, 1)),
+        })
+
+    return {
+        "success": True,
+        "center_mhz": center_mhz,
+        "bandwidth_mhz": bandwidth_mhz,
+        "bins_count": len(spectrum),
+        "spectrum": spectrum,
+    }
+
+
+

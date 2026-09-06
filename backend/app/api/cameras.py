@@ -10,8 +10,10 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi.responses import FileResponse
 
 from backend.app.api.system import is_air_gap_enabled
+from backend.app.utils.stream_transcoder import GLOBAL_TRANSCODER
 from backend.app.api.camera_aggregator import (
     UNIFIED_GITHUB_CAMERAS,
     get_sources_stats,
@@ -1958,24 +1960,101 @@ async def get_camera_stream(camera_id: str):
             "message": "Air-Gap Stealth Mode: внешние сетевые сокеты видеопотока заблокированы",
         }
 
+    is_rtsp = (
+        "rtsp" in cam.get("stream_type", "").lower()
+        or cam.get("stream_url", "").startswith("rtsp://")
+        or "rtsp" in cam.get("protocol", "").lower()
+    )
+
     is_hls = (
         "hls" in cam.get("stream_type", "").lower()
         or "m3u8" in cam.get("stream_url", "").lower()
         or "hls" in cam.get("protocol", "").lower()
     )
 
+    transcode_status = GLOBAL_TRANSCODER.get_status(camera_id) if is_rtsp else None
+    stream_url = cam.get("stream_url", "")
+    if is_rtsp and transcode_status and transcode_status.get("active"):
+        stream_url = transcode_status.get("hls_url", stream_url)
+        is_hls = True
+
     return {
         "success": True,
         "camera_id": camera_id,
         "camera_name": cam.get("name", ""),
         "air_gap_mode": False,
-        "stream_type": cam.get("stream_type", "hls"),
-        "protocol": cam.get("protocol", "HLS"),
-        "stream_url": cam.get("stream_url", ""),
+        "stream_type": "hls" if (is_rtsp and transcode_status and transcode_status.get("active")) else cam.get("stream_type", "hls"),
+        "protocol": "HLS (RTSP-Transcoded)" if (is_rtsp and transcode_status and transcode_status.get("active")) else cam.get("protocol", "HLS"),
+        "stream_url": stream_url,
+        "raw_stream_url": cam.get("stream_url", ""),
         "snapshot_url": cam.get("snapshot_url", ""),
         "hls_available": is_hls,
+        "is_rtsp": is_rtsp,
+        "transcode_status": transcode_status,
         "resolution": cam.get("resolution", "1080p FHD"),
         "fps": cam.get("fps", 25),
         "operator": cam.get("operator", ""),
     }
+
+
+# ----------------------------------------------------------------------
+# RTSP ON-DEMAND TRANSCODER CONTROLLER
+# ----------------------------------------------------------------------
+@router.post("/transcode/start")
+@router.post("/transcode/start/")
+async def start_camera_transcode(camera_id: str = Query(...)):
+    """
+    Запускает on-demand процесс FFmpeg для транскодирования RTSP потока в HLS.
+    """
+    cam = next((c for c in ALL_CAMERAS if c["id"] == camera_id), None)
+    if not cam:
+        raise HTTPException(status_code=404, detail=f"Камера {camera_id} не найдена")
+
+    rtsp_url = cam.get("stream_url", "")
+    if not rtsp_url:
+        return {"success": False, "error": "Камера не имеет URL потока"}
+
+    result = await GLOBAL_TRANSCODER.start_transcode(camera_id, rtsp_url)
+    return result
+
+
+@router.post("/transcode/stop")
+@router.post("/transcode/stop/")
+async def stop_camera_transcode(camera_id: str = Query(...)):
+    """
+    Останавливает транскодирование и освобождает ресурсы процесса FFmpeg.
+    """
+    return GLOBAL_TRANSCODER.stop_transcode(camera_id)
+
+
+@router.get("/transcode/status/{camera_id}")
+@router.get("/transcode/status/{camera_id}/")
+async def get_camera_transcode_status(camera_id: str):
+    """
+    Получает текущий статус и PID транскодера для указанной камеры.
+    """
+    return GLOBAL_TRANSCODER.get_status(camera_id)
+
+
+@router.get("/transcode/hls/{camera_id}/{filename}")
+async def serve_transcoded_hls(camera_id: str, filename: str):
+    """
+    Раздает HLS плейлист (live.m3u8) и видео-сегменты (.ts) из изолированной временной папки.
+    """
+    from backend.app.api.system import is_air_gap_enabled
+    if is_air_gap_enabled():
+        raise HTTPException(status_code=403, detail="Air-Gap Stealth Mode: стриминг заблокирован")
+
+    # Path traversal protection
+    clean_cam = "".join(c for c in camera_id if c.isalnum() or c in ("-", "_"))
+    clean_file = os.path.basename(filename)
+    file_path = os.path.join(GLOBAL_TRANSCODER.get_stream_dir(clean_cam), clean_file)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Сегмент или плейлист ещё формируется")
+
+    GLOBAL_TRANSCODER.touch(clean_cam)
+    media_type = "application/vnd.apple.mpegurl" if filename.endswith(".m3u8") else "video/mp2t"
+    return FileResponse(file_path, media_type=media_type)
+
 
