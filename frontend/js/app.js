@@ -2784,7 +2784,14 @@ const App = {
         const streamUrl = streamInfo.stream_url;
 
         if (window.Hls && window.Hls.isSupported()) {
-          const hls = new window.Hls({ enableWorker: false, lowLatencyMode: true });
+          const hls = new window.Hls({
+            enableWorker: false,
+            lowLatencyMode: true,
+            xhrSetup: function(xhr, url) {
+              const tok = getIpcToken();
+              if (tok) xhr.setRequestHeader('X-ARGUS-Token', tok);
+            }
+          });
           hls.loadSource(streamUrl);
           hls.attachMedia(videoEl);
           hls.on(window.Hls.Events.MANIFEST_PARSED, () => {

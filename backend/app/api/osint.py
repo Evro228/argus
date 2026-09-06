@@ -95,7 +95,7 @@ async def search_username(req: UsernameSearchRequest):
         return {"success": False, "error": "Введите никнейм для поиска."}
 
     # Alphanumeric format check
-    if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,64}", username):
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}", username) or username in (".", "..") or ".." in username:
         return {
             "success": False,
             "error": "Некорректный формат никнейма. Допускаются только буквы, цифры, дефис, точка и подчеркивание (до 64 символов).",

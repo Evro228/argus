@@ -4,6 +4,7 @@ import os
 import platform
 import secrets
 import shutil
+import stat
 import subprocess
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -697,7 +698,9 @@ def _read_history():
 
 def _write_history(entries):
     try:
-        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        mode = stat.S_IRUSR | stat.S_IWUSR
+        with os.fdopen(os.open(HISTORY_FILE, flags, mode), "w", encoding="utf-8") as f:
             json.dump(entries[:100], f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.warning("Не удалось сохранить историю сессий: %s", e)

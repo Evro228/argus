@@ -5,6 +5,7 @@ Covering all Federal Districts and major cities of the Russian Federation + Glob
 """
 
 import asyncio
+import os
 import re
 import time
 from datetime import datetime
@@ -2046,15 +2047,28 @@ async def serve_transcoded_hls(camera_id: str, filename: str):
         raise HTTPException(status_code=403, detail="Air-Gap Stealth Mode: стриминг заблокирован")
 
     # Path traversal protection
-    clean_cam = "".join(c for c in camera_id if c.isalnum() or c in ("-", "_"))
-    clean_file = os.path.basename(filename)
-    file_path = os.path.join(GLOBAL_TRANSCODER.get_stream_dir(clean_cam), clean_file)
+    clean_cam = "".join(c for c in camera_id if c.isalnum() or c in ("-", "_")).strip()
+    if not clean_cam or len(clean_cam) > 64:
+        raise HTTPException(status_code=400, detail="Некорректный идентификатор камеры")
+
+    clean_file = os.path.basename(filename).strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]+\.(m3u8|ts)", clean_file):
+        raise HTTPException(status_code=400, detail="Некорректное имя HLS сегмента или плейлиста")
+
+    stream_dir = os.path.realpath(GLOBAL_TRANSCODER.get_stream_dir(clean_cam))
+    file_path = os.path.realpath(os.path.join(stream_dir, clean_file))
+
+    try:
+        if os.path.commonpath([file_path, stream_dir]) != stream_dir:
+            raise HTTPException(status_code=403, detail="Доступ запрещен политикой безопасности")
+    except Exception:
+        raise HTTPException(status_code=403, detail="Доступ запрещен политикой безопасности")
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Сегмент или плейлист ещё формируется")
 
     GLOBAL_TRANSCODER.touch(clean_cam)
-    media_type = "application/vnd.apple.mpegurl" if filename.endswith(".m3u8") else "video/mp2t"
+    media_type = "application/vnd.apple.mpegurl" if clean_file.endswith(".m3u8") else "video/mp2t"
     return FileResponse(file_path, media_type=media_type)
 
 

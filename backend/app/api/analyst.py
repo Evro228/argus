@@ -227,24 +227,30 @@ async def assist_operator(req: AnalystAssistRequest):
     ollama_response = None
     air_gap = is_air_gap_enabled()
     if not air_gap:
-        try:
-            async with httpx.AsyncClient(verify=True, timeout=2.0) as client:
-                prompt_text = (
-                    f"You are the ARGUS AI SOC Copilot, an elite defensive cybersecurity analyst.\n"
-                    f"User Query: {clean_query}\n"
-                    f"Context: {req.context or 'Workstation & perimeter defense'}\n"
-                    f"Grounded Playbooks: {', '.join([p['name'] for p in matched_playbooks])}\n"
-                    f"Provide actionable, technical investigation and remediation steps in Russian."
-                )
-                ollama_req = await client.post(
-                    "http://127.0.0.1:11434/api/generate",
-                    json={"model": "llama3", "prompt": prompt_text, "stream": False},
-                )
-                if ollama_req.status_code == 200:
-                    ollama_data = ollama_req.json()
-                    ollama_response = ollama_data.get("response")
-        except Exception:
-            pass
+        from urllib.parse import urlparse
+        from backend.app.api.config import read_keys
+        configured_ollama = (read_keys().get("ollama_url") or "http://127.0.0.1:11434").strip()
+        parsed_ollama = urlparse(configured_ollama)
+        if parsed_ollama.hostname in ("127.0.0.1", "localhost") and parsed_ollama.scheme in ("http", "https"):
+            ollama_endpoint = f"{configured_ollama.rstrip('/')}/api/generate"
+            try:
+                async with httpx.AsyncClient(verify=True, timeout=2.0) as client:
+                    prompt_text = (
+                        f"You are the ARGUS AI SOC Copilot, an elite defensive cybersecurity analyst.\n"
+                        f"User Query: {clean_query}\n"
+                        f"Context: {req.context or 'Workstation & perimeter defense'}\n"
+                        f"Grounded Playbooks: {', '.join([p['name'] for p in matched_playbooks])}\n"
+                        f"Provide actionable, technical investigation and remediation steps in Russian."
+                    )
+                    ollama_req = await client.post(
+                        ollama_endpoint,
+                        json={"model": "llama3", "prompt": prompt_text, "stream": False},
+                    )
+                    if ollama_req.status_code == 200:
+                        ollama_data = ollama_req.json()
+                        ollama_response = ollama_data.get("response")
+            except Exception:
+                pass
 
     provider = "Ollama Local LLM" if ollama_response else "ARGUS Autonomous SOC Engine (Anthropic Playbooks Grounded)"
 

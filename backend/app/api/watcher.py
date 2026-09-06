@@ -8,6 +8,7 @@ Continuous background monitoring for:
 """
 
 import asyncio
+import re
 import socket
 import time
 import uuid
@@ -43,6 +44,11 @@ async def dispatch_telegram_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
     chat_id = TELEGRAM_CONFIG.get("chat_id", "").strip()
     if not token or not chat_id:
         return {"success": False, "error": "Не указан Bot Token или Chat ID"}
+
+    if not re.fullmatch(r"[0-9]{8,12}:[A-Za-z0-9_-]{30,60}", token):
+        return {"success": False, "error": "Некорректный формат Bot Token"}
+    if not re.fullmatch(r"-?[0-9]{1,20}|@[A-Za-z0-9_]{5,32}", chat_id):
+        return {"success": False, "error": "Некорректный формат Chat ID"}
 
     import html
 
@@ -345,16 +351,23 @@ def get_telegram_config():
 @router.post("/telegram/config/")
 def set_telegram_config(cfg: TelegramConfigModel):
     """
-    Обновляет параметры бота Telegram для отправки алертов сторожа.
+    Обновляет параметры бота Telegram для отправки алертов сторожа с валидацией входных данных.
     """
     if cfg.enabled is not None:
-        TELEGRAM_CONFIG["enabled"] = cfg.enabled
+        TELEGRAM_CONFIG["enabled"] = bool(cfg.enabled)
     if cfg.bot_token is not None:
-        TELEGRAM_CONFIG["bot_token"] = cfg.bot_token.strip()
+        tok = cfg.bot_token.strip()
+        if tok and not re.fullmatch(r"[0-9]{8,12}:[A-Za-z0-9_-]{30,60}", tok):
+            return {"success": False, "error": "Некорректный синтаксис Telegram Bot Token."}
+        TELEGRAM_CONFIG["bot_token"] = tok
     if cfg.chat_id is not None:
-        TELEGRAM_CONFIG["chat_id"] = cfg.chat_id.strip()
+        cid = cfg.chat_id.strip()
+        if cid and not re.fullmatch(r"-?[0-9]{1,20}|@[A-Za-z0-9_]{5,32}", cid):
+            return {"success": False, "error": "Некорректный синтаксис Telegram Chat ID."}
+        TELEGRAM_CONFIG["chat_id"] = cid
     if cfg.min_severity is not None:
-        TELEGRAM_CONFIG["min_severity"] = cfg.min_severity.upper()
+        msev = cfg.min_severity.upper().strip()
+        TELEGRAM_CONFIG["min_severity"] = msev if msev in ("INFO", "WARNING", "CRITICAL") else "WARNING"
 
     return get_telegram_config()
 

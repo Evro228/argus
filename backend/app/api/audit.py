@@ -117,7 +117,7 @@ def scan_directory_path(req: ScanPathRequest):
         "/etc", "/proc", "/sys", "/dev", "/root", "/var", "/private",
         "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/System", "/Library"
     )
-    blocked_dir_names = {".ssh", ".gnupg", ".aws", ".azure", ".config/gcloud"}
+    blocked_dir_names = {".ssh", ".gnupg", ".aws", ".azure", ".kube", ".docker", "gcloud"}
 
     for prefix in blocked_prefixes:
         if target_path == prefix or target_path.startswith(prefix + "/"):
@@ -126,11 +126,12 @@ def scan_directory_path(req: ScanPathRequest):
                 "error": f"Доступ к системной директории '{prefix}' заблокирован политикой безопасности.",
             }
 
-    path_parts = set(os.path.normpath(target_path).split(os.sep))
-    if any(b in path_parts for b in blocked_dir_names):
+    norm_target = os.path.normpath(target_path).replace("\\", "/")
+    path_parts = set(norm_target.split("/"))
+    if any(b in path_parts for b in blocked_dir_names) or "/.config/gcloud" in norm_target or norm_target.endswith("/.config/gcloud"):
         return {
             "success": False,
-            "error": "Сканирование конфиденциальных директорий учетных данных (.ssh, .aws, .gnupg) запрещено.",
+            "error": "Сканирование конфиденциальных директорий учетных данных (.ssh, .aws, .gnupg, .kube, gcloud) запрещено.",
         }
 
     all_findings = []
@@ -190,8 +191,9 @@ def scan_directory_path(req: ScanPathRequest):
                 continue
 
             # Ensure resolved path does not contain blocked credential folders
-            real_parts = set(os.path.normpath(real_fpath).split(os.sep))
-            if any(b in real_parts for b in blocked_dir_names):
+            norm_fpath = os.path.normpath(real_fpath).replace("\\", "/")
+            real_parts = set(norm_fpath.split("/"))
+            if any(b in real_parts for b in blocked_dir_names) or "/.config/gcloud" in norm_fpath or norm_fpath.endswith("/.config/gcloud"):
                 continue
 
             with open(real_fpath, "r", encoding="utf-8", errors="ignore") as f:

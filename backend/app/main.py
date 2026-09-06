@@ -129,6 +129,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             request.headers.get("X-ARGUS-Token")
             or request.headers.get("X-API-Key")
             or auth_token
+            or request.query_params.get("token")
             or ""
         ).strip()
 

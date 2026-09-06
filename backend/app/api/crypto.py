@@ -328,6 +328,7 @@ def verify_webauthn_assertion(req: WebAuthnVerifyRequest):
         }
 
     # Validate client_data_json structure if present
+    challenge_candidate = None
     if req.client_data_json:
         try:
             raw_cdata = req.client_data_json
@@ -341,6 +342,20 @@ def verify_webauthn_assertion(req: WebAuthnVerifyRequest):
                     "success": False,
                     "error": f"Несоответствие типа операции clientDataJSON: ожидается {expected_type}.",
                 }
+
+            # Origin validation
+            origin = cdata.get("origin", "")
+            if origin:
+                from urllib.parse import urlparse
+                parsed_origin = urlparse(origin)
+                if parsed_origin.hostname not in ("localhost", "127.0.0.1", "testserver"):
+                    return {
+                        "success": False,
+                        "error": "Недопустимый origin в clientDataJSON.",
+                    }
+
+            if cdata.get("challenge"):
+                challenge_candidate = str(cdata["challenge"]).rstrip("=")
         except Exception:
             return {
                 "success": False,
@@ -351,6 +366,15 @@ def verify_webauthn_assertion(req: WebAuthnVerifyRequest):
     session_token = secrets.token_urlsafe(32)
 
     with _webauthn_lock:
+        # Challenge anti-replay validation: verify and immediately consume
+        if challenge_candidate:
+            if challenge_candidate not in _PENDING_CHALLENGES or (now - _PENDING_CHALLENGES[challenge_candidate] > 300):
+                return {
+                    "success": False,
+                    "error": "Недействительный или истекший challenge (защита от повторных атак / Replay Prevention).",
+                }
+            _PENDING_CHALLENGES.pop(challenge_candidate, None)
+
         if req.operation == "register":
             # Cap maximum stored credentials to prevent memory exhaustion
             if len(REGISTERED_WEBAUTHN_CREDENTIALS) >= 50:

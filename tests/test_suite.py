@@ -1117,6 +1117,67 @@ try:
 except Exception as e:
     record("60. AppSec Storage Discretion & ReDoS Immunity", False, str(e))
 
+# 61. HLS Transcode Path Traversal & File Extension Confinement
+try:
+    trav_hls = client.get("/api/cameras/transcode/hls/../../etc/passwd")
+    bad_ext = client.get("/api/cameras/transcode/hls/cam1/malicious.py")
+    passed = (
+        trav_hls.status_code in (400, 403, 404)
+        and bad_ext.status_code in (400, 403, 404)
+    )
+    record("61. HLS Stream Path Traversal Confinement", passed, "Path traversal in HLS transcoder blocked")
+except Exception as e:
+    record("61. HLS Stream Path Traversal Confinement", False, str(e))
+
+# 62. WebAuthn Replay Protection & Origin Validation
+try:
+    # Attempting verify with expired / unregistered challenge
+    fake_cdata = '{"type":"webauthn.get","challenge":"expired_nonexistent_challenge","origin":"http://attacker.com"}'
+    fake_verify = client.post(
+        "/api/crypto/webauthn/verify",
+        json={
+            "credential_id": "valid_cred_len_12345678",
+            "operation": "authenticate",
+            "client_data_json": fake_cdata,
+        }
+    )
+    fv_data = fake_verify.json()
+    passed = (
+        fake_verify.status_code == 200
+        and fv_data.get("success") is False
+    )
+    record("62. WebAuthn Replay & Origin Defense", passed, f"Replay/Origin Attack Blocked: {fv_data.get('error')}")
+except Exception as e:
+    record("62. WebAuthn Replay & Origin Defense", False, str(e))
+
+# 63. Secret Scanner Credential Directory Blocking
+try:
+    gcloud_res = client.post("/api/audit/scan/path", json={"path": "~/.config/gcloud"})
+    gcloud_data = gcloud_res.json()
+    kube_res = client.post("/api/audit/scan/path", json={"path": "~/.kube"})
+    kube_data = kube_res.json()
+    passed = (
+        gcloud_data.get("success") is False
+        and kube_data.get("success") is False
+    )
+    record("63. Secret Audit Vault Isolation", passed, "Scanning of .config/gcloud and .kube strictly blocked")
+except Exception as e:
+    record("63. Secret Audit Vault Isolation", False, str(e))
+
+# 64. Watcher Telegram Bot Input Validation
+try:
+    bad_tok = client.post("/api/watcher/telegram/config", json={"bot_token": "malformed_token_with_invalid_chars!"})
+    bad_tok_data = bad_tok.json()
+    bad_chat = client.post("/api/watcher/telegram/config", json={"chat_id": "invalid_chat_with_spaces 123"})
+    bad_chat_data = bad_chat.json()
+    passed = (
+        bad_tok_data.get("success") is False
+        and bad_chat_data.get("success") is False
+    )
+    record("64. Telegram Bot Injection Guard", passed, "Malformed tokens and chat IDs rejected by regex")
+except Exception as e:
+    record("64. Telegram Bot Injection Guard", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

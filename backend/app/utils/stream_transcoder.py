@@ -37,7 +37,9 @@ class RTSPStreamTranscoder:
         return shutil.which("ffmpeg")
 
     def get_stream_dir(self, camera_id: str) -> str:
-        safe_id = "".join(c for c in camera_id if c.isalnum() or c in ("-", "_"))
+        safe_id = "".join(c for c in camera_id if c.isalnum() or c in ("-", "_")).strip()
+        if not safe_id:
+            safe_id = "stream_default"
         return os.path.join(TRANSCODE_BASE_DIR, safe_id)
 
     def get_playlist_path(self, camera_id: str) -> str:

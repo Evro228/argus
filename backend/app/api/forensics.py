@@ -1,5 +1,6 @@
 import ast
 import io
+import math
 import os
 import re
 
@@ -27,25 +28,33 @@ async def read_limited_file(file: UploadFile, max_bytes: int = MAX_UPLOAD_SIZE) 
 
 
 def convert_to_degrees(value):
-    d = float(value[0])
-    m = float(value[1])
-    s = float(value[2])
-    return d + (m / 60.0) + (s / 3600.0)
+    try:
+        d = float(value[0])
+        m = float(value[1])
+        s = float(value[2])
+        deg = d + (m / 60.0) + (s / 3600.0)
+        return deg if math.isfinite(deg) else None
+    except Exception:
+        return None
 
 
 def safe_parse_coordinates(coord_val):
-    """Parse coordinate string or tuple safely."""
+    """Parse coordinate string or tuple safely with input bound and recursion guard."""
     if coord_val is None:
         return None
     val = coord_val
-    if isinstance(val, str) and ("[" in val or "(" in val):
-        try:
-            val = ast.literal_eval(val)
-        except (ValueError, SyntaxError):
+    if isinstance(val, str):
+        if len(val) > 200:
             return None
+        if "[" in val or "(" in val:
+            try:
+                val = ast.literal_eval(val)
+            except (ValueError, SyntaxError):
+                return None
     if isinstance(val, (list, tuple)) and len(val) == 3:
         try:
-            return [float(x) for x in val]
+            parsed = [float(x) for x in val]
+            return parsed if all(math.isfinite(x) for x in parsed) else None
         except (TypeError, ValueError):
             return None
     return None
@@ -101,15 +110,15 @@ async def extract_image_exif(file: UploadFile = File(...)):
 
                 parsed_lat = safe_parse_coordinates(gps_lat)
                 if parsed_lat:
-                    lat_deg = convert_to_degrees(parsed_lat)
-                    if gps_lat_ref == "S":
-                        lat_deg = -lat_deg
+                    raw_lat = convert_to_degrees(parsed_lat)
+                    if raw_lat is not None and -90.0 <= raw_lat <= 90.0:
+                        lat_deg = -raw_lat if gps_lat_ref == "S" else raw_lat
 
                 parsed_lon = safe_parse_coordinates(gps_lon)
                 if parsed_lon:
-                    lon_deg = convert_to_degrees(parsed_lon)
-                    if gps_lon_ref == "W":
-                        lon_deg = -lon_deg
+                    raw_lon = convert_to_degrees(parsed_lon)
+                    if raw_lon is not None and -180.0 <= raw_lon <= 180.0:
+                        lon_deg = -raw_lon if gps_lon_ref == "W" else raw_lon
             except Exception:
                 pass
 
