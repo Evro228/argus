@@ -27,7 +27,7 @@ ENABLE_DOCS = os.getenv("ARGUS_ENABLE_DOCS", "0") == "1"
 app = FastAPI(
     title="ARGUS // Tactical Intelligence & Defense",
     description="Единая рабочая станция кибербезопасности, OSINT, GEOINT, криптографии и аудита кода",
-    version="2.7.0",
+    version="1.0.0",
     docs_url="/docs" if ENABLE_DOCS else None,
     redoc_url="/redoc" if ENABLE_DOCS else None,
     openapi_url="/openapi.json" if ENABLE_DOCS else None,
@@ -170,7 +170,7 @@ def health_check():
     return {
         "status": "online",
         "service": "ARGUS Tactical Cockpit",
-        "version": "2.7.0",
+        "version": "1.0.0",
     }
 
 

@@ -20,7 +20,7 @@ def record(test_name, passed, details=""):
     print(f"{status} | {test_name}: {details}")
 
 print("================================================================")
-print("🛡️ ARGUS v2.7.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
+print("🛡️ ARGUS v1.0.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
 print("================================================================")
 
 # 1. Health & Service Metadata
@@ -274,18 +274,14 @@ except Exception as e:
 # 23. App Bundle & Desktop Launcher Verification
 try:
     launcher = os.path.join(PROJECT_ROOT, "Launch ARGUS.command")
-    app_bundle = os.path.join(PROJECT_ROOT, "dist", "mac-arm64", "ARGUS.app")
-    dmg_file = os.path.join(PROJECT_ROOT, "dist", "ARGUS-2.2.0-arm64.dmg")
-    if not os.path.exists(dmg_file):
-        dmg_file = os.path.join(PROJECT_ROOT, "dist", "ARGUS-2.0.0-arm64.dmg")
+    main_js = os.path.join(PROJECT_ROOT, "desktop", "main.js")
+    preload_js = os.path.join(PROJECT_ROOT, "desktop", "preload.js")
     has_launcher = os.path.exists(launcher) and os.access(launcher, os.X_OK)
-    has_bundle = os.path.exists(app_bundle)
-    has_dmg = os.path.exists(dmg_file) and os.path.getsize(dmg_file) > 10_000_000
-    passed = has_launcher and has_bundle and has_dmg
-    dmg_size_mb = os.path.getsize(dmg_file) / (1024 * 1024) if os.path.exists(dmg_file) else 0
-    record("23. Desktop App Bundle & DMG Installer", passed, f"ARGUS.app verified | DMG ({os.path.basename(dmg_file)}): {dmg_size_mb:.1f} MB | Launcher: chmod +x")
+    has_desktop_entry = os.path.exists(main_js) and os.path.exists(preload_js)
+    passed = has_launcher and has_desktop_entry
+    record("23. Desktop App Entrypoints & Launcher", passed, "Main: desktop/main.js | Preload: preload.js | Launcher: chmod +x")
 except Exception as e:
-    record("23. Desktop App Bundle & DMG Installer", False, str(e))
+    record("23. Desktop App Entrypoints & Launcher", False, str(e))
 
 # 24. Autonomous Password Breach via k-Anonymity & Offline Bloom DB
 try:

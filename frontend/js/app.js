@@ -62,7 +62,7 @@ const App = {
     this.bindRfSpectrum();
     this.bindTelegramWatcher();
 
-    this.log('ARGUS Tactical Cockpit v2.7.0 инициализирован. Все подсистемы в норме.', 'system');
+    this.log('ARGUS Tactical Cockpit v1.0.0 инициализирован. Все подсистемы в норме.', 'system');
 
     // Initialize Tactical Threat Map on Main Screen
     setTimeout(() => {

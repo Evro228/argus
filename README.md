@@ -1,60 +1,152 @@
 # 👁️ ARGUS // Tactical Intelligence & Defense Cockpit
 
-> **All-in-One Cyber Intelligence, Reconnaissance & Defense Operations Cockpit**  
-> Единая рабочая станция тактической разведки, кибербезопасности, OSINT, 3D GEOINT / God's Eye View, аудита кода, криптографии и 818 плейбуков безопасности, объединяющая лучшие open-source инструменты мира в премиальном графическом центре управления.
+```text
+       █████╗ ██████╗  ██████╗ ██╗   ██╗███████╗
+      ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔════╝
+      ███████║██████╔╝██║  ███╗██║   ██║███████╗
+      ██╔══██║██╔══██╗██║   ██║██║   ██║╚════██║
+      ██║  ██║██║  ██║╚██████╔╝╚██████╔╝███████║
+      ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚══════╝
+  TACTICAL CYBER INTELLIGENCE, RECON & DEFENSE OPERATIONS
+```
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Version](https://img.shields.io/badge/Version-2.7.0-emerald.svg)]()
-[![Status](https://img.shields.io/badge/Status-Active%20Production-emerald.svg)]()
-[![OWASP ASVS](https://img.shields.io/badge/OWASP%20ASVS-Compliant%20(20%2F20)-brightgreen.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-36%2F36%20PASS%20(100%25)-success.svg)]()
-[![Stress Test](https://img.shields.io/badge/Stress%20Load-2200%20RPS-blueviolet.svg)]()
-
----
-
-## 🌟 9 Тактических Станций ARGUS
-
-Вместо запуска десятков консольных утилит с разными флагами вручную, **ARGUS** объединяет мощь ведущих инструментов безопасности в единый тактический кокпит:
-
-| Станция | Технологии & Вдохновение | Ключевые возможности |
-| :--- | :--- | :--- |
-| **🛰️ God's Eye View (GEOINT)** | [God's Eye View](https://github.com/bilawalsidhu/gods-eye-view), Canvas 2D/3D Engine | Тактическая интерактивная карта угроз с кинетическими дугами кибератак, DEFCON-индикатором и тактической инспекцией узлов. |
-| **🌐 Network Audit** | [Nmap](https://nmap.org/), [Nuclei](https://github.com/projectdiscovery/nuclei) | Сканирование открытых портов (нативное асинхронное ядро + Nmap), радио-сканирование Wi-Fi (SSID, WPA3/WPA2, PHY), оффлайн-корреляция CVE. |
-| **🔎 OSINT & Recon** | [Sherlock](https://github.com/sherlock-project/sherlock), [theHarvester](https://github.com/laramies/theHarvester), [HIBP](https://haveibeenpwned.com/) | Поиск никнейма по 400+ сервисам, тактическая студия Google Dorks, локальная база утечек паролей по протоколу k-Anonymity (0 мс). |
-| **🛡️ Vuln & Hardening** | [TruffleHog](https://github.com/trufflesecurity/trufflehog), [Gitleaks](https://github.com/gitleaks/gitleaks), CIS Benchmarks | Глубокий поиск утекших токенов (AWS, OpenAI, GitHub, SSH), CIS Docker Hardening, курируемый реестр словарей SecLists и PayloadsAllTheThings. |
-| **🔐 Identity Vault** | [W3C WebAuthn Level 3](https://github.com/w3c/webauthn), Apple Secure Enclave, [StegCloak](https://github.com/KuroLabs/stegcloak) | Аппаратная биометрия Touch ID / Windows Hello TPM, генератор паролей (128+ бит энтропии), невидимая стеганография AES-256, одноразовые записки с физическим занулением RAM. |
-| **📸 Media & Dangerzone** | [Dangerzone](https://github.com/freedomofpress/dangerzone), [Aves](https://github.com/deckerst/aves) | Scrubber метаданных EXIF и GPS-координат, инспектор вредоносных PDF-файлов с эвристическим анализом директив `/Launch` и `/JavaScript`. |
-| **🎭 OPSEC & DLP** | [ClearURLs](https://github.com/ClearURLs/Addon), [Pasteguard](https://github.com/sgasser/pasteguard) | Очистка ссылок от трекеров слежки (ClearURLs), санитизация конфиденциальных данных перед отправкой, генерация временных рабочих профилей. |
-| **📊 Security Analyst** | [NIST CSF](https://csrc.nist.gov/projects/cybersecurity-framework), [OWASP ASVS v4.0](https://owasp.org/www-project-application-security-verification-standard/) | Executive Security Posture Score, приоритизированный план устранения рисков, экспорт отчетов в Markdown (`.md`), печать в PDF, журнал сессий. |
-| **📚 Tactics & Playbooks** | [Anthropic Cybersecurity Skills](https://github.com/anthropics) | Полнотекстовый хаб из **818 пошаговых плейбуков** реагирования, расследования и харденинга по стандартам MITRE ATT&CK и NIST CSF. |
+[![Version](https://img.shields.io/badge/Release-v1.0.0-00f0ff.svg?style=flat-square)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg?style=flat-square)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-10b981.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI Core](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Electron Desktop](https://img.shields.io/badge/Electron-34+-475569.svg?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![Tests](https://img.shields.io/badge/Tests-64%2F64%20PASS%20(100%25)-10b981.svg?style=flat-square)]()
+[![Security Audit](https://img.shields.io/badge/OWASP%20ASVS-Compliant-emerald.svg?style=flat-square)]()
+[![Bandit AST](https://img.shields.io/badge/Bandit-0%20Vulnerabilities-success.svg?style=flat-square)]()
 
 ---
 
-## 🔒 Безопасность и Архитектурная Защита
+**ARGUS** — автономный десктопный комплекс тактической разведки, аудита кибербезопасности, OSINT, спутниковой геопространственной телеметрии (GEOINT), радиомониторинга и криминалистического анализа. 
 
-ARGUS спроектирован с учетом жестких требований к безопасности рабочих станций ИБ:
-- **Localhost IPC Token:** Защита от Drive-By атак и Web-to-Localhost (256-битный токен процесса, проверка за постоянное время `secrets.compare_digest`).
-- **Защита от DNS Rebinding:** Фильтрация заголовков `Host`, `X-Forwarded-Host` и отсечение чужих доменов кодом `403 Forbidden`.
-- **Физическое зануление памяти (RAM Zeroing):** Секреты и ключи шифрования перезаписываются нулевыми байтами через `ctypes.memset (0x00)` сразу после использования.
-- **Air-Gapped Stealth Mode:** Тумблер моментальной изоляции: полная блокировка внешних сокетов и работа исключительно по локальным базам сигнатур.
-- **W3C WebAuthn Passkeys Enclave:** Приватные ключи генерируются и изолируются внутри Apple Secure Enclave / TPM 2.0.
+Объединяет возможности профильных утилит информационной безопасности в единый высокопроизводительный центр управления оператора с аппаратной криптографической изоляцией и режимом полной радиотишины (**Air-Gapped Stealth Mode**).
 
 ---
 
-## 🚀 Быстрый запуск
+## 🗺️ Ключевые тактические станции
 
-### 1. Нативное десктопное приложение (macOS):
-- Скачайте готовый установщик: [`dist/ARGUS-2.2.0-arm64.dmg`](dist/ARGUS-2.2.0-arm64.dmg) (105.8 МБ).
-- Или запустите в 1 клик скриптом [`Launch ARGUS.command`](Launch%20ARGUS.command).
+```text
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             ARGUS OPERATIONS MATRIX                              │
+├──────────────────────┬─────────────────────────────┬─────────────────────────────┤
+│ 🛰️ GEOINT & RADAR   │ 🌐 NETWORK AUDIT            │ 🔎 OSINT & GRAPH INTEL      │
+│ • NORAD Satellites   │ • Asynchronous Port Matrix  │ • Sherlock 400+ Platforms   │
+│ • ADS-B Flight Radar │ • 1-Click LAN Discovery     │ • 2D Synapse Entity Graph   │
+│ • AIS Maritime Fleet │ • OUI Vendor Identification │ • Offline K-Anonymity DB    │
+│ • NASA FIRMS Thermal │ • RF Waterfall FFT (WebSDR) │ • Tactical Google Dorks     │
+│ • USGS Seismic Grid  │ • Offline CVE Correlation   │ • Autonomous Breach Checker │
+├──────────────────────┼─────────────────────────────┼─────────────────────────────┤
+│ 📹 SURVEILLANCE CCTV │ 🔐 CRYPTOGRAPHY & ENCLAVE   │ 🛡️ FORENSICS & PLAYBOOKS    │
+│ • 124 Multi-City Cams│ • W3C WebAuthn L3 Passkeys  │ • EXIF / GPS Scrubber       │
+│ • 9 GitHub Feeds Sync│ • Hardware Touch ID / TPM   │ • PDF Dangerzone Inspector  │
+│ • RTSP-to-HLS Engine │ • Zero-Width Steganography  │ • YARA / Sigma Rule Engine  │
+│ • Full Video Wall    │ • RAM Zeroing Burn Notes    │ • 818 Response Playbooks    │
+└──────────────────────┴─────────────────────────────┴─────────────────────────────┘
+```
 
-### 2. Запуск из терминала (macOS / Linux):
+### 1. 🛰️ God's Eye View (GEOINT & Тактическая Карта)
+- **Орбитальная группировка:** Расчет траекторий космических аппаратов (МКС, Тяньгун, системы GPS, ГЛОНАСС, Космос, спутники США, РФ, Китая, ЕС, Индии, Израиля) на физическом ядре NORAD.
+- **Воздушный эшелон (ADS-B):** Мониторинг стратегической авиации (Boeing E-4B Nightwatch, RC-135W Rivet Joint, Ту-214ПУ, AWACS) и коммерческих бортов в реальном времени.
+- **Морской флот (AIS):** Отслеживание флагманов флота, авианосцев, супертанкеров и ледоколов.
+- **Глобальные слои:**
+  - `🔥 NASA FIRMS:` Спутниковые термоточки высокого разрешения (сенсоры VIIRS / MODIS).
+  - `⚡ USGS Earthquakes:` Мониторинг мировой сейсмической активности с магнитудой ≥ 4.0.
+  - `🌊 Submarine Cables:` Топология трансокеанских оптоволоконных магистралей связи.
+
+### 2. 📹 Global CCTV Matrix & Video Wall
+- Каталог из **124 открытых видеопотоков** по всем федеральным округам РФ (Москва, Санкт-Петербург, Казань, Сочи, Владивосток, Екатеринбург и др.) и ключевым мировым хабам.
+- Единый агрегатор **9 проверенных репозиториев GitHub** с поддержкой протоколов HLS, RTSP, GeoJSON и MJPEG.
+- Встроенный микро-транскодер **FFmpeg** для конвертации сырых потоков RTSP в HLS с нулевой задержкой.
+- Полноэкранный режим **Тактической видеостены** с фильтрацией по городам и статусу камер.
+
+### 3. 🌐 Сетевой аудит и радиоразведка (Network & RF)
+- **1-Click LAN Asset Discovery:** Пассивный и активный аудит локального сегмента, чтение ARP-кэша, распознавание вендоров по OUI, мгновенная идентификация сетевых IP-камер (RTSP:554) и шлюзов.
+- **Scan Matrix:** Асинхронное ядро зондирования портов с защитой от инъекций аргументов и корреляцией обнаруженных служб с локальной базой CVE.
+- **RF Spectrum & WebSDR:** Водопадный спектроанализатор FFT (128 бинов), частотный каталог аварийных диапазонов (VHF Guard 121.5 MHz, Морской канал безопасности Ch 16) и координатная сетка онлайн-приемников WebSDR.
+
+### 4. 🔎 OSINT & Топологический граф Synapse
+- **Sherlock Engine:** Мультиплатформенный поиск цифрового следа никнейма по 400+ сервисам.
+- **Synapse 2D Canvas Graph:** Интерактивный граф сущностей (никнеймы, email, подтвержденные учетные записи, домены) с динамической физикой пружин на 60 FPS.
+- **Offline Breach Intel:** Проверка компрометации паролей и почтовых адресов по локальному хеш-индексу k-Anonymity (SHA-1) с нулевой сетевой утечкой.
+
+### 5. 🔐 Криптографический анклав и хранилище
+- **W3C WebAuthn Level 3:** Аппаратная аутентификация через биометрию Apple Secure Enclave (Touch ID) и TPM 2.0. Встроенная защита от Replay-атак с валидацией nonce/challenge и origin.
+- **Authenticated AES-256-GCM Vault:** Защищенное локальное хранилище данных с аутентифицированным шифрованием (AEAD).
+- **Ephemeral Burn Notes:** Одноразовые записки с гарантированным физическим занулением оперативной памяти через `ctypes.memset (0x00)` после прочтения.
+- **Zero-Width Steganography:** Скрытие шифрованных сообщений в открытом тексте с использованием невидимых Unicode-символов нулевой ширины.
+
+### 6. 🚨 Watcher Daemon & Telegram Push
+- Фоновый автономный сторож с контролем локальных сетевых сокетов, выявлением неавторизованных открытых портов и проверкой доступности потоков.
+- Шифрованные оперативные оповещения в Telegram Bot с настраиваемым порогом критичности (`INFO`, `WARNING`, `CRITICAL`).
+
+### 7. 🛡️ Криминалистика и харденинг
+- **Media EXIF Scrubber:** Извлечение и зачистка метаданных изображений, проверка географических координат и защита парсера от DoS-структур.
+- **PDF Dangerzone Inspector:** Статический анализ структуры PDF-документов на наличие эксплойтов, макросов, внедренного JavaScript и подозрительных директив `/Launch`.
+- **YARA & Sigma Engine:** Анализ файлов по сигнатурам веб-шеллов и правилам детектирования подозрительной активности (LOLBins).
+- **Host Hardening Matrix:** Проверка состояния системных механизмов защиты хоста (FileVault / BitLocker, Gatekeeper, SIP, брандмауэр).
+
+### 8. 📚 База плейбуков безопасности
+- Хаб из **818 документированных тактических сценариев** расследования инцидентов, реагирования и аудита, заземленных на стандарты MITRE ATT&CK и NIST CSF.
+
+---
+
+## 🔒 Модель безопасности и защиты приложения
+
+Архитектура ARGUS построена в соответствии со стандартами **OWASP ASVS v4.0** и **MASVS**:
+
+```text
+[ Electron Desktop Shell ]
+       │  (contextIsolation: true, nodeIntegration: false, sandbox: true)
+       │  IPC Token Delivery via contextBridge (No executeJavaScript)
+       ▼
+[ Localhost Transport (127.0.0.1:8800) ]
+       │  • Host / Origin Validation (Anti-DNS Rebinding)
+       │  • 256-bit Cryptographic IPC Token (Constant-time compare)
+       │  • Rate Limiting: 600 req/min per client
+       │  • Strict CSP: default-src 'self' (No unsafe-inline)
+       ▼
+[ FastAPI Core Engine ]
+       │  • Subprocess Execution: Array-based args with '--' boundary
+       │  • Path Traversal Defense: os.path.commonpath confinement
+       │  • Local Secrets: File permissions 0600 (Owner read/write only)
+       │  • Air-Gap Stealth Mode: Complete socket egress blocking
+       ▼
+[ Offline Embedded Databases (CVEs, Bloom Filters, Playbooks) ]
+```
+
+---
+
+## 🚀 Установка и быстрый запуск
+
+### Системные требования:
+- **macOS** (Apple Silicon M1/M2/M3/M4 или Intel), **Linux** (x86_64, aarch64), **Windows 10/11**.
+- Python 3.10+ (рекомендуется Python 3.11 – 3.14).
+- Node.js 18+ (для десктопного режима Electron).
+
+### 1. Запуск нативного десктопного приложения:
 ```bash
+# Клонирование репозитория
 git clone https://github.com/Evro228/argus.git
+cd argus
+
+# Установка зависимостей (однократно)
+npm install
+
+# Запуск приложения
+npm start
+```
+*На macOS также доступен запуск двойным кликом по файлу **`Launch ARGUS.command`**.*
+
+### 2. Запуск браузерного интерфейса (Web Cockpit):
+```bash
 cd argus
 ./run.sh
 ```
+*Сервер запустится на `http://localhost:8800` и автоматически откроет страницу в браузере.*
 
 ### 3. Запуск на Windows:
 ```cmd
@@ -70,26 +162,46 @@ docker compose up --build
 
 ---
 
-## 🧪 Тестирование и Надежность
+## 🧪 Проверка безопасности и тестирование
 
-Комплекс протестирован автоматизированным набором тестов:
-- **Функциональный тест-сьют:** `python tests/test_suite.py` — **36 / 36 PASS (100.0%)**.
-- **Нагрузочный стресс-тест:** `python tests/stress_test.py` — **500 одновременных сессий (~2200 RPS)** без единого сбоя.
-- **Статический анализатор Bandit AppSec:** **0 High, 0 Medium** уязвимостей.
+Репозиторий поставляется с полным набором автоматизированных тестов и линтеров:
+
+```bash
+# Запуск регрессионного теста безопасности (64 сценария)
+python tests/test_suite.py
+
+# Нагрузочный стресс-тест ядра (500 одновременных запросов)
+python tests/stress_test.py
+
+# Статический AST-анализ уязвимостей (Bandit)
+bandit -r backend/app/ -ll
+
+# Локальный аудит безопасности в 1 клик
+./scripts/security_check.sh
+```
+
+В CI/CD пайплайн (`.github/workflows/security.yml`) интегрированы:
+- **`gitleaks/gitleaks`** — сканирование репозитория на утечки токенов и ключей.
+- **`semgrep/semgrep`** — SAST-анализ по правилам OWASP Top 10.
+- **`google/osv-scanner`** — проверка цепочки поставок (SCA) по базе Google OSV.
 
 ---
 
-## ⌨️ Горячие клавиши (Raycast / Linear style)
+## ⌨️ Навигация и горячие клавиши
 
 | Комбинация | Действие |
 | :--- | :--- |
-| `⌘K` / `Ctrl+K` | Открыть тактическую командную палитру поиска |
-| `⌘1` – `⌘9` | Мгновенное переключение между 9 станциями |
-| `⌘S` | Переключение режима строгой изоляции Air-Gapped Stealth Mode |
-| `⌘L` | Очистка буфера терминала SOC |
+| `⌘K` / `Ctrl+K` | Универсальная командная палитра быстрого поиска и действий |
+| `⌘1` – `⌘9` | Мгновенное переключение между тактическими станциями |
+| `⌘U` | Открыть глобальную видеостену CCTV-камер |
+| `⌘,` | Панель управления API-ключами и Live-фидами |
+| `⌘S` | Включение / выключение режима строгой изоляции Air-Gap Stealth Mode |
+| `⌘L` | Очистка журнала терминала безопасности |
 
 ---
 
-## ⚖️ Ответственное использование (Ethical Guidelines)
+## ⚖️ Лицензия и этические нормы
 
-Инструмент разработан исключительно для **аудита собственной безопасности, защиты личных данных, этичного анализа цифрового следа (OSINT) и образовательных исследований**. Любое использование в неправомерных целях строго запрещено.
+Комплекс распространяется под свободной лицензией **[MIT](LICENSE)**.
+
+Программное обеспечение разработано исключительно для **самодиагностики, аудита защищенности собственной инфраструктуры, этичного анализа открытых данных (OSINT), защиты конфиденциальности и образовательных исследований**. Использование функционала приложения в неправомерных целях категорически запрещено.
