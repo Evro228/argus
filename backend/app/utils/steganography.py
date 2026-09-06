@@ -5,6 +5,7 @@ import os
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from backend.app.utils.memory import SecureBuffer
 
 # Zero-Width Characters Map
 ZW_MAP = {
@@ -32,8 +33,9 @@ def encrypt_payload(data: str, password: str) -> str:
     salt = os.urandom(16)
     nonce = os.urandom(12)
     key = derive_key(password, salt)
-    aesgcm = AESGCM(key)
-    ciphertext = aesgcm.encrypt(nonce, data.encode("utf-8"), None)
+    with SecureBuffer(key) as s_key:
+        aesgcm = AESGCM(s_key.get_bytes())
+        ciphertext = aesgcm.encrypt(nonce, data.encode("utf-8"), None)
 
     package = {
         "salt": base64.b64encode(salt).decode("utf-8"),
@@ -50,8 +52,9 @@ def decrypt_payload(package_str: str, password: str) -> str:
     ciphertext = base64.b64decode(package["ct"])
 
     key = derive_key(password, salt)
-    aesgcm = AESGCM(key)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+    with SecureBuffer(key) as s_key:
+        aesgcm = AESGCM(s_key.get_bytes())
+        plaintext = aesgcm.decrypt(nonce, ciphertext, None)
     return plaintext.decode("utf-8")
 
 

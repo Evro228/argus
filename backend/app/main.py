@@ -64,13 +64,14 @@ VALID_HOSTS = {"127.0.0.1", "localhost", "testserver"}
 async def security_and_rate_limit_middleware(request: Request, call_next):
     global _last_rate_limit_cleanup
 
-    # 1. DNS Rebinding Protection: Verify Host header
-    host_header = request.headers.get("host", "").split(":")[0]
-    if host_header and host_header not in VALID_HOSTS and not host_header.startswith("127."):
-        return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
-            content={"success": False, "error": "Запрещенный заголовок Host (DNS Rebinding Protection)."},
-        )
+    # 1. DNS Rebinding & Host Header Injection Protection (Anthropic Skill: testing-for-host-header-injection)
+    for h_name in ("host", "x-forwarded-host", "x-host", "x-forwarded-server"):
+        h_val = request.headers.get(h_name, "").split(":")[0].strip().lower()
+        if h_val and h_val not in VALID_HOSTS and not h_val.startswith("127."):
+            return JSONResponse(
+                status_code=status.HTTP_403_FORBIDDEN,
+                content={"success": False, "error": f"Запрещенный заголовок {h_name} (Host Injection & DNS Rebinding Protection)."},
+            )
 
     # 2. Apply rate limiting to API endpoints with Memory Leak GC (V-05)
     if request.url.path.startswith("/api/"):
