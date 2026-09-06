@@ -990,7 +990,7 @@
               <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
             </div>
             <div class="text-[11px] text-slate-400 font-mono">
-              Открытые камеры видеонаблюдения: 🇷🇺 РФ (52) • 🌍 Мир (18) • 📦 GitHub Датасеты (15)
+              Открытые камеры видеонаблюдения: 🇷🇺 РФ (52) • 🌍 Мир (18) • 📦 GitHub Датасеты (<span id="cctv-count-github-hdr">54</span>) • ⚡ Всего (<span id="cctv-count-total-hdr">124</span>)
             </div>
           </div>
         </div>
@@ -1036,9 +1036,9 @@
 
           <!-- Region Filter Pills -->
           <div class="flex items-center space-x-1 overflow-x-auto text-[11px] font-mono">
-            <button data-cctv-filter="ALL" class="cctv-filter-btn active px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">ВСЕ (<span id="cctv-count-total">85</span>)</button>
+            <button data-cctv-filter="ALL" class="cctv-filter-btn active px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold">ВСЕ (<span id="cctv-count-total">124</span>)</button>
             <button data-cctv-filter="RU" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800">🇷🇺 РФ (52)</button>
-            <button data-cctv-filter="GITHUB" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-purple-300 hover:bg-slate-800 border border-purple-800/40">📦 GITHUB (15)</button>
+            <button data-cctv-filter="GITHUB" class="cctv-filter-btn px-2.5 py-1 rounded bg-slate-900 text-purple-300 hover:bg-slate-800 border border-purple-800/40">📦 GITHUB (<span id="cctv-count-github">54</span>)</button>
             <button data-cctv-filter="ЦФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ЦФО</button>
             <button data-cctv-filter="СЗФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">СЗФО</button>
             <button data-cctv-filter="ПФО" class="cctv-filter-btn px-2 py-1 rounded bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-800">ПФО</button>
@@ -1068,7 +1068,8 @@
 
       <!-- VIEW 2: GITHUB OPEN REPOSITORIES CATALOG -->
       <div id="cctv-view-repos-panel" class="flex-1 p-5 overflow-y-auto bg-slate-950/90 hidden space-y-4">
-        <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 flex items-start justify-between">
+        <!-- Top Synchronization & Aggregation Action Banner -->
+        <div class="p-4 rounded-xl bg-purple-950/30 border border-purple-500/40 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg shadow-purple-950/20">
           <div>
             <h3 class="text-sm font-bold font-mono text-purple-300 flex items-center space-x-2">
               <span>🐙</span> <span>РЕПОЗИТОРИИ ОТКРЫТЫХ КАМЕР & GEOJSON ДАТАСЕТЫ НА GITHUB</span>
@@ -1076,10 +1077,21 @@
             <p class="text-xs text-slate-400 font-mono mt-1">
               Проверенные открытые репозитории с базами уличных и дорожных камер (DOT, HLS, GeoJSON, RTSP). Все потоки 100% легальны и доступны без API-ключей.
             </p>
+            <div id="cctv-repos-stats-bar" class="flex flex-wrap items-center gap-3 mt-2.5 text-[11px] font-mono text-purple-200">
+              <span class="flex items-center space-x-1"><span>🏛️</span> <span>9 репозиториев</span></span>
+              <span>•</span>
+              <span class="flex items-center space-x-1"><span>📹</span> <span id="cctv-repos-stats-streams" class="text-teal-300 font-bold">54 агрегированных потока (124 в каталоге)</span></span>
+              <span>•</span>
+              <span class="flex items-center space-x-1"><span>📡</span> <span>4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
+              <span>•</span>
+              <span class="flex items-center space-x-1"><span>🌍</span> <span>35+ стран</span></span>
+            </div>
           </div>
-          <span class="px-2.5 py-1 rounded bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold shrink-0">
-            9 РЕПОЗИТОРИЕВ
-          </span>
+          <div class="flex items-center space-x-3 shrink-0">
+            <button id="btn-sync-all-repos" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-mono font-bold text-xs flex items-center space-x-2 transition shadow-md hover:shadow-purple-500/20 border border-purple-400/40 cursor-pointer">
+              <span>⚡</span> <span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>
+            </button>
+          </div>
         </div>
         <div id="cctv-repos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <!-- Populated by JS -->

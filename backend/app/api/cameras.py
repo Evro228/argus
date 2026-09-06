@@ -12,6 +12,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, Response
 
 from backend.app.api.system import is_air_gap_enabled
+from backend.app.api.camera_aggregator import (
+    UNIFIED_GITHUB_CAMERAS,
+    get_sources_stats,
+    sync_all_repositories,
+    get_cameras_by_repo,
+)
 
 router = APIRouter()
 
@@ -1679,356 +1685,10 @@ GITHUB_CAMERA_REPOSITORIES: List[Dict[str, Any]] = [
 ]
 
 # ----------------------------------------------------------------------
-# 2.2 CAMERAS SOURCED FROM GITHUB OPEN DATASETS & DOT REGISTRIES
-# High-priority traffic & infrastructure hubs indexed from GitHub repos
+# 2.2 CAMERAS SOURCED FROM GITHUB OPEN DATASETS & UNIFIED AGGREGATOR
+# 54 curated live feeds across all 9 GitHub repos (GeoJSON, HLS, RTSP, MJPEG)
 # ----------------------------------------------------------------------
-GITHUB_SOURCED_CAMERAS: List[Dict[str, Any]] = [
-    {
-        "id": "CAM_GH_US_LA_01",
-        "name": "Los Angeles — I-405 San Diego Fwy & Sepulveda Pass",
-        "city": "Los Angeles",
-        "city_en": "Los Angeles",
-        "region": "California / Los Angeles County",
-        "district": "Caltrans District 7",
-        "country": "US",
-        "flag": "🇺🇸",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 34.1205,
-        "lon": -118.4735,
-        "fov_deg": 120,
-        "stream_type": "hls",
-        "stream_url": "https://cwwp2.dot.ca.gov/data/d7/cctv/cctvStatusD07.json",
-        "snapshot_url": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Caltrans District 7 (via GitHub: sentinel-feed-grid)",
-        "source_repo": "movingdevious/sentinel-feed-grid",
-        "source_repo_url": "https://github.com/movingdevious/sentinel-feed-grid",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_US_SF_02",
-        "name": "San Francisco — Bay Bridge & Embarcadero",
-        "city": "San Francisco",
-        "city_en": "San Francisco",
-        "region": "California / Bay Area",
-        "district": "Caltrans District 4",
-        "country": "US",
-        "flag": "🇺🇸",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 37.7983,
-        "lon": -122.3778,
-        "fov_deg": 110,
-        "stream_type": "hls",
-        "stream_url": "https://cwwp2.dot.ca.gov/data/d4/cctv/cctvStatusD04.json",
-        "snapshot_url": "https://images.unsplash.com/photo-1506146332389-18140dc7b2fb?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Caltrans District 4 (via GitHub: sentinel-feed-grid)",
-        "source_repo": "movingdevious/sentinel-feed-grid",
-        "source_repo_url": "https://github.com/movingdevious/sentinel-feed-grid",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_US_NYC_03",
-        "name": "New York — 5th Ave & 42nd St (Bryant Park)",
-        "city": "New York",
-        "city_en": "New York",
-        "region": "New York / Manhattan",
-        "district": "NYC DOT / NY511",
-        "country": "US",
-        "flag": "🇺🇸",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 40.7536,
-        "lon": -73.9832,
-        "fov_deg": 100,
-        "stream_type": "hls",
-        "stream_url": "https://webcams.nyctmc.org/api/cameras",
-        "snapshot_url": "https://images.unsplash.com/photo-1496868834840-5f4c98840aaa?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "NYC DOT 511 (via GitHub: OpenTrafficCamMap)",
-        "source_repo": "AidanWelch/OpenTrafficCamMap",
-        "source_repo_url": "https://github.com/AidanWelch/OpenTrafficCamMap",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_US_MIA_04",
-        "name": "Miami — MacArthur Causeway & PortMiami",
-        "city": "Miami",
-        "city_en": "Miami",
-        "region": "Florida / Miami-Dade",
-        "district": "Florida DOT (FL511)",
-        "country": "US",
-        "flag": "🇺🇸",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 25.7781,
-        "lon": -80.1792,
-        "fov_deg": 130,
-        "stream_type": "hls",
-        "stream_url": "https://fl511.com/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Florida 511 (via GitHub: sentinel-feed-grid)",
-        "source_repo": "movingdevious/sentinel-feed-grid",
-        "source_repo_url": "https://github.com/movingdevious/sentinel-feed-grid",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_US_CHI_05",
-        "name": "Chicago — DuSable Lake Shore Drive & Navy Pier",
-        "city": "Chicago",
-        "city_en": "Chicago",
-        "region": "Illinois / Cook County",
-        "district": "Illinois DOT (IDOT)",
-        "country": "US",
-        "flag": "🇺🇸",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 41.8917,
-        "lon": -87.6086,
-        "fov_deg": 115,
-        "stream_type": "hls",
-        "stream_url": "https://travelmidwest.com/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Illinois DOT (via GitHub: OpenTrafficCamMap)",
-        "source_repo": "AidanWelch/OpenTrafficCamMap",
-        "source_repo_url": "https://github.com/AidanWelch/OpenTrafficCamMap",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_UK_LON_06",
-        "name": "London — M25 Dartford Crossing & River Thames",
-        "city": "London",
-        "city_en": "London",
-        "region": "Greater London / Kent",
-        "district": "UK National Highways",
-        "country": "GB",
-        "flag": "🇬🇧",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 51.4647,
-        "lon": 0.2581,
-        "fov_deg": 120,
-        "stream_type": "hls",
-        "stream_url": "https://nationalhighways.co.uk/traffic-cameras",
-        "snapshot_url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "UK National Highways (via GitHub: sentinel-feed-grid)",
-        "source_repo": "movingdevious/sentinel-feed-grid",
-        "source_repo_url": "https://github.com/movingdevious/sentinel-feed-grid",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_UK_TFL_07",
-        "name": "London — Piccadilly Circus & Shaftesbury Ave",
-        "city": "London",
-        "city_en": "London",
-        "region": "Greater London / Westminster",
-        "district": "Transport for London (TfL)",
-        "country": "GB",
-        "flag": "🇬🇧",
-        "category": "GitHub Open Data / Municipal",
-        "lat": 51.5101,
-        "lon": -0.1349,
-        "fov_deg": 110,
-        "stream_type": "hls",
-        "stream_url": "https://tfl.gov.uk/traffic/cameras",
-        "snapshot_url": "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "Transport for London TfL (via GitHub: OpenTrafficCamMap)",
-        "source_repo": "AidanWelch/OpenTrafficCamMap",
-        "source_repo_url": "https://github.com/AidanWelch/OpenTrafficCamMap",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_AU_SYD_08",
-        "name": "Sydney — Sydney Harbour Bridge & Cahill Expressway",
-        "city": "Sydney",
-        "city_en": "Sydney",
-        "region": "New South Wales",
-        "district": "Transport for NSW (Live Traffic)",
-        "country": "AU",
-        "flag": "🇦🇺",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": -33.8568,
-        "lon": 151.2153,
-        "fov_deg": 140,
-        "stream_type": "hls",
-        "stream_url": "https://livetraffic.com/cameras",
-        "snapshot_url": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "NSW Live Traffic (via GitHub: sentinel-feed-grid)",
-        "source_repo": "movingdevious/sentinel-feed-grid",
-        "source_repo_url": "https://github.com/movingdevious/sentinel-feed-grid",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_CA_TOR_09",
-        "name": "Toronto — Gardiner Expressway & CN Tower",
-        "city": "Toronto",
-        "city_en": "Toronto",
-        "region": "Ontario / GTA",
-        "district": "Ministry of Transportation Ontario (511)",
-        "country": "CA",
-        "flag": "🇨🇦",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 43.6426,
-        "lon": -79.3871,
-        "fov_deg": 120,
-        "stream_type": "hls",
-        "stream_url": "https://511on.ca/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1517090504586-fde19ea6066f?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Ontario 511 (via GitHub: OpenTrafficCamMap)",
-        "source_repo": "AidanWelch/OpenTrafficCamMap",
-        "source_repo_url": "https://github.com/AidanWelch/OpenTrafficCamMap",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_SG_SIN_10",
-        "name": "Singapore — Marina Coastal Expressway & Keppel Port",
-        "city": "Singapore",
-        "city_en": "Singapore",
-        "region": "Central Region",
-        "district": "Land Transport Authority (LTA OneMotoring)",
-        "country": "SG",
-        "flag": "🇸🇬",
-        "category": "GitHub Open Data / Maritime Traffic",
-        "lat": 1.2721,
-        "lon": 103.8532,
-        "fov_deg": 130,
-        "stream_type": "hls",
-        "stream_url": "https://datamall.lta.gov.sg/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Singapore LTA (via GitHub: Live-Environment-Streams)",
-        "source_repo": "willytop8/Live-Environment-Streams",
-        "source_repo_url": "https://github.com/willytop8/Live-Environment-Streams",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_JP_TYO_11",
-        "name": "Tokyo — Shinjuku Station & Koshu Kaido Overpass",
-        "city": "Tokyo",
-        "city_en": "Tokyo",
-        "region": "Kanto / Shinjuku",
-        "district": "Tokyo Metropolitan Highway (Shutoko)",
-        "country": "JP",
-        "flag": "🇯🇵",
-        "category": "GitHub Open Data / Metropolitan",
-        "lat": 35.6896,
-        "lon": 139.7006,
-        "fov_deg": 115,
-        "stream_type": "hls",
-        "stream_url": "https://shutoko.jp/traffic/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Shutoko Metropolitan Expressway (via GitHub: Live-Environment-Streams)",
-        "source_repo": "willytop8/Live-Environment-Streams",
-        "source_repo_url": "https://github.com/willytop8/Live-Environment-Streams",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_FR_PAR_12",
-        "name": "Paris — Boulevard Périphérique & Porte de Versailles",
-        "city": "Paris",
-        "city_en": "Paris",
-        "region": "Île-de-France",
-        "district": "Direction des Routes Île-de-France (DiRIF)",
-        "country": "FR",
-        "flag": "🇫🇷",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 48.8315,
-        "lon": 2.2882,
-        "fov_deg": 110,
-        "stream_type": "hls",
-        "stream_url": "https://sytadin.fr/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "Sytadin / DiRIF (via GitHub: OpenTrafficCamMap)",
-        "source_repo": "AidanWelch/OpenTrafficCamMap",
-        "source_repo_url": "https://github.com/AidanWelch/OpenTrafficCamMap",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_DE_BER_13",
-        "name": "Berlin — Alexanderplatz & Karl-Liebknecht-Str.",
-        "city": "Berlin",
-        "city_en": "Berlin",
-        "region": "Berlin-Mitte",
-        "district": "Verkehrslenkung Berlin (VLB)",
-        "country": "DE",
-        "flag": "🇩🇪",
-        "category": "GitHub Open Data / Metropolitan",
-        "lat": 52.5219,
-        "lon": 13.4132,
-        "fov_deg": 125,
-        "stream_type": "hls",
-        "stream_url": "https://viz.berlin.de/webcams",
-        "snapshot_url": "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "Verkehrs-Informations-Zentrale Berlin (via GitHub: Live-Environment-Streams)",
-        "source_repo": "willytop8/Live-Environment-Streams",
-        "source_repo_url": "https://github.com/willytop8/Live-Environment-Streams",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_NL_AMS_14",
-        "name": "Amsterdam — A10 Ring & Zuidas Financial District",
-        "city": "Amsterdam",
-        "city_en": "Amsterdam",
-        "region": "North Holland",
-        "district": "Rijkswaterstaat Verkeersinformatie",
-        "country": "NL",
-        "flag": "🇳🇱",
-        "category": "GitHub Open Data / DOT Traffic",
-        "lat": 52.3376,
-        "lon": 4.8724,
-        "fov_deg": 120,
-        "stream_type": "hls",
-        "stream_url": "https://rwsverkeersinfo.nl/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 25,
-        "operator": "Rijkswaterstaat (via GitHub: Live-Environment-Streams)",
-        "source_repo": "willytop8/Live-Environment-Streams",
-        "source_repo_url": "https://github.com/willytop8/Live-Environment-Streams",
-        "status": "ONLINE",
-    },
-    {
-        "id": "CAM_GH_AE_DXB_15",
-        "name": "Dubai — Sheikh Zayed Road & Dubai Trade Centre",
-        "city": "Dubai",
-        "city_en": "Dubai",
-        "region": "Emirate of Dubai",
-        "district": "Roads & Transport Authority (RTA)",
-        "country": "AE",
-        "flag": "🇦🇪",
-        "category": "GitHub Open Data / Metropolitan",
-        "lat": 25.2285,
-        "lon": 55.2872,
-        "fov_deg": 135,
-        "stream_type": "hls",
-        "stream_url": "https://traffic.rta.ae/cctv",
-        "snapshot_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=900&auto=format&fit=crop&q=80",
-        "resolution": "1080p FHD",
-        "fps": 30,
-        "operator": "Dubai RTA Traffic Monitoring (via GitHub: Live-Environment-Streams)",
-        "source_repo": "willytop8/Live-Environment-Streams",
-        "source_repo_url": "https://github.com/willytop8/Live-Environment-Streams",
-        "status": "ONLINE",
-    },
-]
+GITHUB_SOURCED_CAMERAS: List[Dict[str, Any]] = UNIFIED_GITHUB_CAMERAS
 
 # Combined Master Catalog (RF + Global + GitHub Sourced)
 ALL_CAMERAS: List[Dict[str, Any]] = RU_CAMERAS_CATALOG + GLOBAL_CAMERAS_CATALOG + GITHUB_SOURCED_CAMERAS
@@ -2081,6 +1741,45 @@ async def list_github_camera_sources():
     }
 
 
+@router.post("/sources/sync")
+@router.post("/sources/sync/")
+async def trigger_sources_sync():
+    """
+    Запускает синхронизацию и агрегацию фидов со всех 9 проверенных репозиториев GitHub.
+    Обновляет внутреннее состояние, нормализует схемы и возвращает свежую статистику.
+    """
+    return sync_all_repositories()
+
+
+@router.get("/sources/stats")
+@router.get("/sources/stats/")
+async def get_github_sources_stats():
+    """
+    Возвращает агрегированную статистику и телеметрию по всем 9 репозиториям GitHub:
+    распределение по протоколам (GeoJSON, HLS, RTSP, MJPEG), покрытие стран и статус синхронизации.
+    """
+    stats = get_sources_stats()
+    return {
+        "success": True,
+        "stats": stats,
+    }
+
+
+@router.get("/sources/{repo_id}")
+@router.get("/sources/{repo_id}/")
+async def get_cameras_for_repository(repo_id: str):
+    """
+    Возвращает список камер, привязанных к конкретному репозиторию GitHub.
+    """
+    cameras = get_cameras_by_repo(repo_id)
+    return {
+        "success": True,
+        "repo_id": repo_id,
+        "count": len(cameras),
+        "cameras": cameras,
+    }
+
+
 @router.get("")
 @router.get("/")
 async def list_open_cameras(
@@ -2089,6 +1788,9 @@ async def list_open_cameras(
     district: Optional[str] = Query(None, description="Федеральный округ РФ или мировой регион"),
     category: Optional[str] = Query(None, description="Категория (Metropolitan, Maritime, Aviation, etc.)"),
     source: Optional[str] = Query(None, description="Фильтр по источнику (github, ru, global)"),
+    repo_id: Optional[str] = Query(None, description="Фильтр по репозиторию GitHub"),
+    protocol: Optional[str] = Query(None, description="Фильтр по протоколу потока (GeoJSON, HLS, RTSP, MJPEG)"),
+    format: Optional[str] = Query(None, description="Фильтр по формату источника (GeoJSON, JSON, M3U8, etc.)"),
     limit: int = Query(200, ge=1, le=500),
 ):
     """
@@ -2106,6 +1808,18 @@ async def list_open_cameras(
             results = [c for c in results if c["country"] == "RU"]
         elif s_src == "global":
             results = [c for c in results if c["country"] != "RU"]
+
+    if repo_id:
+        r_id = repo_id.lower().strip()
+        results = [c for c in results if r_id in c.get("source_repo", "").lower() or r_id in c.get("id", "").lower()]
+
+    if protocol:
+        p_lower = protocol.lower().strip()
+        results = [c for c in results if p_lower in c.get("protocol", "").lower() or p_lower in c.get("stream_type", "").lower()]
+
+    if format:
+        f_lower = format.lower().strip()
+        results = [c for c in results if f_lower in c.get("source_format", "").lower()]
 
     if country:
         c_upper = country.upper()

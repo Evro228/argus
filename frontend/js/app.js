@@ -2093,9 +2093,13 @@ const App = {
           const camsData = await camsRes.json();
           cachedCameras = camsData.cameras || [];
           const countTotal = document.getElementById('cctv-count-total');
-          if (countTotal) countTotal.textContent = cachedCameras.length;
+          if (countTotal) countTotal.textContent = camsData.total_catalog || cachedCameras.length;
+          const countTotalHdr = document.getElementById('cctv-count-total-hdr');
+          if (countTotalHdr) countTotalHdr.textContent = camsData.total_catalog || cachedCameras.length;
           const countGh = document.getElementById('cctv-count-github');
           if (countGh) countGh.textContent = camsData.github_catalog_count || cachedCameras.filter(c => c.source_repo).length;
+          const countGhHdr = document.getElementById('cctv-count-github-hdr');
+          if (countGhHdr) countGhHdr.textContent = camsData.github_catalog_count || cachedCameras.filter(c => c.source_repo).length;
         }
         if (citiesRes.ok) {
           const citiesData = await citiesRes.json();
@@ -2147,6 +2151,7 @@ const App = {
       reposGrid.innerHTML = '';
 
       cachedRepos.forEach(repo => {
+        const repoCams = cachedCameras.filter(c => (c.source_repo || '').toLowerCase() === repo.name.toLowerCase() || (c.source_repo || '').toLowerCase().includes(repo.name.toLowerCase()));
         const card = document.createElement('div');
         card.className = 'p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-purple-500/50 shadow-md flex flex-col justify-between transition space-y-3';
         
@@ -2171,6 +2176,7 @@ const App = {
             </p>
 
             <div class="flex flex-wrap gap-1.5 text-[10px] font-mono mb-2">
+              <span class="px-2 py-0.5 rounded bg-purple-900/50 text-purple-200 border border-purple-500/40 font-bold">📹 ${repoCams.length} подключено</span>
               <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">📦 ${escapeHtml(repo.volume)}</span>
               <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30">📡 ${escapeHtml(repo.format)}</span>
               <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30">🌐 ${escapeHtml(repo.coverage)}</span>
@@ -2186,8 +2192,8 @@ const App = {
             <a href="${escapeHtml(repo.url)}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition flex items-center space-x-1">
               <span>🔗</span> <span>GitHub</span>
             </a>
-            <button class="btn-filter-repo-cams px-3 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold transition flex items-center space-x-1">
-              <span>⚡</span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ</span>
+            <button class="btn-filter-repo-cams px-3 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold transition flex items-center space-x-1 cursor-pointer">
+              <span>⚡</span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ (${repoCams.length})</span>
             </button>
           </div>
         `;
@@ -2272,18 +2278,26 @@ const App = {
           </span>
         ` : '';
 
+        const protoName = cam.protocol || (cam.stream_type ? cam.stream_type.toUpperCase() : 'HLS');
+        const protoBadge = `
+          <span class="px-1.5 py-0.5 rounded bg-indigo-950/90 border border-indigo-500/40 text-indigo-300 text-[9px] font-mono font-bold">
+            [${escapeHtml(protoName)}]
+          </span>
+        `;
+
         card.innerHTML = `
           <div class="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
             <img src="${escapeHtml(cam.snapshot_url)}" alt="${escapeHtml(cam.name)}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
             
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 p-2.5 flex flex-col justify-between pointer-events-none">
               <div class="flex justify-between items-start">
-                <div class="flex items-center space-x-1.5">
+                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
                   <span class="px-2 py-0.5 rounded bg-black/70 border border-teal-500/40 text-teal-300 text-[10px] font-mono font-bold flex items-center space-x-1">
                     <span>${cam.flag}</span>
                     <span>${escapeHtml(cam.city)}</span>
                   </span>
                   ${sourceBadge}
+                  ${protoBadge}
                 </div>
                 <span class="px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-400 text-[9px] font-mono font-bold flex items-center space-x-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
@@ -2364,6 +2378,48 @@ const App = {
     if (openTopBtn) openTopBtn.addEventListener('click', openModal);
     if (openMapBtn) openMapBtn.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    const btnSyncAllRepos = document.getElementById('btn-sync-all-repos');
+    if (btnSyncAllRepos) {
+      btnSyncAllRepos.addEventListener('click', async () => {
+        try {
+          btnSyncAllRepos.disabled = true;
+          btnSyncAllRepos.innerHTML = '<span>⏳</span> <span>СИНХРОНИЗАЦИЯ ВСЕХ 9 РЕПОЗИТОРИЕВ...</span>';
+          const res = await fetch('/api/cameras/sources/sync', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            this.log(`[CCTV AGGREGATOR] ⚡ ${data.message || 'Синхронизация завершена успешно'}`, 'success');
+            await loadData();
+            
+            const statsBar = document.getElementById('cctv-repos-stats-bar');
+            if (statsBar && data.stats) {
+              const s = data.stats;
+              statsBar.innerHTML = `
+                <span class="flex items-center space-x-1"><span>🏛️</span> <span>${s.total_repositories || 9} репозиториев</span></span>
+                <span>•</span>
+                <span class="flex items-center space-x-1"><span>📹</span> <span class="text-teal-300 font-bold">${s.total_github_cameras || 54} агрегированных потоков (124 в каталоге)</span></span>
+                <span>•</span>
+                <span class="flex items-center space-x-1"><span>📡</span> <span>4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
+                <span>•</span>
+                <span class="flex items-center space-x-1"><span>🌍</span> <span>${s.total_countries || 35}+ стран</span></span>
+                <span>•</span>
+                <span class="text-emerald-400 font-bold">✓ СИНХРОНИЗИРОВАНО (${s.last_sync ? s.last_sync.slice(11, 19) : 'UTC'})</span>
+              `;
+            }
+          } else {
+            this.log('[CCTV AGGREGATOR] ❌ Ошибка синхронизации репозиториев', 'error');
+          }
+        } catch (err) {
+          this.log('[CCTV AGGREGATOR] ❌ Сбой: ' + err.message, 'error');
+        } finally {
+          btnSyncAllRepos.disabled = false;
+          btnSyncAllRepos.innerHTML = '<span>⚡</span> <span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>';
+        }
+      });
+    }
 
     // Hotkey: Cmd + U or Ctrl + U
     window.addEventListener('keydown', (e) => {

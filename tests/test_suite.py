@@ -747,8 +747,8 @@ try:
     open_traffic = next((r for r in repos if "OpenTrafficCamMap" in r.get("name", "")), None)
     sentinel = next((r for r in repos if "sentinel-feed-grid" in r.get("name", "")), None)
     
-    la_cam = next((c for c in gh_cams if "CAM_GH_US_LA_01" == c.get("id")), None)
-    lon_cam = next((c for c in gh_cams if "CAM_GH_UK_LON_06" == c.get("id")), None)
+    la_cam = next((c for c in gh_cams if "Los Angeles" in c.get("name", "") or c.get("city") == "Los Angeles"), None)
+    lon_cam = next((c for c in gh_cams if "London" in c.get("name", "") or c.get("city") == "London"), None)
 
     passed = (
         sources_res.status_code == 200
@@ -767,6 +767,48 @@ try:
     record("46. GitHub Open Cameras Repositories & Feeds", passed, f"Indexed: {len(repos)} GitHub repositories | Sourced: {len(gh_cams)} live traffic/metro feeds | Total: {sources_data.get('total_catalog_count')}")
 except Exception as e:
     record("46. GitHub Open Cameras Repositories & Feeds", False, str(e))
+
+# 47. Unified Multi-Repository Aggregator & Protocol Engine
+try:
+    sync_res = client.post("/api/cameras/sources/sync")
+    sync_data = sync_res.json()
+    
+    stats_res = client.get("/api/cameras/sources/stats")
+    stats_data = stats_res.json()
+    stats = stats_data.get("stats", {})
+    
+    # Filter by repo
+    repo_cams_res = client.get("/api/cameras/sources/Live-Environment-Streams")
+    repo_cams_data = repo_cams_res.json()
+    repo_cams = repo_cams_data.get("cameras", [])
+    
+    # Filter by protocol
+    proto_cams_res = client.get("/api/cameras?protocol=rtsp")
+    proto_cams_data = proto_cams_res.json()
+    proto_cams = proto_cams_data.get("cameras", [])
+    
+    # Total catalog count
+    all_cams_res = client.get("/api/cameras?limit=300")
+    all_cams_data = all_cams_res.json()
+    total_count = all_cams_data.get("total_catalog", 0)
+    
+    passed = (
+        sync_res.status_code == 200
+        and sync_data.get("success") is True
+        and "синхронизировано" in sync_data.get("message", "").lower()
+        and stats_res.status_code == 200
+        and stats_data.get("success") is True
+        and stats.get("total_github_cameras", 0) >= 50
+        and stats.get("total_repositories", 0) >= 9
+        and len(stats.get("protocols", {})) >= 4
+        and repo_cams_res.status_code == 200
+        and len(repo_cams) >= 5
+        and len(proto_cams) >= 5
+        and total_count >= 120
+    )
+    record("47. Unified Multi-Repository Aggregator & Protocol Engine", passed, f"Repositories: {stats.get('total_repositories')} | Aggregated Cams: {stats.get('total_github_cameras')} | Protocols: {list(stats.get('protocols', {}).keys())} | Total Catalog: {total_count}")
+except Exception as e:
+    record("47. Unified Multi-Repository Aggregator & Protocol Engine", False, str(e))
 
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
