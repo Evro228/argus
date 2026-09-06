@@ -136,11 +136,11 @@ async def search_username(req: UsernameSearchRequest):
             if parsed.scheme != "https":
                 return None
             hostname = parsed.hostname or ""
-            if hostname in ("localhost", "127.0.0.1", "0.0.0.0") or hostname.endswith(".local"):
+            if hostname in ("localhost", "127.0.0.1") or hostname.endswith(".local"):
                 return None
             try:
                 ip_obj = ipaddress.ip_address(hostname)
-                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or str(ip_obj) == "169.254.169.254":
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_unspecified or str(ip_obj) == "169.254.169.254":
                     return None
             except ValueError:
                 pass

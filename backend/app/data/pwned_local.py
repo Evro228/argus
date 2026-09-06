@@ -98,7 +98,7 @@ async def check_password_breach_automated(password: str, offline_only: bool = Fa
             "recommendation": "Длина пароля превышает допустимый лимит 1024 символов."
         }
     
-    sha1 = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
+    sha1 = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper()
     
     # 1. Instant offline check
     if sha1 in OFFLINE_TOP_BREACHED_HASHES:
