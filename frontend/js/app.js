@@ -1132,6 +1132,105 @@ const App = {
         reportBtn.textContent = 'СОСТАВИТЬ ОТЧЕТ ⚡';
       }
     });
+
+    // AI SOC Copilot (Anthropic Grounded) Assistant
+    const aiInput = document.getElementById('ai-assist-input');
+    const aiBtn = document.getElementById('btn-ai-assist-send');
+    const aiOutput = document.getElementById('ai-assist-output');
+    const aiBadge = document.getElementById('ai-provider-badge');
+
+    const handleAiAssist = async () => {
+      const q = (aiInput ? aiInput.value : '').trim();
+      if (!q) return;
+
+      if (aiBtn) {
+        aiBtn.disabled = true;
+        aiBtn.textContent = 'ДУМАЕТ... ⏳';
+      }
+      this.log(`[AI COPILOT] Запрос к ассистенту: "${q}"...`, 'system');
+
+      try {
+        const res = await fetch(`${API_BASE}/analyst/assist`, {
+          method: 'POST',
+          headers: getApiHeaders(),
+          body: JSON.stringify({ query: q, context: 'ARGUS Workstation Defense' })
+        });
+        const data = await res.json();
+        if (data.success && aiOutput) {
+          aiOutput.classList.remove('hidden');
+          if (aiBadge) aiBadge.textContent = data.provider || 'Anthropic Grounded';
+
+          let rendered = escapeHtml(data.answer)
+            .replace(/### (.*?)\n/g, '<h4 class="text-sky-400 font-bold text-xs mt-2">$1</h4>')
+            .replace(/#### (.*?)\n/g, '<h5 class="text-amber-400 font-bold text-xs mt-1.5">$1</h5>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-100">$1</strong>')
+            .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-slate-900 border border-slate-700 text-sky-300 font-mono text-[11px]">$1</code>');
+
+          let cmdsHtml = '';
+          if (data.suggested_commands && data.suggested_commands.length > 0) {
+            cmdsHtml = `
+              <div class="mt-3 pt-2 border-t border-slate-800">
+                <div class="text-[10px] text-slate-400 uppercase font-bold mb-1.5">РЕКОМЕНДУЕМЫЕ КОМАНДЫ ТЕРМИНАЛА:</div>
+                <div class="space-y-1">
+                  ${data.suggested_commands.map(cmd => `
+                    <div class="flex items-center justify-between p-1.5 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-[11px] font-mono text-emerald-300">
+                      <span class="truncate mr-2">$ ${escapeHtml(cmd)}</span>
+                      <button class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[9px] text-slate-300 transition" onclick="navigator.clipboard.writeText('${escapeHtml(cmd)}'); window.argusApp.log('[CLIPBOARD] Команда скопирована', 'success');">Копировать</button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          let playbooksHtml = '';
+          if (data.matched_playbooks && data.matched_playbooks.length > 0) {
+            playbooksHtml = `
+              <div class="mt-3 pt-2 border-t border-slate-800 flex flex-wrap items-center gap-1.5">
+                <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">ПЛЕЙБУКИ:</span>
+                ${data.matched_playbooks.map(p => `
+                  <button class="px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-mono text-sky-300 transition" onclick="window.argusApp.switchTab('tab-playbooks'); window.argusApp.viewSkillDetail('${escapeHtml(p.name)}');">
+                    📖 ${escapeHtml(p.name)}
+                  </button>
+                `).join('')}
+              </div>
+            `;
+          }
+
+          aiOutput.innerHTML = `
+            <div class="space-y-1 leading-relaxed text-slate-300 whitespace-pre-line">
+              ${rendered}
+            </div>
+            ${cmdsHtml}
+            ${playbooksHtml}
+          `;
+
+          this.log(`[AI COPILOT] Ответ сформирован (${data.matched_playbooks.length} плейбуков)`, 'success');
+          this.recordHistory('AI Copilot', 'Query Assistance', `Вопрос: "${q.slice(0, 30)}..." -> ${data.matched_playbooks.length} плейбуков`, 100);
+        } else if (aiOutput) {
+          aiOutput.classList.remove('hidden');
+          aiOutput.innerHTML = `<div class="text-rose-400">Ошибка: ${escapeHtml(data.error || 'Не удалось получить ответ')}</div>`;
+        }
+      } catch (err) {
+        if (aiOutput) {
+          aiOutput.classList.remove('hidden');
+          aiOutput.innerHTML = `<div class="text-rose-400">Ошибка сервиса: ${escapeHtml(err.message)}</div>`;
+        }
+        this.log(`[AI COPILOT] Ошибка: ${err.message}`, 'error');
+      } finally {
+        if (aiBtn) {
+          aiBtn.disabled = false;
+          aiBtn.textContent = 'СПРОСИТЬ ⚡';
+        }
+      }
+    };
+
+    if (aiBtn) aiBtn.addEventListener('click', handleAiAssist);
+    if (aiInput) {
+      aiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleAiAssist();
+      });
+    }
   },
 
   async initAirGapToggle() {

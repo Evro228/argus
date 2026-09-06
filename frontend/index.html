@@ -166,13 +166,33 @@
       <div id="tab-geoint" class="tab-content space-y-4">
         
         <!-- Screen Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center space-x-3">
             <span class="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold flex items-center">
               <span class="w-2 h-2 rounded-full bg-rose-500 mr-2 animate-pulse"></span>
               <span data-i18n="liveAttackStream">LIVE ATTACK STREAM</span>
             </span>
-            <span class="text-xs text-slate-400 font-mono" data-i18n="interactiveThreatMap">Interactive Dark Threat Map</span>
+            <span class="text-xs text-slate-400 font-mono" data-i18n="interactiveThreatMap">Tactical GEOINT & Orbital Radar</span>
+          </div>
+
+          <!-- Tactical Layer Toggles -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto">
+            <button id="btn-layer-sats" class="layer-pill active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-cyan-500/30">
+              <span>🛰️</span>
+              <span>NORAD SAT (<span id="count-sats">6</span>)</span>
+            </button>
+            <button id="btn-layer-air" class="layer-pill active px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-emerald-500/30">
+              <span>✈️</span>
+              <span>ADS-B (<span id="count-air">8</span>)</span>
+            </button>
+            <button id="btn-layer-hotspots" class="layer-pill active px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-amber-500/30">
+              <span>🔥</span>
+              <span>FIRMS (<span id="count-hotspots">6</span>)</span>
+            </button>
+            <button id="btn-layer-cyber" class="layer-pill active px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-sky-500/30">
+              <span>⚡</span>
+              <span>CYBER ARCS</span>
+            </button>
           </div>
 
           <!-- View Mode Toggles -->
@@ -189,23 +209,23 @@
           <!-- Floating Target Telemetry HUD Card -->
           <div class="hud-card">
             <div class="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span data-i18n="targetInspection">TACTICAL TARGET INSPECTION</span>
-              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              <span id="hud-type-badge" data-i18n="targetInspection">TACTICAL TARGET INSPECTION</span>
+              <span id="hud-status-indicator" class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
             </div>
 
             <div class="space-y-2 mb-3">
               <div>
-                <div class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetIp">Node IP</div>
+                <div id="hud-title-label" class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetIp">Node IP / Target</div>
                 <div id="hud-target-ip" class="text-sm font-mono font-bold text-slate-100">198.51.100.42</div>
               </div>
 
               <div>
-                <div class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetCoords">Coordinates</div>
+                <div id="hud-coords-label" class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetCoords">Coordinates</div>
                 <div id="hud-target-coords" class="text-xs font-mono text-slate-300">50.1109° N, 8.6821° E Frankfurt, DE [EU-C1]</div>
               </div>
 
-              <div>
-                <div class="text-[10px] text-slate-500 font-mono uppercase mb-1" data-i18n="openPorts">Open Ports</div>
+              <div id="hud-details-container">
+                <div id="hud-details-label" class="text-[10px] text-slate-500 font-mono uppercase mb-1" data-i18n="openPorts">Open Ports</div>
                 <div id="hud-target-ports" class="grid grid-cols-3 gap-1.5">
                   <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
                     <div class="text-xs font-bold text-sky-400 font-mono">22</div>
@@ -222,9 +242,9 @@
                 </div>
               </div>
 
-              <div>
+              <div id="hud-threat-container">
                 <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase mb-1">
-                  <span data-i18n="threatLevel">Threat Level</span>
+                  <span id="hud-threat-label" data-i18n="threatLevel">Threat Level</span>
                   <span id="hud-target-threat-score" class="text-rose-400 font-bold">85%</span>
                 </div>
                 <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
@@ -698,6 +718,24 @@
               <div class="text-xs font-bold font-mono text-slate-300">ПРИОРИТИЗИРОВАННЫЙ ПЛАН УСТРАНЕНИЯ РИСКОВ (ACTIONABLE REMEDIATIONS):</div>
               <div id="analyst-remediations-list" class="space-y-1 text-xs font-mono text-slate-400">
                 <div>Нажмите «Составить отчет» для анализа состояния хоста и сканирований.</div>
+              </div>
+            </div>
+
+            <!-- AI SOC Copilot (Anthropic Grounded) Assistant -->
+            <div class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm">🤖</span>
+                  <span class="text-xs font-bold font-mono text-sky-400">AI SOC COPILOT // ANTHROPIC PLAYBOOKS ASSISTANT</span>
+                </div>
+                <span id="ai-provider-badge" class="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">Grounded 818 Skills</span>
+              </div>
+              <div class="flex space-x-2">
+                <input id="ai-assist-input" type="text" placeholder="Задайте вопрос по инциденту (например: jwt signature bypass, ransomware containment, mimikatz, aws s3 leak)..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-sky-500 outline-none">
+                <button id="btn-ai-assist-send" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">СПРОСИТЬ ⚡</button>
+              </div>
+              <div id="ai-assist-output" class="text-xs font-mono text-slate-300 space-y-2 p-3 rounded bg-slate-950/80 border border-slate-800/80 max-h-80 overflow-y-auto hidden">
+                <!-- Answer populated dynamically -->
               </div>
             </div>
 

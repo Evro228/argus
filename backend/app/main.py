@@ -11,6 +11,7 @@ from backend.app.api import (
     audit,
     crypto,
     forensics,
+    geoint,
     network,
     opsec,
     osint,
@@ -145,6 +146,7 @@ app.include_router(network.router, prefix="/api/network", tags=["Network & Scann
 app.include_router(forensics.router, prefix="/api/forensics", tags=["Forensics & EXIF"])
 app.include_router(opsec.router, prefix="/api/opsec", tags=["OPSEC & Privacy"])
 app.include_router(analyst.router, prefix="/api/analyst", tags=["Security Analyst"])
+app.include_router(geoint.router, prefix="/api/geoint", tags=["GEOINT & Tactical Radar"])
 
 
 @app.get("/api/health")

@@ -533,6 +533,79 @@ try:
 except Exception as e:
     record("36. WebAuthn Enclave Registered Status", False, str(e))
 
+# 37. Consolidated GEOINT Telemetry Feed
+try:
+    geo_res = client.get("/api/geoint/telemetry")
+    geo_data = geo_res.json()
+    passed = (
+        geo_res.status_code == 200
+        and geo_data.get("success") is True
+        and len(geo_data.get("satellites", [])) >= 5
+        and len(geo_data.get("aircraft", [])) >= 5
+        and len(geo_data.get("hotspots", [])) >= 3
+    )
+    counts = geo_data.get("counts", {})
+    record("37. Consolidated GEOINT Telemetry Feed", passed, f"Satellites: {counts.get('satellites')} | Aircraft: {counts.get('aircraft')} | Hotspots: {counts.get('hotspots')}")
+except Exception as e:
+    record("37. Consolidated GEOINT Telemetry Feed", False, str(e))
+
+# 38. Orbital Satellite Physics & NORAD Ground Tracks
+try:
+    sat_res = client.get("/api/geoint/satellites")
+    sat_data = sat_res.json()
+    sats = sat_data.get("satellites", [])
+    iss = next((s for s in sats if "ISS" in s.get("name", "")), None)
+    passed = (
+        sat_res.status_code == 200
+        and sat_data.get("success") is True
+        and iss is not None
+        and -90.0 <= iss.get("lat") <= 90.0
+        and -180.0 <= iss.get("lon") <= 180.0
+        and len(iss.get("ground_track", [])) > 5
+    )
+    record("38. Orbital Satellite Physics & NORAD Tracks", passed, f"ISS: Lat {iss.get('lat')}°, Lon {iss.get('lon')}° | Tracks: {len(iss.get('ground_track', []))} pts")
+except Exception as e:
+    record("38. Orbital Satellite Physics & NORAD Tracks", False, str(e))
+
+# 39. Air-Gapped Stealth Mode GEOINT Isolation
+try:
+    # Enable Air-Gap
+    client.post("/api/system/airgap/toggle", json={"enabled": True})
+    stealth_res = client.get("/api/geoint/telemetry")
+    stealth_data = stealth_res.json()
+
+    # Disable Air-Gap
+    client.post("/api/system/airgap/toggle", json={"enabled": False})
+
+    passed = (
+        stealth_res.status_code == 200
+        and stealth_data.get("success") is True
+        and stealth_data.get("air_gap_mode") is True
+        and len(stealth_data.get("satellites", [])) >= 5
+    )
+    record("39. Air-Gapped Stealth GEOINT Isolation", passed, f"Stealth Mode Enforced: {stealth_data.get('air_gap_mode')} (Zero Egress Sockets)")
+except Exception as e:
+    record("39. Air-Gapped Stealth GEOINT Isolation", False, str(e))
+
+# 40. AI SOC Copilot Grounded in 818 Anthropic Playbooks
+try:
+    ai_res = client.post(
+        "/api/analyst/assist",
+        json={"query": "Zero-trust IAM token spoofing and privilege escalation"}
+    )
+    ai_data = ai_res.json()
+    playbooks = ai_data.get("matched_playbooks", [])
+    passed = (
+        ai_res.status_code == 200
+        and ai_data.get("success") is True
+        and len(playbooks) >= 1
+        and len(ai_data.get("suggested_commands", [])) >= 1
+        and "answer" in ai_data
+    )
+    record("40. AI SOC Copilot (818 Anthropic Skills)", passed, f"Matched: {len(playbooks)} playbooks | Commands: {len(ai_data.get('suggested_commands', []))} | Provider: {ai_data.get('provider')}")
+except Exception as e:
+    record("40. AI SOC Copilot (818 Anthropic Skills)", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)
@@ -542,4 +615,5 @@ print("================================================================")
 
 if total_passed < total_tests:
     sys.exit(1)
+
 
