@@ -34,9 +34,7 @@ def convert_to_degrees(value):
 
 
 def safe_parse_coordinates(coord_val):
-    """
-    Secure coordinate parsing using ast.literal_eval to eliminate RCE via eval().
-    """
+    """Parse coordinate string or tuple safely."""
     if coord_val is None:
         return None
     val = coord_val
@@ -148,7 +146,7 @@ async def extract_image_exif(file: UploadFile = File(...)):
     }
 
 
-# --- Dangerzone & PDF Security Inspector ---
+# PDF security inspection
 @router.post("/pdf/inspect")
 async def inspect_pdf_security(file: UploadFile = File(...)):
     try:
@@ -223,9 +221,7 @@ async def inspect_pdf_security(file: UploadFile = File(...)):
     }
 
 
-# ----------------------------------------------------------------------
-# YARA & SIGMA THREAT INSPECTOR ENGINE
-# ----------------------------------------------------------------------
+# Threat inspection engine
 from pydantic import BaseModel
 from backend.app.utils.threat_rules import GLOBAL_THREAT_ENGINE
 

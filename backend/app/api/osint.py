@@ -94,7 +94,7 @@ async def search_username(req: UsernameSearchRequest):
     if not username:
         return {"success": False, "error": "Введите никнейм для поиска."}
 
-    # Strict alphanumeric + safe delimiter check (prevents SSRF / path injection)
+    # Alphanumeric format check
     if not re.fullmatch(r"[a-zA-Z0-9_.-]{1,64}", username):
         return {
             "success": False,
@@ -129,7 +129,7 @@ async def search_username(req: UsernameSearchRequest):
             check_url = site["check_url"].format(username)
             profile_url = site["url"].format(username)
 
-            # SSRF Protection: Validate URL scheme and target host (V-10)
+            # Validate scheme and target host
             from urllib.parse import urlparse
             import ipaddress
             parsed = urlparse(check_url)

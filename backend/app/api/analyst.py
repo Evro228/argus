@@ -147,10 +147,7 @@ class AnalystAssistRequest(BaseModel):
 
 @router.post("/assist")
 async def assist_operator(req: AnalystAssistRequest):
-    """
-    Autonomous AI SOC Copilot grounded directly in the 818 Anthropic Cybersecurity Playbooks.
-    Supports local Ollama if available, with instant offline fallback synthesis.
-    """
+    """Incident analysis copilot grounded in playbooks and LLM fallback."""
     import os
     import re
     import httpx
@@ -160,7 +157,7 @@ async def assist_operator(req: AnalystAssistRequest):
     if not clean_query:
         return {"success": False, "error": "Запрос не может быть пустым."}
 
-    # 1. Search across 818 Anthropic Skills
+    # Search skills library
     all_skills = _load_skills()
     tokens = [t for t in re.split(r"[\s,;:\-_/]+", clean_query.lower()) if len(t) > 2]
 
@@ -180,11 +177,10 @@ async def assist_operator(req: AnalystAssistRequest):
     scored.sort(key=lambda x: x[0], reverse=True)
     top_skills = [item[1] for item in scored[:5]]
 
-    # If no exact token match, provide top foundational defensive skills
     if not top_skills and all_skills:
         top_skills = all_skills[:3]
 
-    # 2. Extract playbooks content snippets
+    # Extract playbook snippets
     matched_playbooks = []
     playbook_snippets = []
     suggested_commands = []
@@ -218,7 +214,7 @@ async def assist_operator(req: AnalystAssistRequest):
         if content_preview:
             playbook_snippets.append(f"### Playbook: {s_name}\n{content_preview}")
 
-    # Fallback default commands if none parsed
+    # Fallback commands if none parsed
     if not suggested_commands:
         suggested_commands = [
             f"nmap -sV -sC -T4 {req.context or '127.0.0.1'}",
@@ -227,7 +223,7 @@ async def assist_operator(req: AnalystAssistRequest):
             "yara -r /rules/malware_index.yar ./payloads/",
         ]
 
-    # 3. Check for Local Ollama if not Air-Gapped
+    # Query local Ollama if air-gap is disabled
     ollama_response = None
     air_gap = is_air_gap_enabled()
     if not air_gap:
@@ -252,7 +248,7 @@ async def assist_operator(req: AnalystAssistRequest):
 
     provider = "Ollama Local LLM" if ollama_response else "ARGUS Autonomous SOC Engine (Anthropic Playbooks Grounded)"
 
-    # 4. Formulate structured response if Ollama was not active
+    # Offline response synthesis
     if not ollama_response:
         primary_skill = matched_playbooks[0]["name"] if matched_playbooks else "incident-response"
         md_response = [

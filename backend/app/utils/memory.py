@@ -7,7 +7,7 @@ import ctypes
 import os
 import platform
 
-# Suppress core dumps on POSIX (macOS & Linux) to prevent forensic RAM recovery
+# Suppress core dumps on POSIX
 if platform.system() in ("Darwin", "Linux"):
     try:
         import resource

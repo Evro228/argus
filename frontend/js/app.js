@@ -98,7 +98,7 @@ const App = {
     prefixSpan.textContent = ` ${prefix} `;
 
     const msgSpan = document.createElement('span');
-    msgSpan.textContent = message; // Safe text node prevents DOM XSS
+    msgSpan.textContent = message;
 
     line.append(timeSpan, prefixSpan, msgSpan);
     consoleEl.appendChild(line);

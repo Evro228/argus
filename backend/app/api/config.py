@@ -31,7 +31,7 @@ def read_keys() -> Dict[str, str]:
 
 def write_keys(keys_data: Dict[str, str]):
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-    # Strict 0600 permissions (read/write only by owner)
+    # Owner read/write only
     mode = stat.S_IRUSR | stat.S_IWUSR
     with os.fdopen(os.open(CONFIG_FILE, flags, mode), "w", encoding="utf-8") as f:
         json.dump(keys_data, f, indent=2)

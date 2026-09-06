@@ -96,7 +96,7 @@ async def scan_target_ports(req: ScanHostRequest):
 
     nmap_path = shutil.which("nmap")
 
-    # If user selected nmap and it's installed, run nmap with explicit '--' flag delimiter
+    # Run nmap with '--' delimiter
     if "nmap" in req.scan_type and nmap_path:
         cmd = ["nmap", "-T4", "--", target]
         if req.scan_type == "nmap_fast":
@@ -112,8 +112,8 @@ async def scan_target_ports(req: ScanHostRequest):
             "raw_output": res["output"],
         }
 
-    # Native Python Async Socket Scanner (Works everywhere without dependencies)
-    # Load local CVE database for zero-external-call correlation
+    # Native async socket scanner
+    # Correlate with local CVE database
     import json
     import os
     cve_path = os.path.join(os.path.dirname(__file__), "..", "data", "cve_signatures.json")
@@ -332,10 +332,7 @@ async def get_user_ip_telemetry():
     }
 
 
-# ----------------------------------------------------------------------
-# 2. 1-CLICK LAN ASSET DISCOVERY & DEVICE FINGERPRINTING ENGINE
-# ARP Table Scanner, OUI Vendor Classifier & Open Camera (RTSP) Prober
-# ----------------------------------------------------------------------
+# LAN asset discovery & device fingerprinting
 OUI_DATABASE: Dict[str, str] = {
     "44:f7:70": "Xiaomi Communications",
     "64:90:c1": "Xiaomi Inc.",
@@ -567,9 +564,7 @@ async def get_discovered_lan_devices():
     }
 
 
-# ----------------------------------------------------------------------
-# WEBSDR & RADIO FREQUENCY (RF) SPECTRUM DIRECTORY
-# ----------------------------------------------------------------------
+# WebSDR and RF spectrum directory
 RF_FREQUENCIES_CATALOG = [
     {
         "id": "FREQ_CIVIL_AIR_GUARD",

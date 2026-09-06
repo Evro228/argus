@@ -88,7 +88,7 @@ async def check_password_breach_automated(password: str, offline_only: bool = Fa
     if not password:
         return {"breached": False, "count": 0, "source": "empty"}
 
-    # V-08: Bounded input to prevent CPU exhaustion on oversized strings
+    # Input length check
     if len(password) > 1024:
         return {
             "breached": False,

@@ -108,7 +108,7 @@ async def calculate_hash(
     if file:
         raw_name = file.filename or "file_input"
         filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", os.path.basename(raw_name))[:120]
-        # Bounded read up to 50MB to prevent memory exhaustion
+        # Limit input size to 50MB
         content = await file.read(50 * 1024 * 1024 + 1)
         if len(content) > 50 * 1024 * 1024:
             return {
@@ -144,7 +144,7 @@ async def calculate_hash(
 
 from backend.app.utils.memory import SecureBuffer
 
-# --- Privnote / Send: In-Memory Ephemeral Self-Destructing Notes with RAM Zeroing ---
+# Ephemeral self-destructing notes
 import time
 
 EPHEMERAL_NOTES = {}
@@ -160,11 +160,11 @@ def create_burn_note(req: BurnNoteCreateRequest):
     if not req.secret.strip():
         return {"success": False, "error": "Записка не может быть пустой."}
 
-    # Bounded input check to prevent RAM exhaustion
+    # Input size check
     if len(req.secret) > 100_000:
         return {"success": False, "error": "Превышен лимит размера записки (100 КБ)."}
 
-    # Automatic purge of expired notes with explicit memory wiping
+    # Purge expired notes
     now = time.time()
     for k in list(EPHEMERAL_NOTES.keys()):
         if EPHEMERAL_NOTES[k]["expires_at"] < now:
@@ -172,7 +172,7 @@ def create_burn_note(req: BurnNoteCreateRequest):
             if expired and "buffer" in expired:
                 expired["buffer"].wipe()
 
-    # Eviction policy: hard cap at 1000 notes
+    # Eviction policy: cap at 1000 notes
     if len(EPHEMERAL_NOTES) >= 1000:
         oldest_k = next(iter(EPHEMERAL_NOTES))
         evicted = EPHEMERAL_NOTES.pop(oldest_k, None)
@@ -182,7 +182,6 @@ def create_burn_note(req: BurnNoteCreateRequest):
     token = secrets.token_urlsafe(16)
     expires_at = now + min(req.ttl_seconds, 86400)  # Max 24 hours
 
-    # SecureBuffer ensures mutable C-level storage with wipe capability
     EPHEMERAL_NOTES[token] = {
         "buffer": SecureBuffer(req.secret),
         "expires_at": expires_at,
@@ -199,14 +198,14 @@ def create_burn_note(req: BurnNoteCreateRequest):
 
 @router.get("/burn-note/read/{token}")
 def read_burn_note(token: str):
-    # V-09: Token format validation (secrets.token_urlsafe produces URL-safe chars)
+    # Token format validation
     if not token or len(token) > 64 or not re.fullmatch(r"[A-Za-z0-9_-]+", token):
         return {
             "success": False,
             "error": "Некорректный синтаксис токена записки.",
         }
 
-    # Purge expired with wipe
+    # Purge expired notes
     now = time.time()
     for k in list(EPHEMERAL_NOTES.keys()):
         if EPHEMERAL_NOTES[k]["expires_at"] < now:
@@ -223,7 +222,7 @@ def read_burn_note(token: str):
     note_data = EPHEMERAL_NOTES.pop(token)
     buf = note_data["buffer"]
     secret_text = buf.get_bytes().decode("utf-8", errors="replace")
-    buf.wipe()  # Zero out memory immediately upon reading!
+    buf.wipe()
 
     return {
         "success": True,

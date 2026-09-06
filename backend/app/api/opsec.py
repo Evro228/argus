@@ -17,32 +17,30 @@ class ProxyTestRequest(BaseModel):
 
 @router.post("/sanitize")
 def sanitize_sensitive_data(req: SanitizeRequest):
-    """
-    Pasteguard logic: strips emails, phones, credit cards, and tokens from text.
-    """
-    # Bounded input to prevent ReDoS
+    """Strips emails, phones, credit cards, and tokens from text."""
+    # Limit input length
     cleaned = req.text[:100_000]
     replacements = []
 
-    # 1. Emails (ReDoS-safe RFC pattern)
+    # Emails
     email_pattern = r"\b[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,10}\b"
     for m in re.finditer(email_pattern, cleaned):
         replacements.append(("EMAIL", m.group(0)))
     cleaned = re.sub(email_pattern, "[REDACTED_EMAIL]", cleaned)
 
-    # 2. Credit card numbers (standard digits 13-16)
+    # Credit cards
     cc_pattern = r"\b(?:\d[ -]*?){13,16}\b"
     for m in re.finditer(cc_pattern, cleaned):
         replacements.append(("CARD", m.group(0)))
     cleaned = re.sub(cc_pattern, "[REDACTED_CARD]", cleaned)
 
-    # 3. Phone numbers (intl format)
+    # Phone numbers
     phone_pattern = r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}"
     for m in re.finditer(phone_pattern, cleaned):
         replacements.append(("PHONE", m.group(0)))
     cleaned = re.sub(phone_pattern, "[REDACTED_PHONE]", cleaned)
 
-    # 4. API keys / tokens (redacts value cleanly without duplicating key)
+    # API keys and tokens
     token_pattern = r'((?:api[_-]?key|token|secret|password)\s*[:=]\s*["\']?)([a-zA-Z0-9_.-]{16,})(["\']?)'
     for m in re.finditer(token_pattern, cleaned, flags=re.IGNORECASE):
         replacements.append(("SECRET_TOKEN", m.group(2)))
@@ -80,7 +78,7 @@ async def check_current_ip():
     return {"success": False, "error": "Не удалось определить IP"}
 
 
-# --- ClearURLs Tracking Parameter Cleaner ---
+# URL tracking parameter cleaner
 TRACKING_PARAMS = {
     "utm_source",
     "utm_medium",
@@ -113,9 +111,7 @@ class DisposableIdRequest(BaseModel):
 
 @router.post("/clean-url")
 def clean_url_tracking(req: CleanUrlRequest):
-    """
-    ClearURLs implementation: removes tracking queries and spy parameters.
-    """
+    """Removes tracking queries and parameters from URL."""
     from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
     parsed = urlparse(req.url.strip())
@@ -152,9 +148,7 @@ def clean_url_tracking(req: CleanUrlRequest):
 
 @router.post("/disposable-id")
 def generate_disposable_id(req: DisposableIdRequest):
-    """
-    Disposable Identity Generator (OpenTrashmail / Privacy profile).
-    """
+    """Generate disposable identity and passphrase."""
     import secrets
     import string
 

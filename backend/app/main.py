@@ -21,7 +21,7 @@ from backend.app.api import (
     watcher,
 )
 
-# In production, disable interactive docs and openapi schema unless explicitly requested
+# OpenAPI and docs configuration
 ENABLE_DOCS = os.getenv("ARGUS_ENABLE_DOCS", "0") == "1"
 
 app = FastAPI(
@@ -33,7 +33,7 @@ app = FastAPI(
     openapi_url="/openapi.json" if ENABLE_DOCS else None,
 )
 
-# Security-hardened CORS (strictly local origins, null origin removed)
+# CORS configuration
 ALLOWED_ORIGINS = os.getenv(
     "ARGUS_ALLOWED_ORIGINS",
     "http://127.0.0.1:8800,http://localhost:8800,http://127.0.0.1:3000,http://localhost:3000",
@@ -61,28 +61,28 @@ RATE_LIMIT_MAX_REQUESTS = 600
 client_request_history = defaultdict(list)
 _last_rate_limit_cleanup = time.time()
 
-# Host validation to block DNS Rebinding
+# Host validation
 VALID_HOSTS = {"127.0.0.1", "localhost", "testserver"}
 
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
     global _last_rate_limit_cleanup
 
-    # 1. DNS Rebinding & Host Header Injection Protection (Anthropic Skill: testing-for-host-header-injection)
+    # Host header validation
     for h_name in ("host", "x-forwarded-host", "x-host", "x-forwarded-server"):
         h_val = request.headers.get(h_name, "").split(":")[0].strip().lower()
         if h_val and h_val not in VALID_HOSTS and not h_val.startswith("127."):
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
-                content={"success": False, "error": f"Запрещенный заголовок {h_name} (Host Injection & DNS Rebinding Protection)."},
+                content={"success": False, "error": f"Запрещенный заголовок {h_name}."},
             )
 
-    # 2. Apply rate limiting to API endpoints with Memory Leak GC (V-05)
+    # Rate limiting
     if request.url.path.startswith("/api/"):
         client_ip = request.client.host if request.client else "127.0.0.1"
         now = time.time()
 
-        # Periodic garbage collection for stale IP tracking entries (every 60s)
+        # Evict stale tracking entries (every 60s)
         if now - _last_rate_limit_cleanup > 60:
             stale_ips = [
                 ip for ip, ts in client_request_history.items()
@@ -90,7 +90,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             ]
             for ip in stale_ips:
                 client_request_history.pop(ip, None)
-            # Hard cap on tracked unique clients to prevent memory exhaustion
+            # Cap tracked clients
             if len(client_request_history) > 2000:
                 oldest_ips = sorted(
                     client_request_history.keys(),
@@ -111,7 +111,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
         timestamps.append(now)
         client_request_history[client_ip] = timestamps
 
-    # 3. Localhost IPC Token Protection (Drive-by & Web-to-Localhost defense)
+    # Localhost IPC token verification
     ipc_token = os.getenv("ARGUS_IPC_TOKEN", "").strip()
     if ipc_token and request.url.path.startswith("/api/") and request.url.path != "/api/health":
         import secrets
@@ -124,7 +124,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             or ""
         ).strip()
 
-        # Constant-time comparison defeats timing side-channels
+        # Constant-time comparison
         if not secrets.compare_digest(provided_token, ipc_token):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,

@@ -142,8 +142,9 @@ def get_system_status():
     }
 
 
-# --- Air-Gapped Stealth Mode Controller ---
+# Air-Gapped Stealth Mode Controller
 @router.get("/airgap")
+@router.get("/stealth/status")
 def get_airgap_status():
     return {
         "success": True,
@@ -177,7 +178,7 @@ def toggle_airgap(req: AirGapToggleRequest | None = None):
     }
 
 
-# --- Encrypted Vault Storage (AES-256-GCM) ---
+# Encrypted Vault Storage (AES-256-GCM)
 @router.post("/vault/encrypt")
 def vault_encrypt(req: VaultEncryptRequest):
     if not req.passphrase or len(req.passphrase) < 8:
@@ -205,7 +206,7 @@ def vault_decrypt(req: VaultDecryptRequest):
         return {"success": False, "error": f"Ошибка расшифровки: {e!s}"}
 
 
-# --- System Hardening & Compliance Matrix ---
+# System Hardening & Compliance Matrix
 @router.get("/hardening")
 def get_hardening_audit():
     os_name = platform.system()
@@ -512,7 +513,7 @@ def get_hardening_audit():
 
 
 
-# --- Knowledge & CheatSheet Hub ---
+# Knowledge & CheatSheet Hub
 KNOWLEDGE_CATALOG = [
     {
         "id": "payloads_all_the_things",
@@ -566,7 +567,7 @@ def get_knowledge_hub():
     }
 
 
-# --- Security Tactics & Playbooks Hub (818 Playbooks) ---
+# Security Tactics & Playbooks Hub
 DEFAULT_SKILLS_PATH = os.path.expanduser(
     "~/Antigravity/Skills/Anthropic-Cybersecurity-Skills"
 )
@@ -666,7 +667,7 @@ def get_skill_detail(skill_name: str):
         return {"success": False, "error": str(e)}
 
 
-# --- Local Session History & Posture Dynamics Persistence ---
+# Session History Persistence
 HISTORY_FILE = os.path.expanduser("~/.argus_session_history.json")
 
 

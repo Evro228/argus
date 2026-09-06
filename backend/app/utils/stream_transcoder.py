@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Base temporary directory for transcode chunks (strict compliance with user workspace rule)
+# Base temporary directory for transcode chunks
 TRANSCODE_BASE_DIR = "/Users/slava/Antigravity/tmp/transcode"
 
 
@@ -86,7 +86,7 @@ class RTSPStreamTranscoder:
         playlist_file = os.path.join(stream_dir, "live.m3u8")
         segment_pattern = os.path.join(stream_dir, "segment_%03d.ts")
 
-        # FFmpeg command: ultra low latency HLS from RTSP
+        # Convert RTSP to HLS via FFmpeg
         cmd = [
             ffmpeg_bin,
             "-hide_banner",
