@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from backend.app.api import (
     analyst,
     audit,
+    cameras,
     config,
     crypto,
     forensics,
@@ -148,6 +149,8 @@ app.include_router(forensics.router, prefix="/api/forensics", tags=["Forensics &
 app.include_router(opsec.router, prefix="/api/opsec", tags=["OPSEC & Privacy"])
 app.include_router(analyst.router, prefix="/api/analyst", tags=["Security Analyst"])
 app.include_router(geoint.router, prefix="/api/geoint", tags=["GEOINT & Tactical Radar"])
+app.include_router(cameras.router, prefix="/api/cameras", tags=["Open CCTV & Webcams"])
+app.include_router(cameras.router, prefix="/api/geoint/cameras", tags=["Open CCTV & Webcams"])
 app.include_router(config.router, prefix="/api/system/config", tags=["API Keys & Config"])
 
 

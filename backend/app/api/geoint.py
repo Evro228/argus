@@ -1230,6 +1230,27 @@ async def get_geoint_telemetry():
             "sensor": "VIIRS / MODIS Multispectral",
         })
 
+    # 5. Global Open Cameras / CCTV (All RF Cities + Global Hubs)
+    from backend.app.api.cameras import ALL_CAMERAS
+    cameras_summary = [
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "city": c["city"],
+            "region": c.get("region", ""),
+            "district": c.get("district", ""),
+            "country": c["country"],
+            "flag": c["flag"],
+            "category": c["category"],
+            "lat": c["lat"],
+            "lon": c["lon"],
+            "resolution": c["resolution"],
+            "operator": c["operator"],
+            "status": "AIR_GAPPED_STEALTH" if air_gap else c["status"],
+        }
+        for c in ALL_CAMERAS
+    ]
+
     return {
         "success": True,
         "air_gap_mode": air_gap,
@@ -1239,11 +1260,13 @@ async def get_geoint_telemetry():
             "aircraft": len(aircraft),
             "maritime": len(maritime),
             "hotspots": len(hotspots),
+            "cameras": len(cameras_summary),
         },
         "satellites": satellites,
         "aircraft": aircraft,
         "maritime": maritime,
         "hotspots": hotspots,
+        "cameras": cameras_summary,
     }
 
 

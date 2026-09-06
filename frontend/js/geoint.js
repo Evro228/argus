@@ -44,6 +44,7 @@
         sats: true,
         air: true,
         maritime: true,
+        cameras: true,
         hotspots: true,
         cyber: true
       };
@@ -66,6 +67,7 @@
       this.satellites = [];
       this.aircraft = [];
       this.maritime = [];
+      this.cameras = [];
       this.hotspots = [];
 
       this.selectedEntity = { kind: 'node', data: this.nodes[0] };
@@ -104,16 +106,19 @@
             this.satellites = data.satellites || [];
             this.aircraft = data.aircraft || [];
             this.maritime = data.maritime || [];
+            this.cameras = data.cameras || [];
             this.hotspots = data.hotspots || [];
 
             // Update badge counters
             const countSats = document.getElementById('count-sats');
             const countAir = document.getElementById('count-air');
             const countShips = document.getElementById('count-ships');
+            const countCameras = document.getElementById('count-cameras');
             const countHotspots = document.getElementById('count-hotspots');
             if (countSats) countSats.textContent = this.satellites.length;
             if (countAir) countAir.textContent = this.aircraft.length;
             if (countShips) countShips.textContent = this.maritime.length;
+            if (countCameras) countCameras.textContent = this.cameras.length;
             if (countHotspots) countHotspots.textContent = this.hotspots.length;
 
             // Update selected entity if present in latest telemetry
@@ -127,6 +132,9 @@
                 if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
               } else if (kind === 'maritime') {
                 const updated = this.maritime.find(m => m.mmsi === data.mmsi);
+                if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
+              } else if (kind === 'camera') {
+                const updated = this.cameras.find(c => c.id === data.id);
                 if (updated) { this.selectedEntity.data = updated; this.updateHudCard(); }
               }
             }
@@ -150,6 +158,7 @@
       bind('btn-layer-sats', 'sats');
       bind('btn-layer-air', 'air');
       bind('btn-layer-maritime', 'maritime');
+      bind('btn-layer-cameras', 'cameras');
       bind('btn-layer-hotspots', 'hotspots');
       bind('btn-layer-cyber', 'cyber');
     }
@@ -202,7 +211,18 @@
           }
         }
 
-        // 4. Check Hotspots
+        // 4. Check Cameras
+        if (this.layers.cameras && this.cameras) {
+          for (let cam of this.cameras) {
+            const pt = this.project2D(cam.lat, cam.lon);
+            if (Math.hypot(mouseX - pt.x, mouseY - pt.y) < 14) {
+              this.selectEntity('camera', cam);
+              return;
+            }
+          }
+        }
+
+        // 5. Check Hotspots
         if (this.layers.hotspots) {
           for (let h of this.hotspots) {
             const pt = this.project2D(h.lat, h.lon);
@@ -213,7 +233,7 @@
           }
         }
 
-        // 5. Check Cyber Nodes
+        // 6. Check Cyber Nodes
         if (this.layers.cyber) {
           for (let node of this.nodes) {
             const pt = this.project2D(node.lat, node.lon);
@@ -221,6 +241,15 @@
               this.selectEntity('node', node);
               return;
             }
+          }
+        }
+      });
+
+      // Double-click to directly open full CCTV player
+      this.canvas.addEventListener('dblclick', () => {
+        if (this.selectedEntity && this.selectedEntity.kind === 'camera') {
+          if (window.argusApp && typeof window.argusApp.openCameraPlayer === 'function') {
+            window.argusApp.openCameraPlayer(this.selectedEntity.data.id);
           }
         }
       });
@@ -233,6 +262,7 @@
         const label = kind === 'sat' ? `[NORAD] ${data.name} (${data.operator})` :
                       kind === 'air' ? `[ADS-B] ${data.callsign} (${data.model})` :
                       kind === 'maritime' ? `[AIS] ${data.flag} ${data.name} (${data.type})` :
+                      kind === 'camera' ? `[CCTV] ${data.flag} ${data.city} (${data.name})` :
                       kind === 'hotspot' ? `[FIRMS] ${data.name} [${data.brightness_k}K]` :
                       `[CYBER] ${data.name} (${data.ip})`;
         window.argusApp.log(`[GEOINT HUD] Выбран объект: ${label}`, 'threat');
@@ -381,6 +411,49 @@
         if (threatLabel) threatLabel.textContent = 'SIGNATURE CLASSIFICATION';
         if (threatScore) threatScore.textContent = data.type;
         if (threatFill) threatFill.style.width = '90%';
+
+      } else if (kind === 'camera') {
+        typeBadge.textContent = `OPEN CCTV // ${data.flag} ${data.city} (${data.country})`;
+        if (titleLabel) titleLabel.textContent = 'CAMERA SENSOR ID / LOCATION';
+        if (targetIp) targetIp.textContent = `${data.flag} ${data.name}`;
+        if (coordsLabel) coordsLabel.textContent = 'COORDINATES & DISTRICT';
+        const distStr = data.district ? ` [${data.district}]` : '';
+        if (targetCoords) targetCoords.textContent = `${data.lat.toFixed(4)}° N, ${data.lon.toFixed(4)}° E${distStr}`;
+        if (detailsLabel) detailsLabel.textContent = 'RESOLUTION & SPECS';
+        if (portsContainer) {
+          portsContainer.innerHTML = `
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-teal-500/30 text-center">
+              <div class="text-xs font-bold text-teal-400 font-mono">${escapeHtml(data.resolution || '1080p')}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Качество</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-teal-500/30 text-center">
+              <div class="text-xs font-bold text-emerald-400 font-mono">${data.status === 'AIR_GAPPED_STEALTH' ? 'STEALTH' : 'ONLINE'}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Статус</div>
+            </div>
+            <div class="px-2 py-1 rounded bg-slate-900/90 border border-teal-500/30 text-center">
+              <div class="text-xs font-bold text-sky-300 font-mono">${data.category ? escapeHtml(data.category.slice(0, 10)) : 'CCTV'}</div>
+              <div class="text-[9px] text-slate-400 font-mono">Тип</div>
+            </div>
+          `;
+        }
+        if (threatLabel) threatLabel.textContent = 'OPERATOR / PUBLIC PROVIDER';
+        if (threatScore) threatScore.textContent = data.operator || 'Public Feed';
+        if (threatFill) threatFill.style.width = '100%';
+      }
+
+      // Show/hide open live camera action button
+      const btnOpenCam = document.getElementById('btn-hud-open-camera');
+      if (btnOpenCam) {
+        if (kind === 'camera') {
+          btnOpenCam.classList.remove('hidden');
+          btnOpenCam.onclick = () => {
+            if (window.argusApp && typeof window.argusApp.openCameraPlayer === 'function') {
+              window.argusApp.openCameraPlayer(data.id);
+            }
+          };
+        } else {
+          btnOpenCam.classList.add('hidden');
+        }
       }
     }
 
@@ -693,6 +766,43 @@
       }
     }
 
+    drawCameras() {
+      if (!this.layers.cameras || !this.cameras) return;
+      const now = Date.now() * 0.003;
+
+      for (let cam of this.cameras) {
+        const pt = this.project2D(cam.lat, cam.lon);
+        const isSelected = this.selectedEntity && this.selectedEntity.kind === 'camera' && this.selectedEntity.data.id === cam.id;
+        const isRu = cam.country === 'RU';
+        const baseColor = isRu ? '#14b8a6' : '#f59e0b';
+        const ringColor = isSelected ? '#38bdf8' : baseColor;
+
+        // Aperture circle
+        this.ctx.strokeStyle = ringColor;
+        this.ctx.lineWidth = isSelected ? 2 : 1;
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, isSelected ? 6.5 : 4, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Pulsing red REC dot
+        const pulse = (Math.sin(now + cam.lat * 5) + 1) * 0.5;
+        this.ctx.fillStyle = isSelected ? '#ef4444' : `rgba(239, 68, 68, ${0.4 + pulse * 0.6})`;
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, isSelected ? 2.5 : 1.5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Label for selected or key regional cities
+        if (isSelected) {
+          this.ctx.fillStyle = '#f0fdfa';
+          this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`📹 ${cam.flag} ${cam.city}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.font = '7.5px JetBrains Mono, monospace';
+          this.ctx.fillText(`CCTV [${cam.id}]`, pt.x + 8, pt.y + 7);
+        }
+      }
+    }
+
     animate() {
       this.ctx.clearRect(0, 0, this.width, this.height);
       this.drawWorldMap2D();
@@ -701,6 +811,7 @@
       this.drawSatellites();
       this.drawAircraft();
       this.drawMaritime();
+      this.drawCameras();
       this.drawHotspots();
       requestAnimationFrame(() => this.animate());
     }

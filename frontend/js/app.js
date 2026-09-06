@@ -54,6 +54,7 @@ const App = {
     this.bindKnowledgeHub();
     this.bindSessionHistory();
     this.bindApiKeysConfig();
+    this.bindCctvMatrix();
 
     this.log('ARGUS Tactical Cockpit инициализирован. Все подсистемы в норме.', 'system');
 
@@ -1302,6 +1303,16 @@ const App = {
       { id: 'analyst', title: '📊 Отчет ИИ-аналитика (Executive Posture)', category: 'Навигация', action: () => this.switchTab('analyst'), kbd: '⌘8' },
       { id: 'playbooks', title: '📚 Тактический хаб плейбуков (Anthropic 818)', category: 'Навигация', action: () => this.switchTab('playbooks'), kbd: '⌘9' },
       { id: 'airgap', title: '🛡️ Переключить Air-Gapped Stealth Mode', category: 'Безопасность', action: () => this.toggleAirGap(), kbd: '⌘S' },
+      { id: 'cctv_matrix', title: '📹 Видеостена открытых камер CCTV (Все города)', category: 'GEOINT', action: () => this.openCctvMatrix(), kbd: '⌘U' },
+      { id: 'cam_mow', title: '🇷🇺 Камера: Москва (Красная Площадь & Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_MOW_01'), kbd: 'CAM' },
+      { id: 'cam_led', title: '🇷🇺 Камера: Санкт-Петербург (Дворцовая площадь)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_LED_01'), kbd: 'CAM' },
+      { id: 'cam_vvo', title: '🇷🇺 Камера: Владивосток (Бухта Золотой Рог & Мост)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_VVO_01'), kbd: 'CAM' },
+      { id: 'cam_aer', title: '🇷🇺 Камера: Сочи (Морской порт Сочи)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_AER_01'), kbd: 'CAM' },
+      { id: 'cam_kzn', title: '🇷🇺 Камера: Казань (Казанский Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_KZN_01'), kbd: 'CAM' },
+      { id: 'cam_ovb', title: '🇷🇺 Камера: Новосибирск (Площадь Ленина & НОВАТ)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_OVB_01'), kbd: 'CAM' },
+      { id: 'cam_svx', title: '🇷🇺 Камера: Екатеринбург (Плотина пруда / Плотинка)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_SVX_01'), kbd: 'CAM' },
+      { id: 'cam_ist', title: '🇹🇷 Камера: Стамбул (Босфорский пролив / Сарайбурну)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_TR_IST_01'), kbd: 'CAM' },
+      { id: 'cam_iss', title: '🛰️ Камера: МКС HD (Орбита Земли Live)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_INTL_ISS_01'), kbd: 'CAM' },
       { id: 'clear', title: '🧹 Очистить буфер SOC терминала', category: 'Система', action: () => {
         const consoleEl = document.getElementById('terminal-logs');
         if (consoleEl) consoleEl.innerHTML = '';
@@ -1978,6 +1989,334 @@ const App = {
           saveBtn.textContent = 'СОХРАНИТЬ КЛЮЧИ 💾';
         }
       });
+    }
+  },
+
+  bindCctvMatrix() {
+    const dialog = document.getElementById('dialog-cctv-matrix');
+    const openTopBtn = document.getElementById('btn-open-cctv-matrix');
+    const openMapBtn = document.getElementById('btn-map-cctv-wall');
+    const closeBtn = document.getElementById('btn-close-cctv-matrix');
+    const searchInput = document.getElementById('cctv-search-input');
+    const filterBtns = document.querySelectorAll('.cctv-filter-btn');
+    const citiesPillsContainer = document.getElementById('cctv-cities-pills-list');
+    const gridContainer = document.getElementById('cctv-grid-container');
+    const footerClock = document.getElementById('cctv-footer-clock');
+    const activeCountEl = document.getElementById('cctv-active-count');
+
+    if (!dialog) return;
+
+    let currentLayout = '2x2';
+    let currentFilter = 'ALL';
+    let currentCity = null;
+    let cachedCameras = [];
+    let cachedCities = [];
+    let clockInterval = null;
+
+    const updateClock = () => {
+      const nowStr = 'UTC ' + new Date().toISOString().slice(11, 19);
+      if (footerClock) footerClock.textContent = nowStr;
+      const playerClock = document.getElementById('cam-player-clock');
+      if (playerClock) playerClock.textContent = nowStr;
+    };
+
+    const setLayout = (layout) => {
+      currentLayout = layout;
+      ['1x1', '2x2', '3x3', '4x4'].forEach(l => {
+        const btn = document.getElementById(`btn-grid-${l}`);
+        if (btn) {
+          if (l === layout) {
+            btn.className = 'px-2 py-0.5 rounded bg-teal-500/30 text-teal-200 font-bold border border-teal-500/40 transition';
+          } else {
+            btn.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white transition';
+          }
+        }
+      });
+
+      if (!gridContainer) return;
+      if (layout === '1x1') {
+        gridContainer.className = 'grid grid-cols-1 gap-3 min-h-full max-w-4xl mx-auto';
+      } else if (layout === '2x2') {
+        gridContainer.className = 'grid grid-cols-2 gap-3 min-h-full';
+      } else if (layout === '3x3') {
+        gridContainer.className = 'grid grid-cols-3 gap-2.5 min-h-full';
+      } else if (layout === '4x4') {
+        gridContainer.className = 'grid grid-cols-4 gap-2 min-h-full';
+      }
+      renderGrid();
+    };
+
+    ['1x1', '2x2', '3x3', '4x4'].forEach(l => {
+      const btn = document.getElementById(`btn-grid-${l}`);
+      if (btn) btn.addEventListener('click', () => setLayout(l));
+    });
+
+    const loadData = async () => {
+      try {
+        const [camsRes, citiesRes] = await Promise.all([
+          fetch('/api/cameras?limit=300', { headers: getAuthHeaders() }),
+          fetch('/api/cameras/cities', { headers: getAuthHeaders() })
+        ]);
+        if (camsRes.ok) {
+          const camsData = await camsRes.json();
+          cachedCameras = camsData.cameras || [];
+          const countTotal = document.getElementById('cctv-count-total');
+          if (countTotal) countTotal.textContent = cachedCameras.length;
+        }
+        if (citiesRes.ok) {
+          const citiesData = await citiesRes.json();
+          cachedCities = citiesData.cities || [];
+          renderCityPills();
+        }
+        renderGrid();
+      } catch (err) {
+        this.log('[CCTV] Ошибка загрузки каталога камер: ' + err.message, 'error');
+      }
+    };
+
+    const renderCityPills = () => {
+      if (!citiesPillsContainer) return;
+      citiesPillsContainer.innerHTML = '';
+
+      const allPill = document.createElement('button');
+      allPill.className = `px-2 py-0.5 rounded ${!currentCity ? 'bg-teal-500/30 text-teal-300 font-bold border border-teal-500/40' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'}`;
+      allPill.textContent = 'Все города';
+      allPill.onclick = () => {
+        currentCity = null;
+        renderCityPills();
+        renderGrid();
+      };
+      citiesPillsContainer.appendChild(allPill);
+
+      cachedCities.slice(0, 35).forEach(c => {
+        const pill = document.createElement('button');
+        const isActive = currentCity === c.city;
+        pill.className = `px-2 py-0.5 rounded whitespace-nowrap transition ${isActive ? 'bg-teal-500/30 text-teal-300 font-bold border border-teal-500/40' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'}`;
+        pill.textContent = `${c.flag} ${c.city} (${c.camera_count})`;
+        pill.onclick = () => {
+          currentCity = c.city;
+          renderCityPills();
+          renderGrid();
+        };
+        citiesPillsContainer.appendChild(pill);
+      });
+    };
+
+    const renderGrid = () => {
+      if (!gridContainer) return;
+      gridContainer.innerHTML = '';
+
+      const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      let filtered = cachedCameras.filter(cam => {
+        if (currentCity && cam.city !== currentCity) return false;
+        if (currentFilter === 'RU' && cam.country !== 'RU') return false;
+        if (currentFilter === 'GLOBAL' && cam.country === 'RU') return false;
+        if (['ЦФО', 'СЗФО', 'ПФО', 'Уральский ФО', 'Сибирский ФО', 'Дальневосточный ФО', 'Южный ФО'].includes(currentFilter)) {
+          if (!cam.district || !cam.district.toLowerCase().includes(currentFilter.toLowerCase())) return false;
+        }
+        if (searchVal) {
+          const match = cam.name.toLowerCase().includes(searchVal) ||
+                        cam.city.toLowerCase().includes(searchVal) ||
+                        (cam.city_en && cam.city_en.toLowerCase().includes(searchVal)) ||
+                        (cam.region && cam.region.toLowerCase().includes(searchVal)) ||
+                        (cam.district && cam.district.toLowerCase().includes(searchVal));
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      let limit = 4;
+      if (currentLayout === '1x1') limit = 1;
+      else if (currentLayout === '2x2') limit = 4;
+      else if (currentLayout === '3x3') limit = 9;
+      else if (currentLayout === '4x4') limit = 16;
+
+      const toDisplay = filtered.slice(0, limit);
+      if (activeCountEl) activeCountEl.textContent = toDisplay.length;
+
+      if (toDisplay.length === 0) {
+        gridContainer.innerHTML = `
+          <div class="col-span-full py-16 text-center font-mono">
+            <div class="text-3xl mb-2">📹</div>
+            <div class="text-slate-400 text-sm font-bold">Камеры не найдены по заданному фильтру</div>
+            <div class="text-slate-600 text-xs mt-1">Попробуйте ввести другой город (например: Москва, Владивосток, Казань, Сочи)</div>
+          </div>
+        `;
+        return;
+      }
+
+      toDisplay.forEach(cam => {
+        const card = document.createElement('div');
+        card.className = 'group relative rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/60 overflow-hidden shadow-lg flex flex-col transition cursor-pointer';
+
+        card.innerHTML = `
+          <div class="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
+            <img src="${escapeHtml(cam.snapshot_url)}" alt="${escapeHtml(cam.name)}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 p-2.5 flex flex-col justify-between pointer-events-none">
+              <div class="flex justify-between items-start">
+                <span class="px-2 py-0.5 rounded bg-black/70 border border-teal-500/40 text-teal-300 text-[10px] font-mono font-bold flex items-center space-x-1">
+                  <span>${cam.flag}</span>
+                  <span>${escapeHtml(cam.city)}</span>
+                </span>
+                <span class="px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-400 text-[9px] font-mono font-bold flex items-center space-x-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                  <span>REC</span>
+                </span>
+              </div>
+
+              <div class="flex justify-between items-end">
+                <span class="text-[9px] font-mono text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
+                  ${cam.lat.toFixed(2)}°N, ${cam.lon.toFixed(2)}°E
+                </span>
+                <span class="text-[9px] font-mono text-teal-300 bg-teal-950/70 border border-teal-500/30 px-1.5 py-0.5 rounded">
+                  ${escapeHtml(cam.resolution || '1080p')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between font-mono">
+            <div class="truncate mr-2">
+              <div class="text-xs font-bold text-slate-200 truncate group-hover:text-teal-300 transition">${escapeHtml(cam.name)}</div>
+              <div class="text-[10px] text-slate-400 truncate">${escapeHtml(cam.operator || cam.category)}</div>
+            </div>
+            <button class="px-2 py-1 rounded bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 text-[10px] font-bold shrink-0 transition">
+              ФОКУС 🔍
+            </button>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          this.openCameraPlayer(cam.id);
+        });
+
+        gridContainer.appendChild(card);
+      });
+    };
+
+    if (searchInput) {
+      searchInput.addEventListener('input', () => renderGrid());
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => {
+          b.classList.remove('active', 'bg-teal-500/20', 'text-teal-300', 'border-teal-500/40', 'font-bold');
+          b.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
+        });
+        btn.classList.add('active', 'bg-teal-500/20', 'text-teal-300', 'border-teal-500/40', 'font-bold');
+        btn.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+        currentFilter = btn.dataset.cctvFilter || 'ALL';
+        renderGrid();
+      });
+    });
+
+    const openModal = () => {
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+      updateClock();
+      if (!clockInterval) clockInterval = setInterval(updateClock, 1000);
+      loadData();
+    };
+
+    const closeModal = () => {
+      if (typeof dialog.close === 'function') {
+        dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+      }
+      if (clockInterval) {
+        clearInterval(clockInterval);
+        clockInterval = null;
+      }
+    };
+
+    if (openTopBtn) openTopBtn.addEventListener('click', openModal);
+    if (openMapBtn) openMapBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    // Hotkey: Cmd + U or Ctrl + U
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'u') {
+        e.preventDefault();
+        openModal();
+      }
+    });
+
+    this.openCctvMatrix = openModal;
+  },
+
+  async openCameraPlayer(cameraId) {
+    const dialog = document.getElementById('dialog-camera-player');
+    const titleEl = document.getElementById('cam-player-title');
+    const flagEl = document.getElementById('cam-player-flag');
+    const metaEl = document.getElementById('cam-player-meta');
+    const imgEl = document.getElementById('cam-player-image');
+    const idOverlay = document.getElementById('cam-player-overlay-id');
+    const coordsOverlay = document.getElementById('cam-player-overlay-coords');
+    const resBadge = document.getElementById('cam-player-res-badge');
+    const externalBtn = document.getElementById('btn-cam-external');
+    const captureBtn = document.getElementById('btn-cam-capture');
+    const refreshBtn = document.getElementById('btn-cam-refresh');
+    const closeBtn = document.getElementById('btn-close-camera-player');
+    const statusMsg = document.getElementById('cam-capture-status');
+
+    if (!dialog) return;
+
+    try {
+      const res = await fetch(`/api/cameras/detail/${cameraId}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Камера не найдена');
+      const data = await res.json();
+      const cam = data.camera;
+
+      if (titleEl) titleEl.textContent = cam.name;
+      if (flagEl) flagEl.textContent = cam.flag;
+      if (metaEl) metaEl.textContent = `${cam.operator} • ${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E • ${cam.resolution} ${cam.fps} FPS`;
+      if (imgEl) imgEl.src = cam.snapshot_url;
+      if (idOverlay) idOverlay.textContent = cam.id;
+      if (coordsOverlay) coordsOverlay.textContent = `${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E`;
+      if (resBadge) resBadge.textContent = cam.resolution;
+      if (externalBtn) externalBtn.href = cam.stream_url;
+      if (statusMsg) statusMsg.textContent = '';
+
+      if (captureBtn) {
+        captureBtn.onclick = () => {
+          if (statusMsg) {
+            statusMsg.textContent = `✅ Кадр ${cam.id} (${new Date().toLocaleTimeString()}) сохранён в буфер криминалистики.`;
+          }
+          this.log(`[GEOINT/CCTV] Захвачен стоп-кадр с камеры ${cam.name} (${cam.id})`, 'success');
+        };
+      }
+
+      if (refreshBtn) {
+        refreshBtn.onclick = () => {
+          if (imgEl) {
+            const sep = cam.snapshot_url.includes('?') ? '&' : '?';
+            imgEl.src = cam.snapshot_url + sep + 't=' + Date.now();
+          }
+          if (statusMsg) statusMsg.textContent = '🔄 Поток обновлён.';
+        };
+      }
+
+      const closePlayer = () => {
+        if (typeof dialog.close === 'function') dialog.close();
+        else dialog.removeAttribute('open');
+      };
+
+      if (closeBtn) closeBtn.onclick = closePlayer;
+
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+
+      this.log(`[GEOINT/CCTV] Открыта прямая трансляция: ${cam.flag} ${cam.city} — ${cam.name}`, 'info');
+
+    } catch (err) {
+      this.log('[CCTV] Ошибка открытия камеры: ' + err.message, 'error');
     }
   }
 };

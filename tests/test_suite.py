@@ -689,6 +689,51 @@ try:
 except Exception as e:
     record("44. Secure Live Feeds & API Keys Store", False, str(e))
 
+# 45. Global Open CCTV & Webcams Engine (All RF Cities & Global Hubs)
+try:
+    cams_res = client.get("/api/cameras?limit=300")
+    cams_data = cams_res.json()
+    all_cams = cams_data.get("cameras", [])
+
+    ru_cams_res = client.get("/api/cameras?country=RU")
+    ru_cams_data = ru_cams_res.json()
+    ru_cams = ru_cams_data.get("cameras", [])
+
+    search_res = client.get("/api/cameras?search=Владивосток")
+    search_data = search_res.json()
+    vvo_cams = search_data.get("cameras", [])
+
+    cities_res = client.get("/api/cameras/cities")
+    cities_data = cities_res.json()
+    cities = cities_data.get("cities", [])
+
+    mow_cam_res = client.get("/api/cameras/detail/CAM_RU_MOW_01")
+    mow_cam_data = mow_cam_res.json()
+
+    telem_res = client.get("/api/geoint/telemetry")
+    telem_data = telem_res.json()
+
+    pattern_res = client.get("/api/cameras/offline_test_pattern")
+
+    passed = (
+        cams_res.status_code == 200
+        and cams_data.get("success") is True
+        and len(all_cams) >= 60
+        and cams_data.get("ru_catalog_count", 0) >= 40
+        and len(ru_cams) >= 40
+        and all(c.get("country") == "RU" for c in ru_cams)
+        and len(vvo_cams) >= 1
+        and len(cities) >= 45
+        and mow_cam_res.status_code == 200
+        and mow_cam_data.get("camera", {}).get("city") == "Москва"
+        and telem_data.get("counts", {}).get("cameras", 0) >= 60
+        and pattern_res.status_code == 200
+        and "svg" in pattern_res.headers.get("content-type", "")
+    )
+    record("45. Global Open CCTV & Russian Cities Engine", passed, f"Total: {len(all_cams)} cameras | RF: {len(ru_cams)} across {cities_data.get('ru_cities_count')} cities | Global: {cams_data.get('global_catalog_count')} hubs")
+except Exception as e:
+    record("45. Global Open CCTV & Russian Cities Engine", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)
