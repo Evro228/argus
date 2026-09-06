@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore synthetic test secrets and HTML placeholders"
+paths = [
+  "^tests/.*",
+  "^frontend/index\\.html$"
+]

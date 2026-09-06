@@ -20,7 +20,7 @@ from backend.app.utils.crypto_vault import encrypt_vault_payload, decrypt_vault_
 from backend.app.api.system import AIR_GAP_STATE
 
 print("=" * 66)
-print("🛡️ ARGUS v2.1.0 // HEAVY STRESS & GLOBAL HIGH-LOAD AUDIT")
+print("🛡️ ARGUS v1.0.0 // HEAVY STRESS & GLOBAL HIGH-LOAD AUDIT")
 print("=" * 66)
 
 passed = 0
