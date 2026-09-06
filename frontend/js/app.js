@@ -3222,7 +3222,7 @@ const App = {
         if (!res.ok) return;
         const cfg = await res.json();
         if (toggle) toggle.checked = cfg.enabled;
-        if (chatIdInput && cfg.chat_id) chatIdInput.value = cfg.chat_id;
+        if (chatIdInput && (cfg.masked_chat_id || cfg.chat_configured)) chatIdInput.placeholder = cfg.masked_chat_id || 'Настроен';
         if (tokenInput && cfg.bot_configured) tokenInput.placeholder = cfg.masked_token || 'Настроен';
         if (statusLabel) {
           if (cfg.air_gap_mode) {

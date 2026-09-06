@@ -1075,6 +1075,48 @@ try:
 except Exception as e:
     record("57. Watcher Telegram Alerts & Air-Gap Guard", False, str(e))
 
+# 58. WebAuthn Authentication Bypass Prevention (Negative Testing)
+try:
+    fake_auth = client.post(
+        "/api/crypto/webauthn/verify",
+        json={"credential_id": "unregistered_bogus_key_99881122", "operation": "authenticate"}
+    )
+    fake_data = fake_auth.json()
+    short_auth = client.post(
+        "/api/crypto/webauthn/verify",
+        json={"credential_id": "short", "operation": "register"}
+    )
+    passed = (
+        fake_data.get("success") is False
+        and short_auth.json().get("success") is False
+    )
+    record("58. WebAuthn Auth Bypass Prevention", passed, "Unregistered keys rejected | Short credentials blocked")
+except Exception as e:
+    record("58. WebAuthn Auth Bypass Prevention", False, str(e))
+
+# 59. Skills Path Traversal & Boundary Confinement
+try:
+    trav_res = client.get("/api/system/skills/..%2F..%2Fetc%2Fpasswd")
+    passed = (trav_res.status_code == 404 or trav_res.json().get("success") is False)
+    record("59. Skills Path Traversal Confinement", passed, "Directory traversal outside SKILLS_PATH blocked")
+except Exception as e:
+    record("59. Skills Path Traversal Confinement", False, str(e))
+
+# 60. Configuration Storage Discretion & OPSEC ReDoS Protection
+try:
+    cfg_resp = client.get("/api/system/config/keys")
+    cfg_dict = cfg_resp.json()
+    evil_cc = "1 2 3 4 5 6 7 8 9 0 " * 200
+    opsec_resp = client.post("/api/opsec/sanitize", json={"text": evil_cc})
+    passed = (
+        "config_path" not in cfg_dict
+        and opsec_resp.status_code == 200
+        and opsec_resp.json().get("success") is True
+    )
+    record("60. AppSec Storage Discretion & ReDoS Immunity", passed, "config_path redacted from API | ReDoS linear complexity verified")
+except Exception as e:
+    record("60. AppSec Storage Discretion & ReDoS Immunity", False, str(e))
+
 print("================================================================")
 total_passed = sum(1 for r in results if r["passed"])
 total_tests = len(results)

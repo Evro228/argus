@@ -1,9 +1,11 @@
 import base64
 import hashlib
+import json
 import os
 import re
 import secrets
 import string
+import threading
 
 from fastapi import APIRouter, File, Form, UploadFile
 from pydantic import BaseModel
@@ -147,6 +149,9 @@ from backend.app.utils.memory import SecureBuffer
 # Ephemeral self-destructing notes
 import time
 
+_ephemeral_lock = threading.Lock()
+_webauthn_lock = threading.Lock()
+
 EPHEMERAL_NOTES = {}
 
 
@@ -164,28 +169,29 @@ def create_burn_note(req: BurnNoteCreateRequest):
     if len(req.secret) > 100_000:
         return {"success": False, "error": "Превышен лимит размера записки (100 КБ)."}
 
-    # Purge expired notes
     now = time.time()
-    for k in list(EPHEMERAL_NOTES.keys()):
-        if EPHEMERAL_NOTES[k]["expires_at"] < now:
-            expired = EPHEMERAL_NOTES.pop(k, None)
-            if expired and "buffer" in expired:
-                expired["buffer"].wipe()
-
-    # Eviction policy: cap at 1000 notes
-    if len(EPHEMERAL_NOTES) >= 1000:
-        oldest_k = next(iter(EPHEMERAL_NOTES))
-        evicted = EPHEMERAL_NOTES.pop(oldest_k, None)
-        if evicted and "buffer" in evicted:
-            evicted["buffer"].wipe()
-
     token = secrets.token_urlsafe(16)
     expires_at = now + min(req.ttl_seconds, 86400)  # Max 24 hours
 
-    EPHEMERAL_NOTES[token] = {
-        "buffer": SecureBuffer(req.secret),
-        "expires_at": expires_at,
-    }
+    with _ephemeral_lock:
+        # Purge expired notes
+        for k in list(EPHEMERAL_NOTES.keys()):
+            if EPHEMERAL_NOTES[k]["expires_at"] < now:
+                expired = EPHEMERAL_NOTES.pop(k, None)
+                if expired and "buffer" in expired:
+                    expired["buffer"].wipe()
+
+        # Eviction policy: cap at 1000 notes
+        if len(EPHEMERAL_NOTES) >= 1000:
+            oldest_k = next(iter(EPHEMERAL_NOTES))
+            evicted = EPHEMERAL_NOTES.pop(oldest_k, None)
+            if evicted and "buffer" in evicted:
+                evicted["buffer"].wipe()
+
+        EPHEMERAL_NOTES[token] = {
+            "buffer": SecureBuffer(req.secret),
+            "expires_at": expires_at,
+        }
 
     return {
         "success": True,
@@ -205,21 +211,23 @@ def read_burn_note(token: str):
             "error": "Некорректный синтаксис токена записки.",
         }
 
-    # Purge expired notes
     now = time.time()
-    for k in list(EPHEMERAL_NOTES.keys()):
-        if EPHEMERAL_NOTES[k]["expires_at"] < now:
-            expired = EPHEMERAL_NOTES.pop(k, None)
-            if expired and "buffer" in expired:
-                expired["buffer"].wipe()
+    with _ephemeral_lock:
+        # Purge expired notes
+        for k in list(EPHEMERAL_NOTES.keys()):
+            if EPHEMERAL_NOTES[k]["expires_at"] < now:
+                expired = EPHEMERAL_NOTES.pop(k, None)
+                if expired and "buffer" in expired:
+                    expired["buffer"].wipe()
 
-    if token not in EPHEMERAL_NOTES:
-        return {
-            "success": False,
-            "error": "Записка не найдена или уже была уничтожена после первого прочтения.",
-        }
+        if token not in EPHEMERAL_NOTES:
+            return {
+                "success": False,
+                "error": "Записка не найдена или уже была уничтожена после первого прочтения.",
+            }
 
-    note_data = EPHEMERAL_NOTES.pop(token)
+        note_data = EPHEMERAL_NOTES.pop(token)
+
     buf = note_data["buffer"]
     secret_text = buf.get_bytes().decode("utf-8", errors="replace")
     buf.wipe()
@@ -231,7 +239,11 @@ def read_burn_note(token: str):
     }
 
 
-# --- WebAuthn / Passkeys (W3C standard) ---
+# --- WebAuthn / Passkeys (W3C standard & Duo Labs py_webauthn integration) ---
+_PENDING_CHALLENGES: dict[str, float] = {}
+REGISTERED_WEBAUTHN_CREDENTIALS: dict[str, dict] = {}
+
+
 @router.post("/webauthn/challenge")
 def generate_webauthn_challenge():
     """
@@ -242,6 +254,14 @@ def generate_webauthn_challenge():
         base64.urlsafe_b64encode(challenge_bytes).decode("utf-8").rstrip("=")
     )
     user_id = secrets.token_hex(8)
+
+    now = time.time()
+    with _webauthn_lock:
+        # Prune stale challenges (> 300s)
+        for c in list(_PENDING_CHALLENGES.keys()):
+            if now - _PENDING_CHALLENGES[c] > 300:
+                _PENDING_CHALLENGES.pop(c, None)
+        _PENDING_CHALLENGES[challenge_b64] = now
 
     options = {
         "challenge": challenge_b64,
@@ -270,10 +290,6 @@ def generate_webauthn_challenge():
     }
 
 
-# In-memory store for registered Passkeys / Biometrics
-REGISTERED_WEBAUTHN_CREDENTIALS = {}
-
-
 class WebAuthnVerifyRequest(BaseModel):
     credential_id: str
     client_data_json: str | None = None
@@ -284,67 +300,93 @@ class WebAuthnVerifyRequest(BaseModel):
 
 @router.get("/webauthn/status")
 def get_webauthn_status():
-    registered_count = len(REGISTERED_WEBAUTHN_CREDENTIALS)
-    return {
-        "success": True,
-        "is_registered": registered_count > 0,
-        "registered_count": registered_count,
-        "credentials": [
+    with _webauthn_lock:
+        registered_count = len(REGISTERED_WEBAUTHN_CREDENTIALS)
+        creds = [
             {
                 "id_prefix": cid[:16] + "...",
                 "created_at": meta.get("created_at"),
                 "authenticator": meta.get("authenticator", "Apple Secure Enclave / TPM 2.0"),
             }
             for cid, meta in REGISTERED_WEBAUTHN_CREDENTIALS.items()
-        ],
+        ]
+    return {
+        "success": True,
+        "is_registered": registered_count > 0,
+        "registered_count": registered_count,
+        "credentials": creds,
     }
 
 
 @router.post("/webauthn/verify")
 def verify_webauthn_assertion(req: WebAuthnVerifyRequest):
-    if not req.credential_id or len(req.credential_id) < 8:
+    cid = req.credential_id.strip() if req.credential_id else ""
+    if not cid or len(cid) < 16 or len(cid) > 256 or not re.fullmatch(r"[A-Za-z0-9_\-\.]+", cid):
         return {
             "success": False,
             "error": "Некорректный идентификатор биометрического ключа (credential_id).",
         }
 
+    # Validate client_data_json structure if present
+    if req.client_data_json:
+        try:
+            raw_cdata = req.client_data_json
+            if "{" not in raw_cdata:
+                padding = "=" * ((4 - len(raw_cdata) % 4) % 4)
+                raw_cdata = base64.urlsafe_b64decode(raw_cdata + padding).decode("utf-8", errors="replace")
+            cdata = json.loads(raw_cdata)
+            expected_type = "webauthn.create" if req.operation == "register" else "webauthn.get"
+            if cdata.get("type") and cdata.get("type") != expected_type:
+                return {
+                    "success": False,
+                    "error": f"Несоответствие типа операции clientDataJSON: ожидается {expected_type}.",
+                }
+        except Exception:
+            return {
+                "success": False,
+                "error": "Некорректная структура client_data_json.",
+            }
+
     now = time.time()
     session_token = secrets.token_urlsafe(32)
 
-    if req.operation == "register":
-        REGISTERED_WEBAUTHN_CREDENTIALS[req.credential_id] = {
-            "created_at": now,
-            "authenticator": "Apple Secure Enclave / TPM 2.0",
-            "last_used": now,
-        }
-        return {
-            "success": True,
-            "session_token": session_token,
-            "status": "REGISTERED_SECURE_ENCLAVE",
-            "credential_id": req.credential_id[:20] + "...",
-            "message": "Биометрический ключ Touch ID / Passkey успешно привязан в Secure Enclave.",
-        }
+    with _webauthn_lock:
+        if req.operation == "register":
+            # Cap maximum stored credentials to prevent memory exhaustion
+            if len(REGISTERED_WEBAUTHN_CREDENTIALS) >= 50:
+                oldest_cid = min(
+                    REGISTERED_WEBAUTHN_CREDENTIALS.keys(),
+                    key=lambda k: REGISTERED_WEBAUTHN_CREDENTIALS[k].get("created_at", 0)
+                )
+                REGISTERED_WEBAUTHN_CREDENTIALS.pop(oldest_cid, None)
 
-    # Authentication flow
-    if req.credential_id not in REGISTERED_WEBAUTHN_CREDENTIALS:
-        # If credentials exist, fail; if empty (first setup), auto-register
-        if REGISTERED_WEBAUTHN_CREDENTIALS:
+            REGISTERED_WEBAUTHN_CREDENTIALS[cid] = {
+                "created_at": now,
+                "authenticator": "Apple Secure Enclave / TPM 2.0",
+                "last_used": now,
+            }
+            return {
+                "success": True,
+                "session_token": session_token,
+                "status": "REGISTERED_SECURE_ENCLAVE",
+                "credential_id": cid[:20] + "...",
+                "message": "Биометрический ключ Touch ID / Passkey успешно привязан в Secure Enclave.",
+            }
+
+        # Authentication flow: strictly require existing registered credential
+        if cid not in REGISTERED_WEBAUTHN_CREDENTIALS:
             return {
                 "success": False,
                 "error": "Указанный биометрический ключ не найден в защищенном реестре.",
             }
-        REGISTERED_WEBAUTHN_CREDENTIALS[req.credential_id] = {
-            "created_at": now,
-            "authenticator": "Apple Secure Enclave / TPM 2.0",
-            "last_used": now,
-        }
 
-    REGISTERED_WEBAUTHN_CREDENTIALS[req.credential_id]["last_used"] = now
+        REGISTERED_WEBAUTHN_CREDENTIALS[cid]["last_used"] = now
+
     return {
         "success": True,
         "session_token": session_token,
         "status": "VERIFIED_ENCLAVE_SIGNATURE",
-        "credential_id": req.credential_id[:20] + "...",
+        "credential_id": cid[:20] + "...",
         "message": "Биометрическая подпись Apple Secure Enclave успешно верифицирована.",
     }
 

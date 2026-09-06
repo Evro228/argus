@@ -28,8 +28,8 @@ def sanitize_sensitive_data(req: SanitizeRequest):
         replacements.append(("EMAIL", m.group(0)))
     cleaned = re.sub(email_pattern, "[REDACTED_EMAIL]", cleaned)
 
-    # Credit cards
-    cc_pattern = r"\b(?:\d[ -]*?){13,16}\b"
+    # Credit cards (13-16 digits formatted or continuous)
+    cc_pattern = r"\b(?:\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{1,4}|\d{4}[ -]?\d{6}[ -]?\d{5})\b"
     for m in re.finditer(cc_pattern, cleaned):
         replacements.append(("CARD", m.group(0)))
     cleaned = re.sub(cc_pattern, "[REDACTED_CARD]", cleaned)

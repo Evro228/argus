@@ -132,7 +132,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false,
+      sandbox: true,
       webSecurity: true,
       allowRunningInsecureContent: false
     }
@@ -155,12 +155,6 @@ function createWindow() {
   });
 
   mainWindow.loadURL(SERVER_URL);
-
-  mainWindow.webContents.on('dom-ready', () => {
-    mainWindow.webContents.executeJavaScript(`
-      window.__ARGUS_IPC_TOKEN__ = "${ARGUS_IPC_TOKEN}";
-    `).catch(() => {});
-  });
 
   mainWindow.webContents.on('did-fail-load', () => {
     setTimeout(() => {

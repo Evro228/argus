@@ -44,16 +44,24 @@ async def dispatch_telegram_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
     if not token or not chat_id:
         return {"success": False, "error": "Не указан Bot Token или Chat ID"}
 
-    sev = alert.get("severity", "INFO")
+    import html
+
+    sev_raw = alert.get("severity", "INFO")
+    sev = html.escape(sev_raw)
     icons = {"CRITICAL": "🚨", "WARNING": "⚠️", "INFO": "ℹ️"}
-    icon = icons.get(sev, "🛡️")
+    icon = icons.get(sev_raw, "🛡️")
+
+    cat = html.escape(alert.get("category", "SYSTEM"))
+    title = html.escape(alert.get("title", "Тревога"))
+    msg = html.escape(alert.get("message", ""))
+    ts = html.escape(alert.get("timestamp", ""))
 
     text = (
-        f"{icon} *ARGUS Tactical Alert* [_{sev}_]\n\n"
-        f"📍 *Компонент:* `{alert.get('category', 'SYSTEM')}`\n"
-        f"🎯 *Событие:* *{alert.get('title', 'Тревога')}*\n"
-        f"📝 {alert.get('message', '')}\n\n"
-        f"⏱️ `{alert.get('timestamp', '')}`"
+        f"{icon} <b>ARGUS Tactical Alert</b> [<i>{sev}</i>]\n\n"
+        f"📍 <b>Компонент:</b> <code>{cat}</code>\n"
+        f"🎯 <b>Событие:</b> <b>{title}</b>\n"
+        f"📝 {msg}\n\n"
+        f"⏱️ <code>{ts}</code>"
     )
 
     try:
@@ -61,7 +69,7 @@ async def dispatch_telegram_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.post(
                 url,
-                json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
             )
             if resp.status_code == 200:
                 return {"success": True, "message": "Алерт успешно доставлен в Telegram"}
@@ -317,12 +325,17 @@ def get_telegram_config():
     """
     raw_token = TELEGRAM_CONFIG.get("bot_token", "")
     masked_token = f"{raw_token[:6]}••••••••{raw_token[-4:]}" if len(raw_token) > 10 else ("Configured" if raw_token else "")
+    raw_chat = TELEGRAM_CONFIG.get("chat_id", "")
+    masked_chat = f"{raw_chat[:3]}••••{raw_chat[-2:]}" if len(raw_chat) > 5 else ("Configured" if raw_chat else "")
     return {
         "success": True,
         "enabled": TELEGRAM_CONFIG.get("enabled", False),
         "bot_configured": bool(raw_token),
         "masked_token": masked_token,
         "chat_id": TELEGRAM_CONFIG.get("chat_id", ""),
+        "chat_id_masked": masked_chat,
+        "masked_chat_id": masked_chat,
+        "chat_configured": bool(raw_chat),
         "min_severity": TELEGRAM_CONFIG.get("min_severity", "WARNING"),
         "air_gap_mode": is_air_gap_enabled(),
     }

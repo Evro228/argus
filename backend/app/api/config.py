@@ -54,7 +54,6 @@ def get_api_keys_status():
     keys = read_keys()
     return {
         "success": True,
-        "config_path": CONFIG_FILE,
         "keys": {
             "nasa_firms_key": {
                 "configured": bool(keys.get("nasa_firms_key")),

@@ -234,7 +234,9 @@ def check_email_breach(req: EmailCheckRequest):
 
 @router.post("/breach/password")
 async def check_password_breach(req: PasswordBreachRequest):
-    res = await check_password_breach_automated(req.password, req.offline_only)
+    from backend.app.api.system import is_air_gap_enabled
+    offline = bool(req.offline_only or is_air_gap_enabled())
+    res = await check_password_breach_automated(req.password, offline)
     return {
         "success": True,
         **res

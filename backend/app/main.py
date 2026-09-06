@@ -34,14 +34,22 @@ app = FastAPI(
 )
 
 # CORS configuration
-ALLOWED_ORIGINS = os.getenv(
+raw_allowed_origins = os.getenv(
     "ARGUS_ALLOWED_ORIGINS",
     "http://127.0.0.1:8800,http://localhost:8800,http://127.0.0.1:3000,http://localhost:3000",
 ).split(",")
 
+# Security: disallow wildcard '*' when allow_credentials=True
+ALLOWED_ORIGINS = [
+    o.strip() for o in raw_allowed_origins
+    if o.strip() and o.strip() != "*"
+]
+if not ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS = ["http://127.0.0.1:8800", "http://localhost:8800"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=[

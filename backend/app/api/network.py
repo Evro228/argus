@@ -124,29 +124,32 @@ async def scan_target_ports(req: ScanHostRequest):
     except Exception:
         pass
 
-    async def probe_port(port: int, service: str):
-        try:
-            conn = asyncio.open_connection(target, port)
-            reader, writer = await asyncio.wait_for(conn, timeout=1.5)
-            writer.close()
-            await writer.wait_closed()
-            
-            # Correlate with local CVE database
-            srv_lower = service.lower()
-            matched_cves = [
-                c for c in local_cves
-                if c["service"] in srv_lower or (srv_lower == "ssh" and c["service"] == "openssh") or (srv_lower in ["http", "http-alt"] and c["service"] in ["apache", "nginx"])
-            ]
+    sem = asyncio.Semaphore(8)
 
-            return {
-                "port": port,
-                "service": service,
-                "state": "OPEN",
-                "risk": "CRITICAL" if any(c.get("severity") == "CRITICAL" for c in matched_cves) or port in [21, 23, 445] else ("HIGH" if port in [3389, 6379, 27017] else "NORMAL"),
-                "cves": matched_cves
-            }
-        except Exception:
-            return None
+    async def probe_port(port: int, service: str):
+        async with sem:
+            try:
+                conn = asyncio.open_connection(target, port)
+                reader, writer = await asyncio.wait_for(conn, timeout=1.5)
+                writer.close()
+                await writer.wait_closed()
+                
+                # Correlate with local CVE database
+                srv_lower = service.lower()
+                matched_cves = [
+                    c for c in local_cves
+                    if c["service"] in srv_lower or (srv_lower == "ssh" and c["service"] == "openssh") or (srv_lower in ["http", "http-alt"] and c["service"] in ["apache", "nginx"])
+                ]
+
+                return {
+                    "port": port,
+                    "service": service,
+                    "state": "OPEN",
+                    "risk": "CRITICAL" if any(c.get("severity") == "CRITICAL" for c in matched_cves) or port in [21, 23, 445] else ("HIGH" if port in [3389, 6379, 27017] else "NORMAL"),
+                    "cves": matched_cves
+                }
+            except Exception:
+                return None
 
     tasks = [probe_port(port, service) for port, service in TOP_PORTS]
     results = await asyncio.gather(*tasks)
@@ -227,9 +230,25 @@ import subprocess
 
 @router.get("/wifi/status")
 def get_wifi_recon_status():
+    default_resp = {
+        "success": True,
+        "connected": False,
+        "current_network": {
+            "ssid": "Не подключено",
+            "phy_mode": "N/A",
+            "channel": "N/A",
+            "country_code": "N/A",
+            "security_rating": "Standard WPA2",
+        },
+        "radio_environment": {
+            "band_5ghz": False,
+            "supported_standards": "802.11 a/b/g/n/ac/ax (Wi-Fi 6 Ready)",
+        },
+    }
+
     try:
-        cmd = ["system_profiler", "SPAirPortDataType"]
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        cmd = ["system_profiler", "SPAirPortDataType", "-detailLevel", "basic"]
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
         raw = out.stdout or ""
 
         ssid = "Не подключено"
@@ -238,29 +257,33 @@ def get_wifi_recon_status():
         country_code = "N/A"
 
         lines = raw.split("\n")
+        in_en0 = False
         in_current = False
+
         for i, line in enumerate(lines):
-            stripped = line.strip()
-            if "Current Network Information:" in stripped and i + 1 < len(lines):
-                next_line = lines[i + 1].strip().rstrip(":")
-                if next_line:
-                    ssid = next_line
+            s = line.strip()
+            if s.startswith("en0:"):
+                in_en0 = True
+            elif in_en0 and line and not line.startswith(" ") and not line.startswith("\t"):
+                in_en0 = False
+                in_current = False
+            elif in_en0 and (s.startswith("awdl0:") or s.startswith("Other Local Wi-Fi Networks:")):
+                break
+
+            if in_en0 and "Current Network Information:" in s and i + 1 < len(lines):
+                next_s = lines[i + 1].strip().rstrip(":")
+                if next_s and not next_s.startswith("Network Type"):
+                    ssid = next_s
                     in_current = True
-            if in_current:
-                if "PHY Mode:" in stripped:
-                    phy_mode = stripped.split("PHY Mode:")[-1].strip()
-                elif "Channel:" in stripped:
-                    channel = stripped.split("Channel:")[-1].strip()
-                elif "Country Code:" in stripped:
-                    country_code = stripped.split("Country Code:")[-1].strip()
-                elif stripped.startswith("Other Local Wi-Fi Networks:") or (
-                    line.startswith("        ")
-                    and "PHY Mode" not in stripped
-                    and "Channel" not in stripped
-                    and "Country Code" not in stripped
-                    and "Network Type" not in stripped
-                ):
-                    pass
+            elif in_current:
+                if "PHY Mode:" in s:
+                    phy_mode = s.split("PHY Mode:")[-1].strip()
+                elif "Channel:" in s:
+                    channel = s.split("Channel:")[-1].strip()
+                elif "Country Code:" in s:
+                    country_code = s.split("Country Code:")[-1].strip()
+                elif s.startswith("awdl0:") or s.startswith("Other Local"):
+                    break
 
         return {
             "success": True,
@@ -279,8 +302,8 @@ def get_wifi_recon_status():
                 "supported_standards": "802.11 a/b/g/n/ac/ax (Wi-Fi 6 Ready)",
             },
         }
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    except Exception:
+        return default_resp
 
 
 @router.get("/my-ip")

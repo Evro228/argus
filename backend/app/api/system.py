@@ -237,7 +237,7 @@ def get_hardening_audit():
                     "id": "filevault",
                     "name": "FileVault (Шифрование диска)",
                     "status": "CHECK_REQUIRED",
-                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "detail": "Не удалось выполнить проверку (сбой системного вызова)",
                     "remediation": "Проверьте статус FileVault в настройках macOS.",
                 }
             )
@@ -266,7 +266,7 @@ def get_hardening_audit():
                     "id": "gatekeeper",
                     "name": "Apple Gatekeeper (Контроль подписей приложений)",
                     "status": "CHECK_REQUIRED",
-                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "detail": "Не удалось выполнить проверку (сбой системного вызова)",
                     "remediation": "Проверьте статус Gatekeeper в терминале: spctl --status",
                 }
             )
@@ -295,7 +295,7 @@ def get_hardening_audit():
                     "id": "sip",
                     "name": "System Integrity Protection (SIP)",
                     "status": "CHECK_REQUIRED",
-                    "detail": f"Не удалось выполнить проверку: {e!s}",
+                    "detail": "Не удалось выполнить проверку (сбой системного вызова)",
                     "remediation": "Проверьте статус SIP в терминале: csrutil status",
                 }
             )
@@ -344,7 +344,7 @@ def get_hardening_audit():
                 "id": "bitlocker",
                 "name": "BitLocker Drive Encryption",
                 "status": "CHECK_REQUIRED",
-                "detail": str(e),
+                "detail": "Не удалось выполнить проверку (сбой системного вызова)",
                 "remediation": "Проверьте состояние BitLocker через `manage-bde -status`.",
             })
 
@@ -368,7 +368,7 @@ def get_hardening_audit():
                 "id": "defender",
                 "name": "Microsoft Defender",
                 "status": "CHECK_REQUIRED",
-                "detail": str(e),
+                "detail": "Не удалось выполнить проверку (сбой системного вызова)",
                 "remediation": "Проверьте службу Defender в службах Windows.",
             })
 
@@ -655,16 +655,28 @@ def get_argus_skills(q: str = None, category: str = None, limit: int = 100):
 
 @router.get("/skills/{skill_name}")
 def get_skill_detail(skill_name: str):
-    clean_name = os.path.basename(skill_name)
-    skill_file = os.path.join(SKILLS_PATH, "skills", clean_name, "SKILL.md")
-    if not os.path.exists(skill_file):
+    clean_name = os.path.basename(skill_name).strip()
+    import re
+    if not clean_name or not re.fullmatch(r"[a-zA-Z0-9_\-\.]{1,128}", clean_name):
+        return {"success": False, "error": "Некорректный синтаксис имени навыка."}
+
+    skills_base = os.path.realpath(os.path.join(SKILLS_PATH, "skills"))
+    skill_file = os.path.realpath(os.path.join(skills_base, clean_name, "SKILL.md"))
+
+    try:
+        if os.path.commonpath([skill_file, skills_base]) != skills_base:
+            return {"success": False, "error": "Доступ запрещен политикой безопасности."}
+    except (ValueError, Exception):
+        return {"success": False, "error": "Доступ запрещен политикой безопасности."}
+
+    if not os.path.exists(skill_file) or not os.path.isfile(skill_file):
         return {"success": False, "error": f"Skill '{clean_name}' not found"}
     try:
         with open(skill_file, "r", encoding="utf-8") as f:
-            content = f.read()
+            content = f.read(500_000)
         return {"success": True, "name": clean_name, "content": content}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    except Exception:
+        return {"success": False, "error": "Не удалось прочитать содержимое навыка."}
 
 
 # Session History Persistence
