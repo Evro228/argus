@@ -204,8 +204,8 @@
       const toggleBtn = document.getElementById('lang-toggle-btn');
       if (toggleBtn) {
         toggleBtn.innerHTML = this.currentLang === 'ru' 
-          ? '<span class="text-sky-400 font-bold">🇷🇺 RU</span> <span class="text-slate-500">|</span> <span class="text-slate-400 hover:text-white">🇬🇧 EN</span>'
-          : '<span class="text-slate-400 hover:text-white">🇷🇺 RU</span> <span class="text-slate-500">|</span> <span class="text-sky-400 font-bold">🇬🇧 EN</span>';
+          ? '<span class="text-sky-400 font-bold">RU</span> <span class="text-slate-500">|</span> <span class="text-slate-400 hover:text-white">EN</span>'
+          : '<span class="text-slate-400 hover:text-white">RU</span> <span class="text-slate-500">|</span> <span class="text-sky-400 font-bold">EN</span>';
       }
 
       // Dispatch custom event for dynamic components

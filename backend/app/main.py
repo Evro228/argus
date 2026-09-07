@@ -130,6 +130,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             or request.headers.get("X-API-Key")
             or auth_token
             or request.query_params.get("token")
+            or request.cookies.get("argus_ipc_token")
             or ""
         ).strip()
 
@@ -141,6 +142,11 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             )
 
     response = await call_next(request)
+    if ipc_token and request.query_params.get("token"):
+        import secrets
+        if secrets.compare_digest(request.query_params.get("token"), ipc_token):
+            response.set_cookie(key="argus_ipc_token", value=ipc_token, httponly=False, samesite="lax")
+
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"

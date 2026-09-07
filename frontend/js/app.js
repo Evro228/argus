@@ -11,14 +11,44 @@ function escapeHtml(str) {
   }[c]));
 }
 
+// Robust token initialization on load
+(function() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      window.__ARGUS_IPC_TOKEN__ = urlToken;
+      try { localStorage.setItem('argus_ipc_token', urlToken); } catch (_) {}
+    }
+  } catch (_) {}
+})();
+
 function getIpcToken() {
+  if (window.__ARGUS_IPC_TOKEN__) return window.__ARGUS_IPC_TOKEN__;
   if (window.argusNative && typeof window.argusNative.getIpcToken === 'function') {
     try {
       const token = window.argusNative.getIpcToken();
-      if (token) return token;
+      if (token) {
+        window.__ARGUS_IPC_TOKEN__ = token;
+        return token;
+      }
     } catch (_) {}
   }
-  return window.__ARGUS_IPC_TOKEN__ || localStorage.getItem('argus_ipc_token') || '';
+  try {
+    const stored = localStorage.getItem('argus_ipc_token');
+    if (stored) {
+      window.__ARGUS_IPC_TOKEN__ = stored;
+      return stored;
+    }
+  } catch (_) {}
+  try {
+    const match = document.cookie.match(/argus_ipc_token=([^;]+)/);
+    if (match && match[1]) {
+      window.__ARGUS_IPC_TOKEN__ = match[1];
+      return match[1];
+    }
+  } catch (_) {}
+  return '';
 }
 
 function getAuthHeaders(extra = {}) {
@@ -231,8 +261,8 @@ const App = {
         const wanIp = document.getElementById('val-wan-ip').textContent;
         const lanIp = document.getElementById('val-lan-ip').textContent;
         navigator.clipboard.writeText(`WAN: ${wanIp} | LAN: ${lanIp}`);
-        copyIpBtn.textContent = '✓';
-        setTimeout(() => { copyIpBtn.textContent = '📋'; }, 1500);
+        copyIpBtn.textContent = 'DONE';
+        setTimeout(() => { copyIpBtn.textContent = 'COPY'; }, 1500);
         this.log(`[IP] Адреса ${wanIp} (WAN) и ${lanIp} (LAN) скопированы в буфер.`, 'success');
       });
     }
@@ -252,8 +282,8 @@ const App = {
         const logBox = document.getElementById('terminal-logs');
         if (logBox) {
           navigator.clipboard.writeText(logBox.innerText);
-          copyTermBtn.textContent = '✓ Скопировано!';
-          setTimeout(() => { copyTermBtn.textContent = '📋 Копировать буфер'; }, 1500);
+          copyTermBtn.textContent = 'СКОПИРОВАНО';
+          setTimeout(() => { copyTermBtn.textContent = 'КОПИРОВАТЬ БУФЕР'; }, 1500);
         }
       });
     }
@@ -366,8 +396,8 @@ const App = {
       copyPwdBtn.addEventListener('click', () => {
         const pwd = document.getElementById('generated-pwd').textContent;
         navigator.clipboard.writeText(pwd);
-        copyPwdBtn.textContent = '✓';
-        setTimeout(() => { copyPwdBtn.textContent = '📋'; }, 1500);
+        copyPwdBtn.textContent = 'DONE';
+        setTimeout(() => { copyPwdBtn.textContent = 'COPY'; }, 1500);
       });
     }
 
@@ -413,9 +443,9 @@ const App = {
           item.innerHTML = `
             <div>
               <div class="font-bold text-slate-200">${escapeHtml(p.name)}</div>
-              <div class="text-[10px] text-slate-400 font-mono">${escapeHtml(p.category)} • HTTP ${escapeHtml(p.status_code)}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${escapeHtml(p.category)} | HTTP ${escapeHtml(p.status_code)}</div>
             </div>
-            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded text-[11px] bg-slate-800 text-sky-400 hover:bg-sky-500 hover:text-white transition">Открыть ↗</a>
+            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded text-[11px] bg-slate-800 text-sky-400 hover:bg-sky-500 hover:text-white transition">Открыть</a>
           `;
           resultsBox.appendChild(item);
         });
@@ -426,7 +456,7 @@ const App = {
       this.log(`[OSINT] Ошибка: ${e.message}`, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = `ИСКАТЬ 🔎`;
+      btn.innerHTML = `ИСКАТЬ `;
     }
   },
 
@@ -504,7 +534,7 @@ const App = {
         if (data.breached) {
           resultBox.innerHTML = `
             <div class="text-rose-400 font-bold flex items-center space-x-1.5">
-              <span>💥</span> <span>ПАРОЛЬ СКОМПРОМЕТИРОВАН</span>
+              <span></span> <span>ПАРОЛЬ СКОМПРОМЕТИРОВАН</span>
             </div>
             <div class="text-slate-300 mt-1">Обнаружен в <span class="font-bold text-rose-300">${escapeHtml(data.count.toLocaleString())}</span> публичных утечках.</div>
             <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.recommendation)}</div>
@@ -512,7 +542,7 @@ const App = {
         } else {
           resultBox.innerHTML = `
             <div class="text-emerald-400 font-bold flex items-center space-x-1.5">
-              <span>🛡️</span> <span>ПАРОЛЬ БЕЗОПАСЕН</span>
+              <span>️</span> <span>ПАРОЛЬ БЕЗОПАСЕН</span>
             </div>
             <div class="text-slate-300 mt-1">Совпадений в базе скомпрометированных ключей не найдено.</div>
           `;
@@ -568,7 +598,7 @@ const App = {
               <div>
                 <span class="text-emerald-400 font-bold font-mono">${escapeHtml(p.port)}/TCP</span> 
                 <span class="text-slate-300 font-mono ml-2">${escapeHtml(p.service)}</span>
-                ${p.cves && p.cves.length > 0 ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">⚠️ ${p.cves.length} CVE</span>` : ''}
+                ${p.cves && p.cves.length > 0 ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">️ ${p.cves.length} CVE</span>` : ''}
               </div>
               <span class="text-slate-500 font-mono text-[10px]">${escapeHtml(p.state)}</span>
             </div>
@@ -608,7 +638,7 @@ const App = {
 
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = `<span class="animate-spin inline-block mr-1">🌀</span> <span>СКАНИРОВАНИЕ СЕТИ...</span>`;
+      btn.innerHTML = `<span class="animate-spin inline-block mr-1"></span> <span>СКАНИРОВАНИЕ СЕТИ...</span>`;
     }
     if (grid) {
       grid.innerHTML = `<div class="col-span-full py-8 text-center text-cyan-400 font-mono text-xs animate-pulse">Аудит ARP-кэша и зондирование портов подсети (80, 443, 554 RTSP)...</div>`;
@@ -640,7 +670,7 @@ const App = {
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = `<span>⚡</span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>`;
+        btn.innerHTML = `<span></span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>`;
       }
     }
   },
@@ -679,7 +709,7 @@ const App = {
       const badgeColor = isCam ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 
                          isGw ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 
                          'bg-slate-800 text-cyan-300 border-slate-700';
-      const typeLabel = isCam ? '📹 IP-КАМЕРА (RTSP)' : (isGw ? '🌐 ШЛЮЗ / РОУТЕР' : (d.device_type || 'HOST').toUpperCase());
+      const typeLabel = isCam ? ' IP-КАМЕРА (RTSP)' : (isGw ? ' ШЛЮЗ / РОУТЕР' : (d.device_type || 'HOST').toUpperCase());
 
       const portsHtml = (d.open_ports || []).map(p => {
         const pBadge = p === 554 ? 'bg-rose-500/20 text-rose-300 border-rose-500/30 font-bold' : 'bg-slate-900 text-slate-400 border-slate-700';
@@ -691,7 +721,7 @@ const App = {
           <div>
             <div class="flex items-center justify-between gap-1 mb-1">
               <span class="text-xs font-bold text-slate-100 flex items-center space-x-1">
-                <span>${isCam ? '📹' : (isGw ? '🌐' : '💻')}</span>
+                <span>${isCam ? '[CAM]' : (isGw ? '[GW]' : '[HOST]')}</span>
                 <span>${escapeHtml(d.ip)}</span>
               </span>
               <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border ${badgeColor}">${typeLabel}</span>
@@ -710,7 +740,7 @@ const App = {
           </div>
           <div class="pt-2 border-t border-slate-800/80 flex justify-end">
             <button onclick="window.argusApp.targetForPortScan('${escapeHtml(d.ip)}')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition flex items-center space-x-1 cursor-pointer">
-              <span>🎯</span> <span>СКАН ПОРТОВ</span>
+              <span></span> <span>СКАН ПОРТОВ</span>
             </button>
           </div>
         </div>
@@ -800,14 +830,14 @@ const App = {
 
       if (alertsCountEl) alertsCountEl.textContent = alertsCount;
       if (badgeText) {
-        badgeText.innerHTML = `🚨 СТОРОЖ: <span class="${isRunning ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${isRunning ? 'АКТИВЕН' : 'ОСТАНОВЛЕН'}</span> (<span id="watcher-alerts-count" class="${alertsCount > 0 ? 'text-rose-400 font-bold animate-pulse' : 'text-slate-300'}">${alertsCount}</span>)`;
+        badgeText.innerHTML = ` СТОРОЖ: <span class="${isRunning ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${isRunning ? 'АКТИВЕН' : 'ОСТАНОВЛЕН'}</span> (<span id="watcher-alerts-count" class="${alertsCount > 0 ? 'text-rose-400 font-bold animate-pulse' : 'text-slate-300'}">${alertsCount}</span>)`;
       }
       if (modalStatus) {
         modalStatus.textContent = isRunning ? 'АКТИВЕН' : 'ОСТАНОВЛЕН';
         modalStatus.className = `px-2 py-0.5 rounded font-bold border ${isRunning ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`;
       }
       if (modalStats) {
-        modalStats.textContent = `Интервал: ${data.interval_seconds}с • Циклов: ${data.cycles_completed || 0}`;
+        modalStats.textContent = `Интервал: ${data.interval_seconds}с | Циклов: ${data.cycles_completed || 0}`;
       }
       if (toggleBtn) {
         toggleBtn.textContent = isRunning ? 'ОСТАНОВИТЬ' : 'ЗАПУСТИТЬ';
@@ -904,7 +934,7 @@ const App = {
         });
       } else {
         this.recordHistory('Code Audit', path, `Уязвимостей не обнаружено`);
-        listEl.innerHTML = `<div class="text-xs text-emerald-400 py-3 text-center">✅ Открытых секретов и паролей не обнаружено!</div>`;
+        listEl.innerHTML = `<div class="text-xs text-emerald-400 py-3 text-center"> Открытых секретов и паролей не обнаружено!</div>`;
       }
     } catch (e) {
       this.log(`[AUDIT] Ошибка: ${e.message}`, 'error');
@@ -963,7 +993,7 @@ const App = {
             resBox.innerHTML = `
               <div class="text-violet-400 font-bold mb-1">Скрыто символов: ${escapeHtml(data.hidden_chars_count)} (AES-256: ${data.is_encrypted ? 'ДА' : 'НЕТ'})</div>
               <div class="text-slate-300 select-all p-2 bg-slate-950 rounded border border-slate-800">${escapeHtml(data.stego_text)}</div>
-              <button id="btn-copy-stego" class="mt-1.5 px-2 py-0.5 bg-violet-600 hover:bg-violet-500 rounded text-white text-[10px]">📋 Скопировать стего-текст</button>
+              <button id="btn-copy-stego" class="mt-1.5 px-2 py-0.5 bg-violet-600 hover:bg-violet-500 rounded text-white text-[10px]"> Скопировать стего-текст</button>
             `;
             document.getElementById('btn-copy-stego').addEventListener('click', () => {
               navigator.clipboard.writeText(data.stego_text);
@@ -1027,12 +1057,12 @@ const App = {
             burnRes.classList.remove('hidden');
             burnRes.innerHTML = `
               <div class="text-amber-400 font-bold flex items-center space-x-1">
-                <span>🔥</span> <span>ОДНОРАЗОВАЯ ЗАПИСКА СОЗДАНА</span>
+                <span></span> <span>ОДНОРАЗОВАЯ ЗАПИСКА СОЗДАНА</span>
               </div>
               <div class="text-slate-300 mt-1">Токен: <span class="text-sky-300 font-bold select-all font-mono">${escapeHtml(data.token)}</span></div>
               <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.note)}</div>
               <div class="mt-2 flex space-x-2">
-                <button id="btn-read-burn-${data.token}" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px]">💥 Прочесть и уничтожить</button>
+                <button id="btn-read-burn-${data.token}" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px]"> Прочесть и уничтожить</button>
               </div>
             `;
             document.getElementById(`btn-read-burn-${data.token}`).addEventListener('click', async () => {
@@ -1168,13 +1198,13 @@ const App = {
           exifBox.innerHTML = `
             <div class="flex justify-between items-center border-b border-slate-800 pb-1 font-bold text-slate-200">
               <span>${escapeHtml(data.filename)}</span>
-              <span class="text-slate-400 font-mono">${escapeHtml(data.dimensions)} • ${escapeHtml(data.format)}</span>
+              <span class="text-slate-400 font-mono">${escapeHtml(data.dimensions)} | ${escapeHtml(data.format)}</span>
             </div>
             <div class="text-slate-400 space-y-1 text-[11px]">
               <div>Камера: <span class="text-slate-200">${escapeHtml(data.camera.make)} ${escapeHtml(data.camera.model)}</span></div>
               <div>Дата съемки: <span class="text-slate-200">${escapeHtml(data.camera.datetime)}</span></div>
               <div>Геолокация: ${gpsHtml}</div>
-              ${data.is_ai_generated ? `<div class="p-1.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold">⚠️ Обнаружены метаданные генерации ИИ: ${escapeHtml(JSON.stringify(data.generator_metadata))}</div>` : ''}
+              ${data.is_ai_generated ? `<div class="p-1.5 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold">️ Обнаружены метаданные генерации ИИ: ${escapeHtml(JSON.stringify(data.generator_metadata))}</div>` : ''}
             </div>
           `;
           this.log(`[FORENSICS] Метаданные ${file.name} извлечены. GPS: ${data.has_gps ? 'ДА' : 'НЕТ'}`, 'success');
@@ -1229,7 +1259,7 @@ const App = {
             </div>
             <div class="text-[11px] text-slate-400 space-y-1">
               <div>Индикаторы: JS Streams: <b class="text-slate-200">${escapeHtml(data.indicators.javascript_streams)}</b>, Launch actions: <b class="text-rose-400">${escapeHtml(data.indicators.embedded_launch)}</b>, Auto-Open: <b class="text-slate-200">${escapeHtml(data.indicators.auto_open_actions)}</b></div>
-              ${data.warnings.length ? `<div class="space-y-0.5 mt-1">${data.warnings.map(w => `<div class="text-rose-300 font-bold">• ${escapeHtml(w)}</div>`).join('')}</div>` : '<div class="text-emerald-400">Скрытых эксплойтов не обнаружено.</div>'}
+              ${data.warnings.length ? `<div class="space-y-0.5 mt-1">${data.warnings.map((w, idx) => `<div class="text-rose-300 font-bold"><span class="font-mono text-rose-400">${idx + 1}.</span> ${escapeHtml(w)}</div>`).join('')}</div>` : '<div class="text-emerald-400">Скрытых эксплойтов не обнаружено.</div>'}
             </div>
           `;
           this.log(`[DANGERZONE] Вердикт по ${file.name}: ${data.verdict} (Risk: ${data.risk_score})`, isCritical ? 'error' : 'success');
@@ -1277,7 +1307,7 @@ const App = {
     if (copySanitizedBtn) {
       copySanitizedBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(sanitizeOut.textContent);
-        copySanitizedBtn.textContent = '✓ Скопировано';
+        copySanitizedBtn.textContent = 'Скопировано';
         setTimeout(() => { copySanitizedBtn.textContent = 'Копировать'; }, 1500);
       });
     }
@@ -1363,7 +1393,7 @@ const App = {
     reportBtn.addEventListener('click', async () => {
       this.log('[ANALYST] Сбор метрик и генерация сводного отчета защищенности...', 'system');
       reportBtn.disabled = true;
-      reportBtn.textContent = 'АНАЛИЗ... ⏳';
+      reportBtn.textContent = 'АНАЛИЗ...';
 
       try {
         // Collect real hardening and airgap state
@@ -1423,7 +1453,7 @@ const App = {
         this.log(`[ANALYST] Ошибка формирования отчета: ${e.message}`, 'error');
       } finally {
         reportBtn.disabled = false;
-        reportBtn.textContent = 'СОСТАВИТЬ ОТЧЕТ ⚡';
+        reportBtn.textContent = 'СОСТАВИТЬ ОТЧЕТ';
       }
     });
 
@@ -1439,7 +1469,7 @@ const App = {
 
       if (aiBtn) {
         aiBtn.disabled = true;
-        aiBtn.textContent = 'ДУМАЕТ... ⏳';
+        aiBtn.textContent = 'ДУМАЕТ...';
       }
       this.log(`[AI COPILOT] Запрос к ассистенту: "${q}"...`, 'system');
 
@@ -1484,7 +1514,7 @@ const App = {
                 <span class="text-[10px] text-slate-400 font-bold uppercase mr-1">ПЛЕЙБУКИ:</span>
                 ${data.matched_playbooks.map(p => `
                   <button class="px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-mono text-sky-300 transition" onclick="window.argusApp.switchTab('tab-playbooks'); window.argusApp.viewSkillDetail('${escapeHtml(p.name)}');">
-                    📖 ${escapeHtml(p.name)}
+                     ${escapeHtml(p.name)}
                   </button>
                 `).join('')}
               </div>
@@ -1514,7 +1544,7 @@ const App = {
       } finally {
         if (aiBtn) {
           aiBtn.disabled = false;
-          aiBtn.textContent = 'СПРОСИТЬ ⚡';
+          aiBtn.textContent = 'СПРОСИТЬ';
         }
       }
     };
@@ -1585,31 +1615,31 @@ const App = {
     if (!dialog || !input || !resultsContainer) return;
 
     const commands = [
-      { id: 'geoint', title: '🛰️ Тактическая карта угроз (GEOINT)', category: 'Навигация', action: () => this.switchTab('geoint'), kbd: '⌘1' },
-      { id: 'network', title: '📡 Сетевой радар & Nmap (Network Recon)', category: 'Навигация', action: () => this.switchTab('network'), kbd: '⌘2' },
-      { id: 'osint', title: '👤 Разведка по открытым источникам (OSINT)', category: 'Навигация', action: () => this.switchTab('osint'), kbd: '⌘3' },
-      { id: 'audit', title: '🔑 Аудит секретов и кода (Code Audit)', category: 'Навигация', action: () => this.switchTab('audit'), kbd: '⌘4' },
-      { id: 'crypto', title: '🔐 Криптографический сейф (Crypto Stronghold)', category: 'Навигация', action: () => this.switchTab('crypto'), kbd: '⌘5' },
-      { id: 'forensics', title: '🔬 Цифровая криминалистика (Forensics Lab)', category: 'Навигация', action: () => this.switchTab('forensics'), kbd: '⌘6' },
-      { id: 'opsec', title: '🥷 Операционная безопасность & DLP (OPSEC)', category: 'Навигация', action: () => this.switchTab('opsec'), kbd: '⌘7' },
-      { id: 'analyst', title: '📊 Отчет ИИ-аналитика (Executive Posture)', category: 'Навигация', action: () => this.switchTab('analyst'), kbd: '⌘8' },
-      { id: 'playbooks', title: '📚 Тактический хаб плейбуков (Anthropic 818)', category: 'Навигация', action: () => this.switchTab('playbooks'), kbd: '⌘9' },
-      { id: 'airgap', title: '🛡️ Переключить Air-Gapped Stealth Mode', category: 'Безопасность', action: () => this.toggleAirGap(), kbd: '⌘S' },
-      { id: 'cctv_matrix', title: '📹 Видеостена открытых камер CCTV (Все города)', category: 'GEOINT', action: () => this.openCctvMatrix(), kbd: '⌘U' },
-      { id: 'cam_mow', title: '🇷🇺 Камера: Москва (Красная Площадь & Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_MOW_01'), kbd: 'CAM' },
-      { id: 'cam_led', title: '🇷🇺 Камера: Санкт-Петербург (Дворцовая площадь)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_LED_01'), kbd: 'CAM' },
-      { id: 'cam_vvo', title: '🇷🇺 Камера: Владивосток (Бухта Золотой Рог & Мост)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_VVO_01'), kbd: 'CAM' },
-      { id: 'cam_aer', title: '🇷🇺 Камера: Сочи (Морской порт Сочи)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_AER_01'), kbd: 'CAM' },
-      { id: 'cam_kzn', title: '🇷🇺 Камера: Казань (Казанский Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_KZN_01'), kbd: 'CAM' },
-      { id: 'cam_ovb', title: '🇷🇺 Камера: Новосибирск (Площадь Ленина & НОВАТ)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_OVB_01'), kbd: 'CAM' },
-      { id: 'cam_svx', title: '🇷🇺 Камера: Екатеринбург (Плотина пруда / Плотинка)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_SVX_01'), kbd: 'CAM' },
-      { id: 'cam_ist', title: '🇹🇷 Камера: Стамбул (Босфорский пролив / Сарайбурну)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_TR_IST_01'), kbd: 'CAM' },
-      { id: 'cam_iss', title: '🛰️ Камера: МКС HD (Орбита Земли Live)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_INTL_ISS_01'), kbd: 'CAM' },
-      { id: 'clear', title: '🧹 Очистить буфер SOC терминала', category: 'Система', action: () => {
+      { id: 'geoint', title: '️ Тактическая карта угроз (GEOINT)', category: 'Навигация', action: () => this.switchTab('geoint'), kbd: '1' },
+      { id: 'network', title: ' Сетевой радар & Nmap (Network Recon)', category: 'Навигация', action: () => this.switchTab('network'), kbd: '2' },
+      { id: 'osint', title: ' Разведка по открытым источникам (OSINT)', category: 'Навигация', action: () => this.switchTab('osint'), kbd: '3' },
+      { id: 'audit', title: ' Аудит секретов и кода (Code Audit)', category: 'Навигация', action: () => this.switchTab('audit'), kbd: '4' },
+      { id: 'crypto', title: ' Криптографический сейф (Crypto Stronghold)', category: 'Навигация', action: () => this.switchTab('crypto'), kbd: '5' },
+      { id: 'forensics', title: ' Цифровая криминалистика (Forensics Lab)', category: 'Навигация', action: () => this.switchTab('forensics'), kbd: '6' },
+      { id: 'opsec', title: ' Операционная безопасность & DLP (OPSEC)', category: 'Навигация', action: () => this.switchTab('opsec'), kbd: '7' },
+      { id: 'analyst', title: ' Отчет ИИ-аналитика (Executive Posture)', category: 'Навигация', action: () => this.switchTab('analyst'), kbd: '8' },
+      { id: 'playbooks', title: ' Тактический хаб плейбуков (Anthropic 818)', category: 'Навигация', action: () => this.switchTab('playbooks'), kbd: '9' },
+      { id: 'airgap', title: '️ Переключить Air-Gapped Stealth Mode', category: 'Безопасность', action: () => this.toggleAirGap(), kbd: 'S' },
+      { id: 'cctv_matrix', title: ' Видеостена открытых камер CCTV (Все города)', category: 'GEOINT', action: () => this.openCctvMatrix(), kbd: 'U' },
+      { id: 'cam_mow', title: ' Камера: Москва (Красная Площадь & Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_MOW_01'), kbd: 'CAM' },
+      { id: 'cam_led', title: ' Камера: Санкт-Петербург (Дворцовая площадь)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_LED_01'), kbd: 'CAM' },
+      { id: 'cam_vvo', title: ' Камера: Владивосток (Бухта Золотой Рог & Мост)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_VVO_01'), kbd: 'CAM' },
+      { id: 'cam_aer', title: ' Камера: Сочи (Морской порт Сочи)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_AER_01'), kbd: 'CAM' },
+      { id: 'cam_kzn', title: ' Камера: Казань (Казанский Кремль)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_KZN_01'), kbd: 'CAM' },
+      { id: 'cam_ovb', title: ' Камера: Новосибирск (Площадь Ленина & НОВАТ)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_OVB_01'), kbd: 'CAM' },
+      { id: 'cam_svx', title: ' Камера: Екатеринбург (Плотина пруда / Плотинка)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_RU_SVX_01'), kbd: 'CAM' },
+      { id: 'cam_ist', title: ' Камера: Стамбул (Босфорский пролив / Сарайбурну)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_TR_IST_01'), kbd: 'CAM' },
+      { id: 'cam_iss', title: '️ Камера: МКС HD (Орбита Земли Live)', category: 'CCTV Камеры', action: () => this.openCameraPlayer('CAM_INTL_ISS_01'), kbd: 'CAM' },
+      { id: 'clear', title: ' Очистить буфер SOC терминала', category: 'Система', action: () => {
         const consoleEl = document.getElementById('terminal-logs');
         if (consoleEl) consoleEl.innerHTML = '';
         this.log('[SOC] Буфер терминала очищен.');
-      }, kbd: '⌘L' }
+      }, kbd: 'L' }
     ];
 
     const renderResults = (query = '') => {
@@ -1730,8 +1760,8 @@ const App = {
       copyBtn.addEventListener('click', () => {
         if (!this.currentPlaybookMarkdown) return;
         navigator.clipboard.writeText(this.currentPlaybookMarkdown);
-        copyBtn.textContent = '✓ Скопировано';
-        setTimeout(() => { copyBtn.textContent = '📋 Копировать Markdown'; }, 1800);
+        copyBtn.textContent = 'Скопировано';
+        setTimeout(() => { copyBtn.textContent = 'КОПИРОВАТЬ MARKDOWN'; }, 1800);
       });
     }
   },
@@ -1836,7 +1866,7 @@ const App = {
       const data = await res.json();
       if (data.success && data.content) {
         this.currentPlaybookMarkdown = data.content;
-        titleEl.textContent = `📖 ${skillName}`;
+        titleEl.textContent = ` ${skillName}`;
         if (copyBtn) copyBtn.classList.remove('hidden');
         bodyEl.innerHTML = this.renderMarkdown(data.content);
         this.log(`[PLAYBOOK] Открыт сценарий: ${skillName}`, 'info');
@@ -1860,7 +1890,7 @@ const App = {
       .replace(/^## (.*$)/gim, '<h2 class="text-sm font-bold text-amber-300 font-mono mt-4 mb-2 border-b border-slate-800 pb-1">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="text-base font-bold text-white font-mono mt-4 mb-2 pb-1 border-b border-slate-700">$1</h1>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-slate-100">$1</strong>')
-      .replace(/^[•*-] (.*$)/gim, '<div class="flex items-start space-x-2 my-0.5 pl-2"><span class="text-sky-500">•</span><span>$1</span></div>')
+      .replace(/^[•*-] (.*$)/gim, '<div class="flex items-start space-x-2 my-0.5 pl-2"><span class="text-sky-500 font-mono text-[10px]">></span><span>$1</span></div>')
       .replace(/\n\n/g, '<div class="h-2"></div>');
   },
 
@@ -1947,7 +1977,7 @@ const App = {
             if (resBox) {
               resBox.classList.remove('hidden');
               resBox.innerHTML = `
-                <div class="text-emerald-400 font-bold">✓ Touch ID / Passkey успешно зарегистрирован</div>
+                <div class="text-emerald-400 font-bold"> Touch ID / Passkey успешно зарегистрирован</div>
                 <div class="text-slate-400">ID ключа: <span class="text-sky-300 font-bold">${escapeHtml(vData.credential_id)}</span></div>
                 <div class="text-slate-400">Аппаратный анклав: <span class="text-amber-300">Apple Secure Enclave / TPM 2.0</span></div>
                 <div class="text-slate-500 text-[10px]">Токен сессии: ${escapeHtml(vData.session_token)}</div>
@@ -2018,7 +2048,7 @@ const App = {
             if (resBox) {
               resBox.classList.remove('hidden');
               resBox.innerHTML = `
-                <div class="text-sky-400 font-bold">✓ Биометрическая аутентификация пройдена</div>
+                <div class="text-sky-400 font-bold"> Биометрическая аутентификация пройдена</div>
                 <div class="text-slate-400">Статус: <span class="text-emerald-400 font-bold">${escapeHtml(vData.status)}</span></div>
                 <div class="text-slate-400">Токен сессии: <span class="text-amber-300 font-bold select-all">${escapeHtml(vData.session_token)}</span></div>
                 <div class="text-[10px] text-slate-500 mt-1">Криптографический сейф разблокирован по биометрии.</div>
@@ -2240,7 +2270,7 @@ const App = {
     if (saveBtn) {
       saveBtn.addEventListener('click', async () => {
         saveBtn.disabled = true;
-        saveBtn.textContent = 'СОХРАНЕНИЕ... ⏳';
+        saveBtn.textContent = 'СОХРАНЕНИЕ...';
 
         const payload = {};
         const firmsKey = document.getElementById('cfg-firms-key')?.value.trim();
@@ -2266,19 +2296,19 @@ const App = {
           const data = await res.json();
           if (data.success) {
             if (msgEl) {
-              msgEl.textContent = '✅ Ключи сохранены в защищенном хранилище.';
+              msgEl.textContent = ' Ключи сохранены в защищенном хранилище.';
               msgEl.className = 'text-[11px] text-emerald-400 font-mono';
             }
             this.log('[CONFIG] Пользовательские ключи live-потоков успешно сохранены.', 'success');
             setTimeout(() => closeDialog(), 800);
           } else {
-            if (msgEl) msgEl.textContent = '❌ ' + (data.error || 'Ошибка');
+            if (msgEl) msgEl.textContent = ' ' + (data.error || 'Ошибка');
           }
         } catch (err) {
-          if (msgEl) msgEl.textContent = '❌ ' + err.message;
+          if (msgEl) msgEl.textContent = ' ' + err.message;
         } finally {
           saveBtn.disabled = false;
-          saveBtn.textContent = 'СОХРАНИТЬ КЛЮЧИ 💾';
+          saveBtn.textContent = 'СОХРАНИТЬ КЛЮЧИ';
         }
       });
     }
@@ -2452,7 +2482,7 @@ const App = {
             <div class="flex items-start justify-between gap-2 mb-2">
               <div>
                 <a href="${escapeHtml(repo.url)}" target="_blank" class="text-xs font-bold font-mono text-purple-300 hover:text-purple-200 hover:underline flex items-center space-x-1.5">
-                  <span>🐙</span>
+                  <span></span>
                   <span>${escapeHtml(repo.name)}</span>
                   <span class="text-[10px] text-slate-500">↗</span>
                 </a>
@@ -2468,24 +2498,24 @@ const App = {
             </p>
 
             <div class="flex flex-wrap gap-1.5 text-[10px] font-mono mb-2">
-              <span class="px-2 py-0.5 rounded bg-purple-900/50 text-purple-200 border border-purple-500/40 font-bold">📹 ${repoCams.length} подключено</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">📦 ${escapeHtml(repo.volume)}</span>
-              <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30">📡 ${escapeHtml(repo.format)}</span>
-              <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30">🌐 ${escapeHtml(repo.coverage)}</span>
+              <span class="px-2 py-0.5 rounded bg-purple-900/50 text-purple-200 border border-purple-500/40 font-bold"> ${repoCams.length} подключено</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"> ${escapeHtml(repo.volume)}</span>
+              <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30"> ${escapeHtml(repo.format)}</span>
+              <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30"> ${escapeHtml(repo.coverage)}</span>
             </div>
 
             <div class="text-[10px] text-slate-400 font-mono space-y-0.5 pt-2 border-t border-slate-800/80">
               <div class="text-slate-500 font-semibold text-[9px] uppercase">Ключевые возможности:</div>
-              ${(repo.features || []).map(f => `<div class="text-slate-400 flex items-center space-x-1"><span>•</span><span>${escapeHtml(f)}</span></div>`).join('')}
+              ${(repo.features || []).map((f, idx) => `<div class="text-slate-400 flex items-center space-x-1.5"><span class="text-purple-400 font-bold font-mono">${idx + 1}.</span><span>${escapeHtml(f)}</span></div>`).join('')}
             </div>
           </div>
 
           <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
             <a href="${escapeHtml(repo.url)}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition flex items-center space-x-1">
-              <span>🔗</span> <span>GitHub</span>
+              <span></span> <span>GitHub</span>
             </a>
             <button class="btn-filter-repo-cams px-3 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold transition flex items-center space-x-1 cursor-pointer">
-              <span>⚡</span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ (${repoCams.length})</span>
+              <span></span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ (${repoCams.length})</span>
             </button>
           </div>
         `;
@@ -2552,7 +2582,7 @@ const App = {
       if (toDisplay.length === 0) {
         gridContainer.innerHTML = `
           <div class="col-span-full py-16 text-center font-mono">
-            <div class="text-3xl mb-2">📹</div>
+            <div class="text-3xl mb-2"></div>
             <div class="text-slate-400 text-sm font-bold">Камеры не найдены по заданному фильтру</div>
             <div class="text-slate-600 text-xs mt-1">Попробуйте ввести другой город (например: Москва, Владивосток, Казань, Сочи, Los Angeles)</div>
           </div>
@@ -2566,7 +2596,7 @@ const App = {
 
         const sourceBadge = cam.source_repo ? `
           <span class="px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/40 text-purple-300 text-[9px] font-mono font-bold truncate max-w-[130px]" title="${escapeHtml(cam.source_repo)}">
-            🐙 ${escapeHtml(cam.source_repo.split('/')[1] || cam.source_repo)}
+             ${escapeHtml(cam.source_repo.split('/')[1] || cam.source_repo)}
           </span>
         ` : '';
 
@@ -2614,7 +2644,7 @@ const App = {
               <div class="text-[10px] text-slate-400 truncate">${escapeHtml(cam.operator || cam.category)}</div>
             </div>
             <button class="px-2 py-1 rounded bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 text-[10px] font-bold shrink-0 transition">
-              ФОКУС 🔍
+              ФОКУС
             </button>
           </div>
         `;
@@ -2676,39 +2706,39 @@ const App = {
       btnSyncAllRepos.addEventListener('click', async () => {
         try {
           btnSyncAllRepos.disabled = true;
-          btnSyncAllRepos.innerHTML = '<span>⏳</span> <span>СИНХРОНИЗАЦИЯ ВСЕХ 9 РЕПОЗИТОРИЕВ...</span>';
+          btnSyncAllRepos.innerHTML = '<span></span> <span>СИНХРОНИЗАЦИЯ ВСЕХ 9 РЕПОЗИТОРИЕВ...</span>';
           const res = await fetch('/api/cameras/sources/sync', {
             method: 'POST',
             headers: getAuthHeaders(),
           });
           if (res.ok) {
             const data = await res.json();
-            this.log(`[CCTV AGGREGATOR] ⚡ ${data.message || 'Синхронизация завершена успешно'}`, 'success');
+            this.log(`[CCTV AGGREGATOR]  ${data.message || 'Синхронизация завершена успешно'}`, 'success');
             await loadData();
             
             const statsBar = document.getElementById('cctv-repos-stats-bar');
             if (statsBar && data.stats) {
               const s = data.stats;
               statsBar.innerHTML = `
-                <span class="flex items-center space-x-1"><span>🏛️</span> <span>${s.total_repositories || 9} репозиториев</span></span>
-                <span>•</span>
-                <span class="flex items-center space-x-1"><span>📹</span> <span class="text-teal-300 font-bold">${s.total_github_cameras || 54} агрегированных потоков (124 в каталоге)</span></span>
-                <span>•</span>
-                <span class="flex items-center space-x-1"><span>📡</span> <span>4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
-                <span>•</span>
-                <span class="flex items-center space-x-1"><span>🌍</span> <span>${s.total_countries || 35}+ стран</span></span>
-                <span>•</span>
-                <span class="text-emerald-400 font-bold">✓ СИНХРОНИЗИРОВАНО (${s.last_sync ? s.last_sync.slice(11, 19) : 'UTC'})</span>
+                <span class="flex items-center space-x-1"><span>️</span> <span>${s.total_repositories || 9} репозиториев</span></span>
+                <span>|</span>
+                <span class="flex items-center space-x-1"><span></span> <span class="text-teal-300 font-bold">${s.total_github_cameras || 54} агрегированных потоков (124 в каталоге)</span></span>
+                <span>|</span>
+                <span class="flex items-center space-x-1"><span></span> <span>4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
+                <span>|</span>
+                <span class="flex items-center space-x-1"><span></span> <span>${s.total_countries || 35}+ стран</span></span>
+                <span>|</span>
+                <span class="text-emerald-400 font-bold"> СИНХРОНИЗИРОВАНО (${s.last_sync ? s.last_sync.slice(11, 19) : 'UTC'})</span>
               `;
             }
           } else {
-            this.log('[CCTV AGGREGATOR] ❌ Ошибка синхронизации репозиториев', 'error');
+            this.log('[CCTV AGGREGATOR]  Ошибка синхронизации репозиториев', 'error');
           }
         } catch (err) {
-          this.log('[CCTV AGGREGATOR] ❌ Сбой: ' + err.message, 'error');
+          this.log('[CCTV AGGREGATOR]  Сбой: ' + err.message, 'error');
         } finally {
           btnSyncAllRepos.disabled = false;
-          btnSyncAllRepos.innerHTML = '<span>⚡</span> <span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>';
+          btnSyncAllRepos.innerHTML = '<span></span> <span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>';
         }
       });
     }
@@ -2758,8 +2788,8 @@ const App = {
       } catch (_) {}
 
       if (titleEl) titleEl.textContent = cam.name;
-      if (flagEl) flagEl.textContent = cam.flag;
-      if (metaEl) metaEl.textContent = `${cam.operator} • ${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E • ${cam.resolution} ${cam.fps} FPS`;
+      if (flagEl) flagEl.textContent = `[${cam.country || "CAM"}]`;
+      if (metaEl) metaEl.textContent = `${cam.operator} | ${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E | ${cam.resolution} ${cam.fps} FPS`;
       if (imgEl) imgEl.src = cam.snapshot_url;
       if (idOverlay) idOverlay.textContent = cam.id;
       if (coordsOverlay) coordsOverlay.textContent = `${cam.lat.toFixed(4)}° N, ${cam.lon.toFixed(4)}° E`;
@@ -2820,7 +2850,7 @@ const App = {
           if (imgEl) imgEl.classList.add('hidden');
           if (streamBadge) streamBadge.classList.remove('hidden');
           if (toggleStreamBtn) toggleStreamBtn.textContent = 'ПОКАЗАТЬ КАДР';
-          if (statusMsg) statusMsg.textContent = '🔴 Живой видеопоток HLS запущен.';
+          if (statusMsg) statusMsg.textContent = ' Живой видеопоток HLS запущен.';
         }
       };
 
@@ -2861,7 +2891,7 @@ const App = {
       if (captureBtn) {
         captureBtn.onclick = () => {
           if (statusMsg) {
-            statusMsg.textContent = `✅ Кадр ${cam.id} (${new Date().toLocaleTimeString()}) сохранён в буфер криминалистики.`;
+            statusMsg.textContent = ` Кадр ${cam.id} (${new Date().toLocaleTimeString()}) сохранён в буфер криминалистики.`;
           }
           this.log(`[GEOINT/CCTV] Захвачен стоп-кадр с камеры ${cam.name} (${cam.id})`, 'success');
         };
@@ -2871,11 +2901,11 @@ const App = {
         refreshBtn.onclick = () => {
           if (isStreaming && this._currentHls) {
             switchToStream();
-            if (statusMsg) statusMsg.textContent = '🔄 Видеопоток перезапущен.';
+            if (statusMsg) statusMsg.textContent = ' Видеопоток перезапущен.';
           } else if (imgEl) {
             const sep = cam.snapshot_url.includes('?') ? '&' : '?';
             imgEl.src = cam.snapshot_url + sep + 't=' + Date.now();
-            if (statusMsg) statusMsg.textContent = '🔄 Стоп-кадр обновлён.';
+            if (statusMsg) statusMsg.textContent = ' Стоп-кадр обновлён.';
           }
         };
       }
@@ -2926,7 +2956,7 @@ const App = {
       physicsBtn.onclick = () => {
         if (!this.synapseGraphInstance) return;
         this.synapseGraphInstance.isSimulating = !this.synapseGraphInstance.isSimulating;
-        physicsBtn.textContent = this.synapseGraphInstance.isSimulating ? '⏸ ФИЗИКА' : '▶ ФИЗИКА';
+        physicsBtn.textContent = this.synapseGraphInstance.isSimulating ? 'ФИЗИКА [ВКЛ]' : 'ФИЗИКА [ВЫКЛ]';
       };
     }
 
@@ -3014,7 +3044,7 @@ const App = {
           this.log(`[THREATS] Ошибка: ${err.message}`, 'error');
         } finally {
           scanBtn.disabled = false;
-          scanBtn.textContent = 'СКАНИРОВАТЬ СИГНАТУРЫ ⚡';
+          scanBtn.textContent = 'СКАНИРОВАТЬ СИГНАТУРЫ';
         }
       };
     }
@@ -3042,14 +3072,14 @@ const App = {
         <span class="font-bold text-slate-200">РЕЗУЛЬТАТ АНАЛИЗА:</span>
         <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${data.verdict} (${data.max_severity})</span>
       </div>
-      <span class="text-[10px] text-slate-400">Проверено правил: ${data.total_rules_evaluated} • Совпадений: ${data.matched_rules_count}</span>
+      <span class="text-[10px] text-slate-400">Проверено правил: ${data.total_rules_evaluated} | Совпадений: ${data.matched_rules_count}</span>
     `;
     box.appendChild(header);
 
     if (!isThreat) {
       const cleanMsg = document.createElement('div');
       cleanMsg.className = 'text-center py-4 text-emerald-400 text-xs font-mono';
-      cleanMsg.textContent = '✅ Сигнатур вредоносного ПО, веб-шеллов или подозрительных LOLBins не обнаружено.';
+      cleanMsg.textContent = ' Сигнатур вредоносного ПО, веб-шеллов или подозрительных LOLBins не обнаружено.';
       box.appendChild(cleanMsg);
       this.log('[THREATS] Файл чист. Угроз не обнаружено.', 'success');
       return;
@@ -3128,9 +3158,9 @@ const App = {
             row.innerHTML = `
               <div>
                 <div class="font-bold text-slate-200">${escapeHtml(r.name)}</div>
-                <div class="text-slate-500 text-[10px]">${escapeHtml(r.location)} • ${escapeHtml(r.coverage)}</div>
+                <div class="text-slate-500 text-[10px]">${escapeHtml(r.location)} | ${escapeHtml(r.coverage)}</div>
               </div>
-              <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-[10px] transition">ПОДКЛЮЧИТЬСЯ ↗</a>
+              <a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-[10px] transition">ПОДКЛЮЧИТЬСЯ</a>
             `;
             recBox.appendChild(row);
           });
@@ -3233,10 +3263,10 @@ const App = {
         if (tokenInput && cfg.bot_configured) tokenInput.placeholder = cfg.masked_token || 'Настроен';
         if (statusLabel) {
           if (cfg.air_gap_mode) {
-            statusLabel.textContent = '🔒 Air-Gap Stealth: отправка во внешнюю сеть заблокирована';
+            statusLabel.textContent = ' Air-Gap Stealth: отправка во внешнюю сеть заблокирована';
             statusLabel.className = 'text-[10px] text-amber-400';
           } else if (cfg.enabled && cfg.bot_configured) {
-            statusLabel.textContent = '✅ Telegram бот подключен и готов к рассылке алертов';
+            statusLabel.textContent = ' Telegram бот подключен и готов к рассылке алертов';
             statusLabel.className = 'text-[10px] text-emerald-400';
           } else {
             statusLabel.textContent = 'Оповещения отключены или не заполнены данные бота';
@@ -3301,7 +3331,7 @@ const App = {
           });
           const data = await res.json();
           if (data.success) {
-            this.log('✅ Тестовый алерт успешно доставлен в чат Telegram!', 'success');
+            this.log(' Тестовый алерт успешно доставлен в чат Telegram!', 'success');
             alert('Тестовый алерт успешно доставлен в Telegram!');
           } else {
             this.log(`[WATCHER/TG] Ошибка доставки: ${data.error}`, 'warn');

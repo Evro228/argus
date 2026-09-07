@@ -154,12 +154,20 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadURL(SERVER_URL);
+  const appUrl = `${SERVER_URL}/?token=${encodeURIComponent(ARGUS_IPC_TOKEN)}`;
+  mainWindow.loadURL(appUrl);
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.executeJavaScript(`
+      window.__ARGUS_IPC_TOKEN__ = "${ARGUS_IPC_TOKEN}";
+      try { localStorage.setItem('argus_ipc_token', "${ARGUS_IPC_TOKEN}"); } catch (_) {}
+    `).catch(() => {});
+  });
 
   mainWindow.webContents.on('did-fail-load', () => {
     setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.loadURL(SERVER_URL).catch(() => {});
+        mainWindow.loadURL(appUrl).catch(() => {});
       }
     }, 1000);
   });

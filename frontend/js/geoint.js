@@ -4,13 +4,31 @@
 // ==========================================================================
 (function () {
   function getIpcToken() {
+    if (window.__ARGUS_IPC_TOKEN__) return window.__ARGUS_IPC_TOKEN__;
     if (window.argusNative && typeof window.argusNative.getIpcToken === 'function') {
       try {
         const token = window.argusNative.getIpcToken();
-        if (token) return token;
+        if (token) {
+          window.__ARGUS_IPC_TOKEN__ = token;
+          return token;
+        }
       } catch (_) {}
     }
-    return window.__ARGUS_IPC_TOKEN__ || localStorage.getItem('argus_ipc_token') || '';
+    try {
+      const stored = localStorage.getItem('argus_ipc_token');
+      if (stored) {
+        window.__ARGUS_IPC_TOKEN__ = stored;
+        return stored;
+      }
+    } catch (_) {}
+    try {
+      const match = document.cookie.match(/argus_ipc_token=([^;]+)/);
+      if (match && match[1]) {
+        window.__ARGUS_IPC_TOKEN__ = match[1];
+        return match[1];
+      }
+    } catch (_) {}
+    return '';
   }
 
   function getHeaders() {
@@ -779,7 +797,7 @@
         if (isSelected || Math.abs(sat.lat) < 55) {
           this.ctx.fillStyle = isSelected ? '#e0f2fe' : '#67e8f9';
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`🛰️ ${sat.name}`, pt.x + 8, pt.y - 3);
+          this.ctx.fillText(`[SAT] ${sat.name}`, pt.x + 8, pt.y - 3);
           this.ctx.fillStyle = '#94a3b8';
           this.ctx.font = '7.5px JetBrains Mono, monospace';
           this.ctx.fillText(`${sat.altitude_km}km [${sat.country}]`, pt.x + 8, pt.y + 6);
@@ -816,7 +834,7 @@
         if (isSelected || isDoomsdayOrVip || isRecon || Math.abs(ac.lat) < 50) {
           this.ctx.fillStyle = isSelected ? '#f8fafc' : color;
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`✈️ ${ac.callsign}`, pt.x + 7, pt.y - 2);
+          this.ctx.fillText(`[AIR] ${ac.callsign}`, pt.x + 7, pt.y - 2);
           this.ctx.fillStyle = '#94a3b8';
           this.ctx.font = '7.5px JetBrains Mono, monospace';
           this.ctx.fillText(`${Math.round(ac.altitude_ft / 1000)}k ft [${ac.country}]`, pt.x + 7, pt.y + 6);
@@ -903,7 +921,7 @@
         if (isSelected) {
           this.ctx.fillStyle = '#fda4af';
           this.ctx.font = 'bold 9px JetBrains Mono, monospace';
-          this.ctx.fillText(`🔥 ${h.name} [${h.brightness_k}K]`, pt.x + 10, pt.y + 3);
+          this.ctx.fillText(`[FIRE] ${h.name} [${h.brightness_k}K]`, pt.x + 10, pt.y + 3);
         }
       }
     }
@@ -937,7 +955,7 @@
         if (isSelected) {
           this.ctx.fillStyle = '#f0fdfa';
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`📹 ${cam.flag} ${cam.city}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillText(`[CAM] ${cam.flag} ${cam.city}`, pt.x + 8, pt.y - 2);
           this.ctx.fillStyle = '#94a3b8';
           this.ctx.font = '7.5px JetBrains Mono, monospace';
           this.ctx.fillText(`CCTV [${cam.id}]`, pt.x + 8, pt.y + 7);
@@ -1007,7 +1025,7 @@
 
               this.ctx.fillStyle = '#bae6fd';
               this.ctx.font = 'bold 8px JetBrains Mono, monospace';
-              this.ctx.fillText(`⚓ ${lp.name}`, pt.x + 6, pt.y + 3);
+              this.ctx.fillText(`[PORT] ${lp.name}`, pt.x + 6, pt.y + 3);
             }
           }
         }
@@ -1044,7 +1062,7 @@
         if (isSelected || f.brightness_k > 360) {
           this.ctx.fillStyle = isSelected ? '#ffffff' : '#fda4af';
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`🔥 ${f.name}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillText(`[FIRE] ${f.name}`, pt.x + 8, pt.y - 2);
           this.ctx.fillStyle = '#fca5a5';
           this.ctx.font = '7.5px JetBrains Mono, monospace';
           this.ctx.fillText(`${f.brightness_k}K [FRP ${f.frp_mw}MW]`, pt.x + 8, pt.y + 7);
@@ -1085,7 +1103,7 @@
         if (isSelected || mag >= 6.0) {
           this.ctx.fillStyle = isSelected ? '#ffffff' : color;
           this.ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          this.ctx.fillText(`⚡ M${mag.toFixed(1)} ${eq.place.slice(0, 20)}`, pt.x + 8, pt.y - 2);
+          this.ctx.fillText(`[SEISMIC] M${mag.toFixed(1)} ${eq.place.slice(0, 20)}`, pt.x + 8, pt.y - 2);
           this.ctx.fillStyle = '#cbd5e1';
           this.ctx.font = '7.5px JetBrains Mono, monospace';
           this.ctx.fillText(`Глубина: ${eq.depth_km}км`, pt.x + 8, pt.y + 7);
