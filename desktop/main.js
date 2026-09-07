@@ -126,6 +126,13 @@ function waitForServer(callback, retries = 30) {
 }
 
 function createWindow() {
+  const rootDir = getRootDir();
+  const iconPath = path.join(rootDir, 'desktop', 'assets', 'icon.png');
+
+  if (process.platform === 'darwin' && app.dock && fs.existsSync(iconPath)) {
+    try { app.dock.setIcon(iconPath); } catch (_) {}
+  }
+
   mainWindow = new BrowserWindow({
     width: 1380,
     height: 900,
@@ -133,6 +140,7 @@ function createWindow() {
     minHeight: 580,
     resizable: true,
     movable: true,
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     title: 'ARGUS // Tactical Intelligence & Defense',
     backgroundColor: '#05070a',
     titleBarStyle: 'hiddenInset',

@@ -14,6 +14,9 @@
     "appId": "io.argus.tactical",
     "productName": "ARGUS",
     "asar": false,
+    "directories": {
+      "buildResources": "desktop/assets"
+    },
     "files": [
       "desktop/**/*",
       "frontend/**/*",
@@ -21,13 +24,16 @@
       "requirements.txt"
     ],
     "mac": {
+      "icon": "desktop/assets/icon.icns",
       "category": "public.app-category.developer-tools",
       "target": ["dmg", "zip"]
     },
     "win": {
+      "icon": "desktop/assets/icon.png",
       "target": ["nsis", "portable"]
     },
     "linux": {
+      "icon": "desktop/assets/icon.png",
       "target": ["AppImage", "deb"],
       "category": "Development"
     }
