@@ -62,13 +62,30 @@
 }
 
 ::selection {
-  background: transparent !important;
-  color: inherit !important;
+  background: transparent;
+  color: inherit;
 }
 
 ::-moz-selection {
-  background: transparent !important;
-  color: inherit !important;
+  background: transparent;
+  color: inherit;
+}
+
+/* Allow text selection, copying & editing for inputs, textareas, and code output */
+input, textarea, [contenteditable="true"], .selectable-text, .selectable-text * {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
+input::selection, textarea::selection, [contenteditable="true"]::selection,
+.selectable-text::selection, .selectable-text *::selection,
+input::-moz-selection, textarea::-moz-selection, [contenteditable="true"]::-moz-selection,
+.selectable-text::-moz-selection, .selectable-text *::-moz-selection {
+  background: rgba(56, 189, 248, 0.35) !important;
+  color: #ffffff !important;
 }
 
 html, body {

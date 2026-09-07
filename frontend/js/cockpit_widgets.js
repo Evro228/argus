@@ -21,6 +21,11 @@
       this.init();
     }
 
+    setValue(val) {
+      this.value = Math.max(1, Math.min(5, Number(val) || 3));
+      this.render();
+    }
+
     init() {
       if (!this.canvas) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -55,25 +60,35 @@
       ctx.arc(cx, cy, radius, startAngle, endAngle);
       ctx.stroke();
 
-      // Active amber arc for DEFCON 3 (~45% of span)
-      const activeAngle = startAngle + totalSpan * 0.48;
-      ctx.strokeStyle = '#f59e0b';
-      ctx.shadowColor = '#f59e0b';
+      // DEFCON Level color mapping
+      const colors = {
+        5: '#10b981',
+        4: '#38bdf8',
+        3: '#f59e0b',
+        2: '#f97316',
+        1: '#ef4444'
+      };
+      const defconColor = colors[this.value] || '#f59e0b';
+      const spans = { 5: 0.22, 4: 0.38, 3: 0.52, 2: 0.76, 1: 0.98 };
+      const activeSpan = spans[this.value] || 0.52;
+
+      // Active arc
+      const activeAngle = startAngle + totalSpan * activeSpan;
+      ctx.strokeStyle = defconColor;
+      ctx.shadowColor = defconColor;
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(cx, cy, radius, startAngle, activeAngle);
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Tick marks and numbers: 0, 10, 20, 30, 40, 50, 100
+      // Tick marks and numbers
       const labels = [
-        { label: '0', p: 0 },
-        { label: '10', p: 0.15 },
-        { label: '20', p: 0.30 },
-        { label: '30', p: 0.48 },
-        { label: '40', p: 0.65 },
-        { label: '50', p: 0.80 },
-        { label: '100', p: 1.0 }
+        { label: '5', p: 0.1 },
+        { label: '4', p: 0.3 },
+        { label: '3', p: 0.52 },
+        { label: '2', p: 0.74 },
+        { label: '1', p: 0.95 }
       ];
 
       ctx.font = '8px "JetBrains Mono", monospace';
@@ -90,7 +105,7 @@
         const x2 = cx + Math.cos(ang) * tickOuter;
         const y2 = cy + Math.sin(ang) * tickOuter;
 
-        ctx.strokeStyle = item.p <= 0.48 ? '#f59e0b' : 'rgba(255, 255, 255, 0.15)';
+        ctx.strokeStyle = item.p <= activeSpan ? defconColor : 'rgba(255, 255, 255, 0.15)';
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -102,22 +117,23 @@
         ctx.fillText(item.label, lx, ly);
       });
 
-      // Center text: DEFCON 3 COLOR
+      // Center text: DEFCON Level
       ctx.textAlign = 'center';
       ctx.font = '500 8px "JetBrains Mono", monospace';
       ctx.fillStyle = '#94a3b8';
       ctx.fillText('DEFCON', cx, cy - 14);
 
       ctx.font = '700 24px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#f59e0b';
-      ctx.shadowColor = '#f59e0b';
+      ctx.fillStyle = defconColor;
+      ctx.shadowColor = defconColor;
       ctx.shadowBlur = 6;
-      ctx.fillText('3', cx, cy + 6);
+      ctx.fillText(String(this.value), cx, cy + 6);
       ctx.shadowBlur = 0;
 
-      ctx.font = '500 8px "JetBrains Mono", monospace';
+      const labelsText = { 5: 'NORMAL', 4: 'GUARD', 3: 'ELEVATED', 2: 'HIGH', 1: 'MAXIMUM' };
+      ctx.font = '500 7px "JetBrains Mono", monospace';
       ctx.fillStyle = '#64748b';
-      ctx.fillText('COLOR', cx, cy + 20);
+      ctx.fillText(labelsText[this.value] || 'READY', cx, cy + 20);
     }
   }
 
@@ -134,6 +150,19 @@
       this.phase = 0;
       this.init();
       this.start();
+    }
+
+    pushData(inRate, outRate) {
+      if (typeof inRate === 'number' && !isNaN(inRate)) {
+        const val1 = Math.min(190, Math.max(20, inRate));
+        this.points1.push(val1);
+        if (this.points1.length > 12) this.points1.shift();
+      }
+      if (typeof outRate === 'number' && !isNaN(outRate)) {
+        const val2 = Math.min(160, Math.max(15, outRate));
+        this.points2.push(val2);
+        if (this.points2.length > 12) this.points2.shift();
+      }
     }
 
     init() {

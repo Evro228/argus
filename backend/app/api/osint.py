@@ -147,26 +147,89 @@ async def search_username(req: UsernameSearchRequest):
 
             try:
                 resp = await client.get(check_url)
+                if resp.status_code != 200:
+                    return None
+
+                # Telegram: non-existent usernames do not have tgme_page_extra
+                if "t.me" in check_url:
+                    if "tgme_page_extra" not in resp.text:
+                        return None
+
+                # Steam: returns 200 on missing profiles with specific error
+                if "steamcommunity.com" in check_url:
+                    if "The specified profile could not be found" in resp.text or "error_ctn" in resp.text:
+                        return None
+
+                # Pinterest: returns 200 on missing profile
+                if "pinterest.com" in check_url:
+                    if "profile_does_not_exist" in resp.text or "User not found" in resp.text or "resourceResponse" not in resp.text:
+                        return None
+
                 # Reddit special check
-                if "reddit.com" in check_url and resp.status_code == 200:
+                if "reddit.com" in check_url:
                     data = resp.json()
-                    if data.get("data", {}).get("is_suspended") is True or not data.get("data"):
+                    if not data.get("data") or data.get("data", {}).get("is_suspended") is True or "name" not in data.get("data", {}):
                         return None
 
                 # HackerNews special check
-                if "firebaseio.com" in check_url and resp.status_code == 200:
+                if "firebaseio.com" in check_url:
                     if resp.json() is None:
                         return None
 
-                if resp.status_code == 200:
-                    return {
-                        "name": site["name"],
-                        "category": site.get("category", "General"),
-                        "url": profile_url,
-                        "status": "Found",
-                        "status_code": resp.status_code,
-                    }
-                return None
+                # Keybase special check
+                if "keybase.io" in check_url:
+                    kb_data = resp.json()
+                    them = kb_data.get("them", [])
+                    if not them or them == [None] or them[0] is None:
+                        return None
+
+                # Docker Hub special check
+                if "hub.docker.com" in check_url:
+                    if "username" not in resp.text:
+                        return None
+
+                # Gravatar special check
+                if "gravatar.com" in check_url:
+                    if "We couldn't find that page" in resp.text or "entry" not in resp.text:
+                        return None
+
+                # Chess.com special check
+                if "chess.com" in check_url:
+                    if "player_id" not in resp.text:
+                        return None
+
+                # Disqus special check
+                if "disqus.com" in check_url:
+                    if "user-not-found" in resp.text or "Page not found" in resp.text:
+                        return None
+
+                # Habr special check
+                if "habr.com" in check_url:
+                    if "Пользователь не найден" in resp.text or "Страница не найдена" in resp.text:
+                        return None
+
+                # GitLab special check
+                if "gitlab.com" in check_url:
+                    if "users/sign_in" in str(resp.url):
+                        return None
+
+                # GitHub special check
+                if "github.com" in check_url:
+                    if "Not Found" in resp.text and "<title>Page not found" in resp.text:
+                        return None
+
+                # Mastodon special check
+                if "mastodon.social" in check_url:
+                    if "Record not found" in resp.text or "error" in resp.text:
+                        return None
+
+                return {
+                    "name": site["name"],
+                    "category": site.get("category", "General"),
+                    "url": profile_url,
+                    "status": "Found",
+                    "status_code": resp.status_code,
+                }
             except Exception:
                 return None
 
@@ -287,10 +350,24 @@ async def build_osint_graph(req: OSINTGraphRequest):
     }
 
     # If profiles were provided (from username scan)
-    profiles = req.profiles or []
+    profiles = req.profiles
     seen_categories = set()
 
-    if profiles:
+    if profiles is not None:
+        if len(profiles) == 0:
+            # Real empty result: target has 0 detected accounts
+            nodes[0]["label"] = f"@{clean_target}"
+            nodes[0]["color"] = "#64748b"
+            nodes[0]["status"] = "0 СВЯЗЕЙ"
+            return {
+                "success": True,
+                "target": clean_target,
+                "total_nodes": 1,
+                "total_links": 0,
+                "nodes": nodes,
+                "links": [],
+            }
+
         for p in profiles:
             cat = p.get("category", "General")
             seen_categories.add(cat)
@@ -339,53 +416,54 @@ async def build_osint_graph(req: OSINTGraphRequest):
                 "type": "affiliation",
             })
     else:
-        # Default synthesized topology for preview / target exploration
-        default_clusters = [
-            ("Dev", ["GitHub", "GitLab", "HackerNews"]),
-            ("Social", ["Reddit", "Twitter/X", "Medium"]),
-            ("Messenger", ["Telegram", "Keybase"]),
-            ("Breach", ["HaveIBeenPwned", "DeHashed"]),
+        # Default ready topology for Synapse workspace
+        ready_clusters = [
+            ("Поиск", ["Sherlock Multi-Platform", "Dorks Studio"]),
+            ("Разведка", ["Breach Intelligence", "Metadata Forensics"]),
+            ("Сеть", ["Localhost Matrix", "RF Spectrum"]),
         ]
-        for cat, items in default_clusters:
+        nodes[0]["label"] = "SYNAPSE READY"
+        for cat, items in ready_clusters:
             cat_node_id = f"cat_{cat.lower()}"
             nodes.append({
                 "id": cat_node_id,
                 "label": cat.upper(),
                 "type": "category",
                 "category": cat,
-                "size": 16,
-                "color": cat_colors.get(cat, "#94a3b8"),
+                "size": 15,
+                "color": "#818cf8",
                 "glow": False,
                 "metadata": {"count": len(items)},
             })
             links.append({
                 "source": "target",
                 "target": cat_node_id,
-                "weight": 2.5,
+                "weight": 2.2,
                 "color": "#38bdf840",
                 "type": "hierarchy",
             })
             for item in items:
-                plat_id = f"plat_{item.lower().replace('/', '_')}"
+                plat_id = f"node_{item.lower().replace(' ', '_')}"
                 nodes.append({
                     "id": plat_id,
                     "label": item,
                     "type": "platform",
                     "category": cat,
                     "size": 11,
-                    "color": "#94a3b8",
-                    "status": "Ready",
-                    "url": f"https://google.com/search?q={clean_target}+{item}",
+                    "color": "#38bdf8",
+                    "status": "READY",
+                    "url": "",
                     "glow": False,
-                    "metadata": {"platform": item},
+                    "metadata": {"name": item},
                 })
                 links.append({
                     "source": cat_node_id,
                     "target": plat_id,
-                    "weight": 1.0,
-                    "color": "#47556940",
-                    "type": "potential",
+                    "weight": 1.1,
+                    "color": "#38bdf830",
+                    "type": "affiliation",
                 })
+
 
     return {
         "success": True,

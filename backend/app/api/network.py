@@ -95,6 +95,20 @@ async def scan_target_ports(req: ScanHostRequest):
                 "error": "Режим Air-Gapped Stealth Mode АКТИВИРОВАН. Сканирование внешних публичных хостов заблокировано для исключения утечек трафика. Разрешены только локальные IP-адреса.",
             }
 
+    # Verify target hostname or IP resolution
+    target_host = target
+    try:
+        resolved_ip = socket.gethostbyname(target)
+        target_host = resolved_ip
+    except Exception:
+        return {
+            "success": False,
+            "target": target,
+            "error": f"Не удалось разрешить имя хоста «{target}». Проверьте IP-адрес или доменное имя.",
+            "open_ports": [],
+            "scanned_ports": 0,
+        }
+
     nmap_path = shutil.which("nmap")
 
     # Run nmap with '--' delimiter
@@ -130,7 +144,7 @@ async def scan_target_ports(req: ScanHostRequest):
     async def probe_port(port: int, service: str):
         async with sem:
             try:
-                conn = asyncio.open_connection(target, port)
+                conn = asyncio.open_connection(target_host, port)
                 reader, writer = await asyncio.wait_for(conn, timeout=1.5)
                 writer.close()
                 await writer.wait_closed()
@@ -256,47 +270,48 @@ def get_wifi_recon_status():
         phy_mode = "N/A"
         channel = "N/A"
         country_code = "N/A"
+        signal_str = "0 dBm / Нет соединения"
+        rssi_val = -100
+        security = "Standard WPA2"
 
-        lines = raw.split("\n")
-        in_en0 = False
-        in_current = False
+        m_cur = re.search(r"Current Network Information:\s*\n\s*([^\n:]+):", raw)
+        if m_cur and not m_cur.group(1).strip().startswith("Network Type"):
+            ssid = m_cur.group(1).strip()
 
-        for i, line in enumerate(lines):
-            s = line.strip()
-            if s.startswith("en0:"):
-                in_en0 = True
-            elif in_en0 and line and not line.startswith(" ") and not line.startswith("\t"):
-                in_en0 = False
-                in_current = False
-            elif in_en0 and (s.startswith("awdl0:") or s.startswith("Other Local Wi-Fi Networks:")):
-                break
+        m_phy = re.search(r"PHY Mode:\s*([^\n]+)", raw)
+        if m_phy:
+            phy_mode = m_phy.group(1).strip()
 
-            if in_en0 and "Current Network Information:" in s and i + 1 < len(lines):
-                next_s = lines[i + 1].strip().rstrip(":")
-                if next_s and not next_s.startswith("Network Type"):
-                    ssid = next_s
-                    in_current = True
-            elif in_current:
-                if "PHY Mode:" in s:
-                    phy_mode = s.split("PHY Mode:")[-1].strip()
-                elif "Channel:" in s:
-                    channel = s.split("Channel:")[-1].strip()
-                elif "Country Code:" in s:
-                    country_code = s.split("Country Code:")[-1].strip()
-                elif s.startswith("awdl0:") or s.startswith("Other Local"):
-                    break
+        m_chan = re.search(r"Channel:\s*([^\n]+)", raw)
+        if m_chan:
+            channel = m_chan.group(1).strip()
+
+        m_sec = re.search(r"Security:\s*([^\n]+)", raw)
+        if m_sec:
+            security = m_sec.group(1).strip()
+
+        m_sig = re.search(r"Signal\s*/\s*Noise:\s*(-?\d+)\s*dBm", raw)
+        if m_sig:
+            rssi_val = int(m_sig.group(1))
+            quality = "ОТЛИЧНЫЙ" if rssi_val > -50 else ("ХОРОШИЙ" if rssi_val > -70 else "СЛАБЫЙ")
+            signal_str = f"{rssi_val} dBm [{quality}]"
+
+        connected = ssid != "Не подключено"
+        if not connected:
+            signal_str = "0 dBm / Нет соединения"
+            rssi_val = -100
 
         return {
             "success": True,
-            "connected": ssid != "Не подключено",
+            "connected": connected,
             "current_network": {
                 "ssid": ssid,
                 "phy_mode": phy_mode,
                 "channel": channel,
                 "country_code": country_code,
-                "security_rating": "WPA3 / WPA2 Enterprise"
-                if "802.11ax" in phy_mode or "802.11ac" in phy_mode
-                else "Standard WPA2",
+                "security_rating": security,
+                "signal": signal_str,
+                "rssi": rssi_val,
             },
             "radio_environment": {
                 "band_5ghz": "5GHz" in channel,
@@ -440,6 +455,25 @@ async def scan_lan_assets() -> Dict[str, Any]:
     """
     global CACHED_LAN_DEVICES
     devices: List[Dict[str, Any]] = []
+
+    # Proactively ping default gateway on active interface to refresh ARP cache
+    try:
+        gw_proc = await asyncio.create_subprocess_shell(
+            "route -n get default 2>/dev/null | grep gateway | awk '{print $2}'",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        gw_out, _ = await asyncio.wait_for(gw_proc.communicate(), timeout=1.0)
+        gw_ip = gw_out.decode().strip()
+        if gw_ip:
+            ping_proc = await asyncio.create_subprocess_exec(
+                "ping", "-c", "1", "-W", "300", gw_ip,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL
+            )
+            await asyncio.wait_for(ping_proc.communicate(), timeout=0.8)
+    except Exception:
+        pass
     
     # Run arp -a safely
     raw_arp = ""
@@ -465,16 +499,9 @@ async def scan_lan_assets() -> Dict[str, Any]:
             raw_mac = m.group(3)
             parts = [p.zfill(2) for p in raw_mac.split(":")]
             mac = ":".join(parts).lower()
-            if mac != "ff:ff:ff:ff:ff:ff" and not ip.startswith("224."):
+            # Exclude broadcast, multicast, and incomplete resolutions
+            if mac not in ("ff:ff:ff:ff:ff:ff", "(incomplete)") and not ip.startswith("224.") and not ip.startswith("255."):
                 parsed_entries.append((hostname, ip, mac))
-
-    # If no devices found (e.g. isolated test sandbox), provide default gateway & local node
-    if not parsed_entries:
-        parsed_entries = [
-            ("gateway.local", "192.168.1.1", "44:f7:70:02:c1:a5"),
-            ("host-workstation.local", "192.168.1.100", "d4:f0:ea:79:ec:74"),
-            ("cam-entrance-rtsp.lan", "192.168.1.150", "bc:ba:e1:12:34:56"),
-        ]
 
     for hostname, ip, mac in parsed_entries:
         # Vendor lookup

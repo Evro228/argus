@@ -119,13 +119,6 @@
     "not_found_code": 404
   },
   {
-    "name": "VK",
-    "category": "Social",
-    "url": "https://vk.com/{}",
-    "check_url": "https://vk.com/{}",
-    "not_found_code": 404
-  },
-  {
     "name": "DeviantArt",
     "category": "Media",
     "url": "https://www.deviantart.com/{}",
@@ -137,13 +130,6 @@
     "category": "Dev",
     "url": "https://habr.com/ru/users/{}/",
     "check_url": "https://habr.com/ru/users/{}/",
-    "not_found_code": 404
-  },
-  {
-    "name": "Twitch",
-    "category": "Media",
-    "url": "https://www.twitch.tv/{}",
-    "check_url": "https://www.twitch.tv/{}",
     "not_found_code": 404
   },
   {
@@ -165,13 +151,6 @@
     "category": "Dev",
     "url": "https://replit.com/@{}",
     "check_url": "https://replit.com/@{}",
-    "not_found_code": 404
-  },
-  {
-    "name": "Kaggle",
-    "category": "Dev",
-    "url": "https://www.kaggle.com/{}",
-    "check_url": "https://www.kaggle.com/{}",
     "not_found_code": 404
   },
   {

@@ -92,6 +92,8 @@ const App = {
     this.bindThreatInspector();
     this.bindRfSpectrum();
     this.bindTelegramWatcher();
+    this.initSystemMetrics();
+    this.initQuickCodeAudit();
 
     this.log('ARGUS Tactical Cockpit v1.0.0 инициализирован. Все подсистемы в норме.', 'system');
 
@@ -109,18 +111,34 @@ const App = {
   },
  
   bindAntiCopyGuards() {
-    // Universal HUD tactile mode: prevent copying, context menu, and text drag/selection
-    const preventUnlessEditable = (e) => {
-      const tag = (e.target && e.target.tagName) || '';
-      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
-        e.preventDefault();
-      }
+    // Precision HUD tactile mode: prevent copying, context menu, and text drag/selection on UI chrome,
+    // while fully preserving native text selection, copy/cut/paste, and cursor editing in inputs, textareas, and code blocks.
+    const isEditable = (el) => {
+      if (!el) return false;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) return true;
+      if (el.closest && (el.closest('input') || el.closest('textarea') || el.closest('[contenteditable="true"]') || el.closest('.selectable-text'))) return true;
+      return false;
     };
-    document.addEventListener('copy', preventUnlessEditable, true);
-    document.addEventListener('cut', preventUnlessEditable, true);
-    document.addEventListener('contextmenu', preventUnlessEditable, true);
-    document.addEventListener('selectstart', preventUnlessEditable, true);
-    document.addEventListener('dragstart', preventUnlessEditable, true);
+
+    document.addEventListener('copy', (e) => {
+      if (!isEditable(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('cut', (e) => {
+      if (!isEditable(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('contextmenu', (e) => {
+      if (!isEditable(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('selectstart', (e) => {
+      if (!isEditable(e.target)) e.preventDefault();
+    }, true);
+
+    document.addEventListener('dragstart', (e) => {
+      if (!isEditable(e.target)) e.preventDefault();
+    }, true);
   },
 
   log(message, type = 'info') {
@@ -186,18 +204,6 @@ const App = {
         hudCard.classList.add('hidden');
       });
     }
-
-    // Rail bottom utility buttons
-    const railBell = document.getElementById('btn-rail-bell');
-    if (railBell) railBell.addEventListener('click', () => this.switchTab('playbooks'));
-    const railHelp = document.getElementById('btn-rail-help');
-    if (railHelp) railHelp.addEventListener('click', () => this.switchTab('playbooks'));
-    const railQuit = document.getElementById('btn-rail-quit');
-    if (railQuit) railQuit.addEventListener('click', () => {
-      if (window.confirm('Завершить сессию ARGUS и закрыть комплекс?')) {
-        window.close();
-      }
-    });
   },
 
   switchTab(tabId) {
@@ -525,7 +531,8 @@ const App = {
           resultsBox.appendChild(item);
         });
       } else {
-        resultsBox.innerHTML = `<div class="text-xs text-slate-500 py-4 text-center">Профилей не обнаружено.</div>`;
+        this.updateOsintSynapseGraph(username, []);
+        resultsBox.innerHTML = `<div class="text-xs text-slate-500 py-4 text-center">Профилей для «@${escapeHtml(username)}» не обнаружено ни на одной из проверенных платформ.</div>`;
       }
     } catch (e) {
       this.log(`[OSINT] Ошибка: ${e.message}`, 'error');
@@ -2417,6 +2424,160 @@ const App = {
     } catch (_) {}
   },
 
+  initSystemMetrics() {
+    this.pollSystemMetrics();
+    if (!this.metricsTimer) {
+      this.metricsTimer = setInterval(() => this.pollSystemMetrics(), 3000);
+    }
+  },
+
+  async pollSystemMetrics() {
+    if (document.hidden) return;
+    try {
+      const res = await fetch(`${API_BASE}/system/metrics`, { headers: getApiHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.success) return;
+
+      // 1. DEFCON Gauge & Pill
+      if (window.ArgusCockpitWidgets && window.ArgusCockpitWidgets.defconGauge) {
+        window.ArgusCockpitWidgets.defconGauge.setValue(data.defcon_level);
+      }
+      const pill = document.getElementById('cockpit-defcon-pill');
+      if (pill) {
+        pill.textContent = `DEFCON ${data.defcon_level}`;
+        if (data.defcon_level >= 4) {
+          pill.className = 'px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        } else if (data.defcon_level === 3) {
+          pill.className = 'cockpit-pill-amber';
+        } else {
+          pill.className = 'px-2 py-0.5 text-[9px] font-bold rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        }
+      }
+
+      // 2. Vertical CPU & RAM capsules
+      const cpuBar = document.getElementById('cockpit-bar-cpu');
+      const cpuLbl = document.getElementById('cockpit-lbl-cpu');
+      if (cpuBar) cpuBar.style.height = `${Math.min(100, Math.max(6, data.cpu_percent))}%`;
+      if (cpuLbl) cpuLbl.textContent = `CPU ${data.cpu_percent}%`;
+
+      const ramBar = document.getElementById('cockpit-bar-ram');
+      const ramLbl = document.getElementById('cockpit-lbl-ram');
+      if (ramBar) ramBar.style.height = `${Math.min(100, Math.max(6, data.ram_percent))}%`;
+      if (ramLbl) ramLbl.textContent = `RAM ${data.ram_percent}%`;
+
+      // 3. Network speed & telemetry wave
+      if (this.lastNetBytes !== undefined && this.lastNetTime !== undefined) {
+        const now = Date.now();
+        const dt = (now - this.lastNetTime) / 1000;
+        if (dt > 0) {
+          const diffIn = Math.max(0, data.ibytes - this.lastNetBytes.in);
+          const diffOut = Math.max(0, data.obytes - this.lastNetBytes.out);
+          const inKb = diffIn / 1024 / dt;
+          const outKb = diffOut / 1024 / dt;
+
+          const speedEl = document.getElementById('cockpit-net-speed');
+          if (speedEl) speedEl.textContent = `${(inKb + outKb).toFixed(1)} КБ/с`;
+
+          if (window.ArgusCockpitWidgets && window.ArgusCockpitWidgets.telemetryWave) {
+            window.ArgusCockpitWidgets.telemetryWave.pushData(Math.min(180, 20 + inKb * 0.4), Math.min(150, 15 + outKb * 0.4));
+          }
+        }
+      }
+      this.lastNetBytes = { in: data.ibytes, out: data.obytes };
+      this.lastNetTime = Date.now();
+
+      // 4. Real-time Threat Intelligence Card
+      const sockEl = document.getElementById('cockpit-active-sockets');
+      if (sockEl) sockEl.textContent = data.active_sockets;
+
+      const listenEl = document.getElementById('cockpit-listening-ports');
+      if (listenEl) listenEl.textContent = data.listening_ports;
+
+      const listenBar = document.getElementById('bar-listening-ports');
+      if (listenBar) listenBar.style.width = `${Math.min(100, data.listening_ports * 6)}%`;
+
+      const sipEl = document.getElementById('cockpit-sip-status');
+      if (sipEl) {
+        sipEl.textContent = data.sip_enabled ? 'АКТИВНА' : 'ОТКЛЮЧЕНА';
+        sipEl.className = data.sip_enabled 
+          ? 'px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+          : 'px-1.5 py-0.5 text-[9px] font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+      }
+
+      const fvEl = document.getElementById('cockpit-filevault-status');
+      if (fvEl) {
+        fvEl.textContent = data.filevault_enabled ? 'ВКЛЮЧЕНО' : 'ВЫКЛЮЧЕНО';
+        fvEl.className = data.filevault_enabled
+          ? 'px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+          : 'px-1.5 py-0.5 text-[9px] font-bold rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+      }
+    } catch (_) {}
+  },
+
+  initQuickCodeAudit() {
+    const btn = document.getElementById('btn-quick-code-audit');
+    if (btn) {
+      btn.onclick = () => this.runQuickCodeAudit();
+    }
+    setTimeout(() => this.runQuickCodeAudit(true), 1200);
+  },
+
+  async runQuickCodeAudit(silent = false) {
+    const btn = document.getElementById('btn-quick-code-audit');
+    if (btn) {
+      btn.textContent = '...';
+      btn.disabled = true;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/audit/scan/path`, {
+        method: 'POST',
+        headers: getApiHeaders(),
+        body: JSON.stringify({ path: '.' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const crit = document.getElementById('val-audit-critical');
+        const high = document.getElementById('val-audit-high');
+        const med = document.getElementById('val-audit-medium');
+        const files = document.getElementById('val-audit-files');
+
+        const barCrit = document.getElementById('bar-audit-critical');
+        const barHigh = document.getElementById('bar-audit-high');
+        const barMed = document.getElementById('bar-audit-medium');
+
+        let critCount = 0;
+        let highCount = 0;
+        let medCount = 0;
+
+        if (data.findings) {
+          critCount = data.findings.filter(f => f.severity === 'CRITICAL').length;
+          highCount = data.findings.filter(f => f.severity === 'HIGH').length;
+          medCount = data.findings.filter(f => f.severity === 'MEDIUM').length;
+        }
+
+        if (crit) crit.textContent = critCount;
+        if (high) high.textContent = highCount;
+        if (med) med.textContent = medCount;
+        if (files) files.textContent = `${data.files_scanned}`;
+
+        if (barCrit) barCrit.style.width = `${Math.min(100, critCount * 25)}%`;
+        if (barHigh) barHigh.style.width = `${Math.min(100, highCount * 15)}%`;
+        if (barMed) barMed.style.width = `${Math.min(100, medCount * 8)}%`;
+
+        if (!silent) {
+          this.log(`[AUDIT] Экспресс-аудит проекта завершен: ${data.files_scanned} файлов проверено.`, 'success');
+        }
+      }
+    } catch (_) {
+    } finally {
+      if (btn) {
+        btn.textContent = 'СКАН';
+        btn.disabled = false;
+      }
+    }
+  },
+
   bindCctvMatrix() {
     const dialog = document.getElementById('dialog-cctv-matrix');
     const openTopBtn = document.getElementById('btn-open-cctv-matrix');
@@ -3064,7 +3225,7 @@ const App = {
 
     // Default synthesized topology preview
     setTimeout(() => {
-      this.updateOsintSynapseGraph('OPERATOR_ASSET', null);
+      this.updateOsintSynapseGraph('SYNAPSE_CORE', null);
     }, 200);
   },
 
