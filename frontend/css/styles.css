@@ -100,17 +100,116 @@ code, pre, .font-mono, input, table, .tabular-nums {
    03. PANELS & CARDS (QUANTUM OBSIDIAN SURFACES)
    ========================================================================== */
 .argus-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #0c0f16;
   border: 1px solid var(--titanium-border);
   border-radius: 0.85rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .argus-panel:hover {
   border-color: var(--border-medium);
+}
+
+/* ==========================================================================
+   COCKPIT SYSTEM (IMAGE 1 SPECIFICATION)
+   ========================================================================== */
+.cockpit-card {
+  background: #0d1017;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.cockpit-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.cockpit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.cockpit-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.cockpit-pill-amber {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.cockpit-pill-cyan {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.cockpit-meter-track {
+  width: 14px;
+  height: 110px;
+  background: #131720;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cockpit-bar-amber {
+  background: linear-gradient(to top, #d97706, #f59e0b);
+  border-radius: 2px;
+  width: 100%;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.cockpit-bar-cyan {
+  background: linear-gradient(to top, #0284c7, #38bdf8);
+  border-radius: 2px;
+  width: 100%;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.cockpit-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cockpit-progress-amber {
+  height: 100%;
+  background: #f59e0b;
+  border-radius: 2px;
+}
+
+.cockpit-progress-cyan {
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 2px;
 }
 
 .tool-card {
@@ -235,9 +334,7 @@ code, pre, .font-mono, input, table, .tabular-nums {
   top: 1.25rem;
   right: 1.25rem;
   width: 300px;
-  background: rgba(8, 11, 18, 0.94);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: #0b0f17;
   border: 1px solid var(--titanium-border);
   border-radius: 0.75rem;
   padding: 1.15rem;
@@ -255,9 +352,7 @@ code, pre, .font-mono, input, table, .tabular-nums {
   position: absolute;
   bottom: 1.25rem;
   left: 1.25rem;
-  background: rgba(8, 11, 18, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: #0b0f17;
   border: 1px solid var(--titanium-border);
   border-radius: 0.75rem;
   padding: 0.9rem 1.15rem;
@@ -554,15 +649,11 @@ code, pre, .font-mono, input, table, .tabular-nums {
 }
 
 #cmd-palette-dialog::backdrop {
-  background: rgba(5, 7, 10, 0.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(5, 7, 10, 0.88);
 }
 
 .cmd-palette-wrapper {
-  background: rgba(11, 15, 23, 0.96);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: #0b0f17;
   border: 1px solid var(--border-medium);
   border-radius: 0.85rem;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 30px rgba(56, 189, 248, 0.1);

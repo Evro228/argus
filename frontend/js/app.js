@@ -142,18 +142,57 @@ const App = {
         this.switchTab(targetTab);
       });
     });
+
+    // Flyout menu for MINIMISST button
+    const opMenuBtn = document.getElementById('btn-operator-menu');
+    const opMenu = document.getElementById('operator-flyout-menu');
+    if (opMenuBtn && opMenu) {
+      opMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        opMenu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (e) => {
+        if (!opMenu.contains(e.target) && e.target !== opMenuBtn) {
+          opMenu.classList.add('hidden');
+        }
+      });
+    }
+
+    // Close HUD card button
+    const closeHudBtn = document.getElementById('btn-close-target-hud');
+    const hudCard = document.getElementById('target-hud-card');
+    if (closeHudBtn && hudCard) {
+      closeHudBtn.addEventListener('click', () => {
+        hudCard.classList.add('hidden');
+      });
+    }
+
+    // Rail bottom utility buttons
+    const railBell = document.getElementById('btn-rail-bell');
+    if (railBell) railBell.addEventListener('click', () => this.switchTab('playbooks'));
+    const railHelp = document.getElementById('btn-rail-help');
+    if (railHelp) railHelp.addEventListener('click', () => this.switchTab('playbooks'));
+    const railQuit = document.getElementById('btn-rail-quit');
+    if (railQuit) railQuit.addEventListener('click', () => {
+      if (window.confirm('Завершить сессию ARGUS и закрыть комплекс?')) {
+        window.close();
+      }
+    });
   },
 
   switchTab(tabId) {
     this.activeTab = tabId;
 
-    // Update button states in sidebar
+    // Update button states in left icon rail (Image 1 Amber styling)
     document.querySelectorAll('.nav-tab-btn').forEach(btn => {
       const active = btn.getAttribute('data-tab') === tabId;
-      btn.classList.toggle('bg-sky-500/10', active);
-      btn.classList.toggle('text-sky-400', active);
-      btn.classList.toggle('border-sky-500/40', active);
-      btn.classList.toggle('text-slate-400', !active);
+      btn.classList.toggle('active', active);
+      btn.classList.toggle('bg-amber-500/10', active);
+      btn.classList.toggle('text-amber-400', active);
+      btn.classList.toggle('border-amber-500/80', active);
+      btn.classList.toggle('border-transparent', !active);
+      btn.classList.toggle('text-slate-500', !active);
+      btn.classList.remove('bg-sky-500/10', 'text-sky-400', 'border-sky-500/40');
     });
 
     // Update tab visibility
@@ -163,10 +202,15 @@ const App = {
 
     this.log(`[NAV] Смена рабочей станции: [${tabId.toUpperCase()}]`);
 
-    if (tabId === 'geoint' && !this.threatMapInstance) {
-      setTimeout(() => {
-        this.threatMapInstance = new TacticalThreatMap('tactical-canvas');
-      }, 100);
+    if (tabId === 'geoint') {
+      if (!this.threatMapInstance) {
+        setTimeout(() => {
+          this.threatMapInstance = new TacticalThreatMap('tactical-canvas');
+        }, 100);
+      }
+      if (window.ArgusCockpitWidgets) {
+        setTimeout(() => window.ArgusCockpitWidgets.resizeAll(), 50);
+      }
     }
     if (tabId === 'playbooks') {
       this.loadPlaybooks();

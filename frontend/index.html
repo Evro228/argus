@@ -12,313 +12,453 @@
 </head>
 <body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
 
-  <!-- Top Navigation Header (App Shell) -->
-  <header class="h-16 border-b border-white/[0.08] bg-[#08090b]/95 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-50">
+  <!-- Top Navigation Header (Image 1 Cockpit Minimalist Spec) -->
+  <header class="h-12 border-b border-white/[0.06] bg-[#07090d] px-4 flex items-center justify-between sticky top-0 z-40 select-none shrink-0">
     
     <!-- Left: Brand -->
-    <div class="flex items-center space-x-3 shrink-0">
-      <div class="w-9 h-9 rounded-xl bg-[#0b0f17] border border-white/[0.08] flex items-center justify-center shadow-md text-xs font-mono font-black text-sky-400 tracking-tighter">
-        [A]
-      </div>
-      <div>
-        <div class="flex items-center space-x-2">
-          <span class="font-black tracking-wider text-base uppercase bg-gradient-to-r from-slate-100 via-sky-200 to-sky-400 bg-clip-text text-transparent font-mono">ARGUS</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30">v1.0.0</span>
+    <div class="flex items-center space-x-3">
+      <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span class="font-bold text-sm tracking-widest text-slate-100 font-mono">ARGUS</span>
+    </div>
+
+    <!-- Right: Minimalist Controls Cluster -->
+    <div class="flex items-center space-x-3 relative">
+      <!-- Operator / Minimist Dropdown Pill Button -->
+      <button id="btn-operator-menu" class="px-2.5 py-1 rounded bg-[#0f131d] hover:bg-slate-800 border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center space-x-1.5 transition">
+        <span>MINIMISST</span>
+        <span class="text-[9px] text-slate-500">▼</span>
+      </button>
+
+      <!-- Notification Bell with Orange Dot -->
+      <button id="btn-top-notifications" class="relative p-1.5 text-slate-400 hover:text-slate-200 transition" title="Оповещения безопасности">
+        <span class="w-2 h-2 rounded-full bg-amber-500 absolute top-1 right-1"></span>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      </button>
+
+      <!-- Settings Gear -->
+      <button id="btn-open-config-keys" class="p-1.5 text-slate-400 hover:text-slate-200 transition" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+
+      <!-- Operator Flyout Menu (Toggled via MINIMISST) -->
+      <div id="operator-flyout-menu" class="hidden absolute right-0 top-10 w-80 bg-[#0d1017] border border-white/10 rounded-xl p-3 shadow-2xl z-50 space-y-2.5 font-mono text-xs">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+          <span class="text-slate-400">ОПЕРАТОР:</span>
+          <span class="text-emerald-400 font-bold flex items-center space-x-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>OPERATOR_01</span>
+          </span>
         </div>
-        <div class="text-[10px] text-slate-400 font-mono" data-i18n="appSubtitle">Tactical Intelligence & Defense Cockpit</div>
-      </div>
-    </div>
-
-    <!-- Center: Universal Command Search Bar -->
-    <div class="hidden md:flex flex-1 max-w-xl mx-6">
-      <div class="w-full relative flex items-center">
-        <span class="absolute left-3 text-slate-500 text-xs font-mono">/</span>
-        <input 
-          id="cmd-search-input" 
-          type="text" 
-          placeholder="Cmd + K // Execute tactical action, probe target..." 
-          data-i18n="searchPlaceholder"
-          class="w-full pl-9 pr-4 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] focus:border-sky-500/50 focus:outline-none text-xs font-mono text-slate-200 placeholder-slate-500 transition shadow-inner"
-        >
-      </div>
-    </div>
-
-    <!-- Right: Telemetry cluster (IP Badge, Operator, i18n, Repo) -->
-    <div class="flex items-center space-x-3 shrink-0">
-      
-      <!-- User IP Telemetry Badge with 1-click copy -->
-      <div id="user-ip-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] text-xs font-mono text-slate-300 shadow-sm" title="Текущий IP адрес">
-        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-        <span class="font-semibold text-sky-400 font-mono" id="val-wan-ip">---.---.---.---</span>
-        <span class="text-slate-600">|</span>
-        <span class="text-slate-400 text-[11px]">LAN: <span id="val-lan-ip" class="text-slate-300">198.18.0.1</span></span>
-        <button id="btn-copy-ip" class="text-[10px] font-mono text-slate-400 hover:text-white transition px-1" title="Скопировать IP">COPY</button>
-        <span class="w-2 h-2 rounded-full bg-emerald-400" title="Protected Connection"></span>
-      </div>
-
-      <!-- Air-Gapped Stealth Mode Toggle -->
-      <button id="btn-airgap-toggle" class="airgap-badge online" title="Переключить режим автономности">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span id="airgap-label">AIR-GAP: OFF</span>
-      </button>
-
-      <!-- Background Watcher Daemon Indicator -->
-      <button id="btn-watcher-status" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono font-semibold transition cursor-pointer" title="Фоновый сторож ARGUS (Watcher Daemon)">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="watcher-badge-text">СТОРОЖ: <span class="text-emerald-400">АКТИВЕН</span> (<span id="watcher-alerts-count" class="text-slate-300">0</span>)</span>
-      </button>
-
-      <!-- Operator Status Badge -->
-      <div class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span data-i18n="operatorStatus">OPERATOR_01 ONLINE</span>
-      </div>
-
-      <!-- Language Switcher (RU / EN) -->
-      <button id="lang-toggle-btn" class="px-2.5 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono transition flex items-center space-x-1" title="Сменить язык / Switch Language">
-        <span class="text-sky-400 font-bold">RU</span>
-        <span class="text-slate-600">|</span>
-        <span class="text-slate-400">EN</span>
-      </button>
-
-      <!-- Open CCTV / Webcams Matrix Button -->
-      <button id="btn-open-cctv-matrix" class="px-2.5 py-1.5 rounded-lg bg-teal-950/40 hover:bg-teal-900/50 border border-teal-500/40 text-xs font-mono transition flex items-center space-x-1.5 text-teal-300 hover:text-teal-100" title="Глобальная видеостена открытых камер (Cmd + U)">
-        <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-        <span class="hidden xl:inline">CCTV МАТРИЦА</span>
-      </button>
-
-      <!-- API Keys & Live Feeds Settings Modal Button -->
-      <button id="btn-open-config-keys" class="px-2.5 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono transition flex items-center space-x-1.5 text-slate-300 hover:text-sky-300" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
-        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-        <span class="hidden xl:inline">КЛЮЧИ & FEEDS</span>
-      </button>
-
-      <!-- System Health -->
-      <div id="system-health-badge" class="flex items-center text-xs px-2.5 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] text-slate-400 font-mono">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> ONLINE
+        <div class="flex items-center justify-between text-[11px] pb-2 border-b border-white/10 text-slate-300">
+          <span>WAN: <span id="val-wan-ip" class="text-sky-400 font-bold">---.---.---.---</span></span>
+          <button id="btn-copy-ip" class="text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded bg-slate-800 border border-white/10">COPY</button>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400">AIR-GAP СТЕЛС:</span>
+          <button id="btn-airgap-toggle" class="airgap-badge online text-[10px] px-2 py-0.5 rounded">
+            <span id="airgap-label">OFF</span>
+          </button>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400">СТОРОЖ СИСТЕМЫ:</span>
+          <button id="btn-watcher-status" class="text-emerald-400 text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
+            <span id="watcher-badge-text">АКТИВЕН</span>
+          </button>
+        </div>
+        <div class="flex items-center justify-between pt-2 border-t border-white/10">
+          <button id="lang-toggle-btn" class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 text-[10px]">
+            <span class="text-sky-400 font-bold">RU</span> | <span>EN</span>
+          </button>
+          <button id="btn-open-cctv-matrix" class="px-2 py-1 rounded bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-[10px]">
+            CCTV МАТРИЦА
+          </button>
+          <div id="system-health-badge" class="flex items-center text-[10px] text-emerald-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> ONLINE
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
+  <!-- Main Container with Left Vertical Icon Rail -->
   <div class="flex-1 flex overflow-hidden">
     
-    <!-- Left Tactical Sidebar -->
-    <aside class="w-60 border-r border-white/[0.08] bg-[#08090b]/90 p-3 flex flex-col justify-between shrink-0">
-      <div class="space-y-1">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2 font-mono">ТАКТИЧЕСКИЕ СТАНЦИИ</div>
+    <!-- Left Icon Rail (w-14 / 56px, Image 1 Spec) -->
+    <aside class="w-14 border-r border-white/[0.06] bg-[#07090d] flex flex-col items-center py-3 justify-between shrink-0 select-none z-30">
+      
+      <!-- Top Station Icons -->
+      <div class="flex flex-col items-center space-y-2.5">
         
-        <button data-tab="geoint" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/40 transition text-left">
-          <span class="font-mono text-[11px] font-bold text-sky-400/90 w-5 text-center shrink-0">01</span>
-          <span data-i18n="stationGodsEye">God's Eye View</span>
+        <!-- Tab 01: Cockpit / God's Eye (Active with Amber Border) -->
+        <button data-tab="geoint" class="nav-tab-btn active w-9 h-9 flex items-center justify-center rounded-lg border border-amber-500/80 bg-amber-500/10 text-amber-400 transition" title="Cockpit & Tactical Radar">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
         </button>
 
-        <button data-tab="network" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-          <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">02</span>
-          <span data-i18n="stationNetwork">Network Audit</span>
+        <!-- Tab 02: Network Audit -->
+        <button data-tab="network" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="Network Audit & Perimeter">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="3"></circle>
+            <circle cx="6" cy="19" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="12" y1="8" x2="6" y2="16"></line>
+            <line x1="12" y1="8" x2="18" y2="16"></line>
+          </svg>
         </button>
 
-        <button data-tab="osint" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-          <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">03</span>
-          <span data-i18n="stationOsint">OSINT & Recon</span>
+        <!-- Tab 03: OSINT & Recon -->
+        <button data-tab="osint" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="OSINT & Reconnaissance">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
         </button>
 
-        <button data-tab="audit" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-          <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">04</span>
-          <span data-i18n="stationVuln">Vuln & Hardening</span>
+        <!-- Tab 04: Vuln & Hardening -->
+        <button data-tab="audit" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="Code Audit & Hardening">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
         </button>
 
-        <button data-tab="crypto" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-          <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">05</span>
-          <span data-i18n="stationVault">Identity Vault</span>
+        <!-- Tab 05: Identity Vault -->
+        <button data-tab="crypto" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="Identity Vault & Keys">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
         </button>
 
-        <div class="pt-3 border-t border-white/[0.08] space-y-1">
-          <button data-tab="forensics" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-            <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">06</span>
-            <span>Media & EXIF</span>
-          </button>
+        <!-- Tab 06: Forensics & Media -->
+        <button data-tab="forensics" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="Digital Forensics & Media">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="22" y1="12" x2="18" y2="12"></line>
+            <line x1="6" y1="12" x2="2" y2="12"></line>
+            <line x1="12" y1="6" x2="12" y2="2"></line>
+            <line x1="12" y1="22" x2="12" y2="18"></line>
+          </svg>
+        </button>
 
-          <button data-tab="opsec" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-            <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">07</span>
-            <span>OPSEC & ClearURLs</span>
-          </button>
+        <!-- Tab 07: OPSEC & DLP -->
+        <button data-tab="opsec" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="OPSEC & Privacy Sanitizer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </button>
 
-          <button data-tab="analyst" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
-            <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">08</span>
-            <span>Security Analyst</span>
-          </button>
+        <!-- Tab 08: Security Analyst -->
+        <button data-tab="analyst" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="AI Security Analyst">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <line x1="9" y1="1" x2="9" y2="4"></line>
+            <line x1="15" y1="1" x2="15" y2="4"></line>
+            <line x1="9" y1="20" x2="9" y2="23"></line>
+            <line x1="15" y1="20" x2="15" y2="23"></line>
+            <line x1="20" y1="9" x2="23" y2="9"></line>
+            <line x1="20" y1="14" x2="23" y2="14"></line>
+            <line x1="1" y1="9" x2="4" y2="9"></line>
+            <line x1="1" y1="14" x2="4" y2="14"></line>
+          </svg>
+        </button>
 
-          <button data-tab="playbooks" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-sky-400/90 hover:bg-slate-900 hover:text-sky-300 border border-transparent transition text-left">
-            <span class="font-mono text-[11px] font-bold text-sky-400/90 w-5 text-center shrink-0">09</span>
-            <span data-i18n="stationPlaybooks">Tactics & Playbooks</span>
-            <span class="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">818</span>
-          </button>
-        </div>
+        <!-- Tab 09: Tactics & Playbooks -->
+        <button data-tab="playbooks" class="nav-tab-btn w-9 h-9 flex items-center justify-center rounded-lg border border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-900/50 transition" title="Tactics & Playbooks (818)">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </button>
       </div>
 
-      <!-- Quick Telemetry Card in Sidebar -->
-      <div class="p-3 rounded-xl bg-[#0b0f17] border border-white/[0.08] text-[11px] font-mono text-slate-400 space-y-1">
-        <div class="flex justify-between items-center text-slate-500">
-          <span>СИСТЕМА:</span>
-          <span class="text-emerald-400">NOMINAL</span>
-        </div>
-        <div class="flex justify-between items-center text-slate-500">
-          <span>БЭКЕНД:</span>
-          <span class="text-sky-400">FASTAPI / LOCAL</span>
-        </div>
-        <div class="flex justify-between items-center text-slate-500">
-          <span>РЕЖИМ:</span>
-          <span class="text-slate-300">DEFCON 3</span>
-        </div>
+      <!-- Bottom System Icons -->
+      <div class="flex flex-col items-center space-y-2.5">
+        <button id="btn-rail-bell" class="relative p-1.5 text-slate-500 hover:text-slate-300 transition" title="Оповещения">
+          <span class="w-2 h-2 rounded-full bg-amber-500 absolute top-1 right-1"></span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </button>
+
+        <button id="btn-rail-help" class="p-1.5 text-slate-500 hover:text-slate-300 transition" title="Документация и плейбуки">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </button>
+
+        <button id="btn-rail-quit" class="p-1.5 text-slate-500 hover:text-rose-400 transition" title="Выход">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
       </div>
     </aside>
 
-    <!-- Main Workspace Content (Dynamic Tab Panels) -->
-    <main class="flex-1 overflow-y-auto p-5 relative bg-[#05070a]">
+    <!-- Main Workspace Area -->
+    <main class="flex-1 overflow-hidden relative bg-[#05070a] flex flex-col">
 
       <!-- ========================================================= -->
-      <!-- TAB 1: GOD'S EYE VIEW & THREAT MAP (MAIN SCREEN)           -->
+      <!-- TAB 1: COCKPIT (IMAGE 1 EXACT SPECIFICATION)               -->
       <!-- ========================================================= -->
-      <div id="tab-geoint" class="tab-content space-y-4">
+      <div id="tab-geoint" class="tab-content flex-1 h-full overflow-hidden">
         
-        <!-- Screen Header -->
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center space-x-3">
-            <span class="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold flex items-center">
-              <span class="w-2 h-2 rounded-full bg-rose-500 mr-2 animate-pulse"></span>
-              <span data-i18n="liveAttackStream">LIVE ATTACK STREAM</span>
-            </span>
-            <span class="text-xs text-slate-400 font-mono" data-i18n="interactiveThreatMap">Tactical GEOINT & Orbital Radar</span>
-          </div>
-
-          <!-- Tactical Layer Toggles -->
-          <div class="flex items-center space-x-1.5 overflow-x-auto">
-            <button id="btn-layer-sats" class="layer-pill active px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-cyan-500/30">
-              <span class="text-cyan-400 font-mono">1.</span>
-              <span>NORAD SAT (<span id="count-sats">6</span>)</span>
-            </button>
-            <button id="btn-layer-air" class="layer-pill active px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-emerald-500/30">
-              <span class="text-emerald-400 font-mono">2.</span>
-              <span>ADS-B (<span id="count-air">25</span>)</span>
-            </button>
-            <button id="btn-layer-maritime" class="layer-pill active px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-indigo-500/30">
-              <span class="text-indigo-400 font-mono">3.</span>
-              <span>AIS FLOTILLA (<span id="count-ships">16</span>)</span>
-            </button>
-            <button id="btn-layer-cameras" class="layer-pill active px-2.5 py-1 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-teal-500/30">
-              <span class="text-teal-400 font-mono">4.</span>
-              <span>CCTV (<span id="count-cameras">124</span>)</span>
-            </button>
-            <button id="btn-layer-firms" class="layer-pill active px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-rose-500/30" title="NASA FIRMS (Thermal Hotspots / VIIRS / MODIS)">
-              <span class="text-rose-400 font-mono">5.</span>
-              <span>ТЕРМОТОЧКИ (<span id="count-firms">8</span>)</span>
-            </button>
-            <button id="btn-layer-earthquakes" class="layer-pill active px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-amber-500/30" title="USGS Global Earthquakes (Seismic Monitor)">
-              <span class="text-amber-400 font-mono">6.</span>
-              <span>СЕЙСМИКА (<span id="count-earthquakes">8</span>)</span>
-            </button>
-            <button id="btn-layer-cables" class="layer-pill active px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-blue-500/30" title="Submarine Fiber-Optic Telecommunication Cables">
-              <span class="text-blue-400 font-mono">7.</span>
-              <span>КАБЕЛИ СВЯЗИ (<span id="count-cables">6</span>)</span>
-            </button>
-            <button id="btn-layer-cyber" class="layer-pill active px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[11px] font-mono font-bold transition flex items-center space-x-1 hover:bg-sky-500/30">
-              <span class="text-sky-400 font-mono">8.</span>
-              <span>CYBER ARCS</span>
-            </button>
-          </div>
-
-          <!-- View Mode Toggles & Video Wall Launcher -->
-          <div class="flex items-center space-x-2">
-            <button id="btn-map-cctv-wall" class="px-2.5 py-1 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-mono font-bold flex items-center space-x-1" title="Открыть матрицу видеостены всех городов">
-              <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-              <span>ВИДЕОСТЕНА</span>
-            </button>
-            <button id="btn-mode-2d" class="px-3 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 text-xs font-mono font-bold">2D Threat Map</button>
-            <button id="btn-mode-3d" class="px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs font-mono font-medium">3D God's Eye</button>
-          </div>
-        </div>
-
-        <!-- Tactical Map Viewport -->
-        <div id="tactical-map-viewport">
-          <canvas id="tactical-canvas"></canvas>
-
-          <!-- Floating Target Telemetry HUD Card -->
-          <div class="hud-card">
-            <div class="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span id="hud-type-badge" data-i18n="targetInspection">TACTICAL TARGET INSPECTION</span>
-              <span id="hud-status-indicator" class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-            </div>
-
-            <div class="space-y-2 mb-3">
-              <div>
-                <div id="hud-title-label" class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetIp">Node IP / Target</div>
-                <div id="hud-target-ip" class="text-sm font-mono font-bold text-slate-100">198.51.100.42</div>
+        <div class="grid grid-cols-[290px_1fr_310px] gap-3.5 h-full p-3.5 items-stretch overflow-hidden">
+          
+          <!-- LEFT COLUMN: 3 CARDS -->
+          <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
+            
+            <!-- CARD 1: DEFCON STATUS -->
+            <div class="cockpit-card h-[175px] justify-between">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">DEFCON STATUS</span>
+                <span class="cockpit-pill-amber">COLOR STATUS</span>
               </div>
-
-              <div>
-                <div id="hud-coords-label" class="text-[10px] text-slate-500 font-mono uppercase" data-i18n="targetCoords">Coordinates</div>
-                <div id="hud-target-coords" class="text-xs font-mono text-slate-300">50.1109° N, 8.6821° E Frankfurt, DE [EU-C1]</div>
-              </div>
-
-              <div id="hud-details-container">
-                <div id="hud-details-label" class="text-[10px] text-slate-500 font-mono uppercase mb-1" data-i18n="openPorts">Open Ports</div>
-                <div id="hud-target-ports" class="grid grid-cols-3 gap-1.5">
-                  <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
-                    <div class="text-xs font-bold text-sky-400 font-mono">22</div>
-                    <div class="text-[9px] text-slate-400 font-mono">SSH</div>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
-                    <div class="text-xs font-bold text-emerald-400 font-mono">80</div>
-                    <div class="text-[9px] text-slate-400 font-mono">HTTP</div>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
-                    <div class="text-xs font-bold text-amber-400 font-mono">443</div>
-                    <div class="text-[9px] text-slate-400 font-mono">HTTPS</div>
-                  </div>
+              <div class="flex items-center justify-between flex-1 px-1">
+                <!-- Circular Gauge Canvas -->
+                <div class="relative flex items-center justify-center w-[150px] h-[130px]">
+                  <canvas id="defcon-gauge-canvas" class="w-full h-full block"></canvas>
+                  <span class="defcon-score hidden">84.6%</span>
                 </div>
-              </div>
-
-              <div id="hud-threat-container">
-                <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase mb-1">
-                  <span id="hud-threat-label" data-i18n="threatLevel">Threat Level</span>
-                  <span id="hud-target-threat-score" class="text-rose-400 font-bold">85%</span>
-                </div>
-                <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                  <div id="hud-target-threat-fill" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-1.5 rounded-full" style="width: 85%"></div>
+                <!-- Dual Vertical Meter -->
+                <div class="flex items-end space-x-2.5 h-[115px] pr-2">
+                  <div class="cockpit-meter-track" title="DEFCON Posture Level">
+                    <div class="cockpit-bar-amber" style="height: 70%;"></div>
+                  </div>
+                  <div class="cockpit-meter-track" title="Kinetic Defense Readiness">
+                    <div class="cockpit-bar-cyan" style="height: 48%;"></div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
-              <button id="btn-hud-open-camera" class="hidden w-full py-1.5 px-3 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-                <span>ОТКРЫТЬ LIVE КАМЕРУ</span>
-              </button>
-              <button id="btn-hud-exploit" class="w-full py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span data-i18n="btnRunExploit">RUN EXPLOIT TEST</span>
-              </button>
-              <button id="btn-hud-trace" class="w-full py-1.5 px-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                <span data-i18n="btnTraceRoute">TRACE ROUTE</span>
-              </button>
-              <button id="btn-hud-isolate" class="w-full py-1.5 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
+            <!-- CARD 2: NETWORK TELEMETRY -->
+            <div class="cockpit-card h-[180px] justify-between">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">NETWORK TELEMETRY</span>
+                <div class="flex items-center space-x-1.5 text-slate-500">
+                  <button class="p-0.5 text-sky-400 bg-sky-500/10 rounded" title="Волновой график">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12c4-8 8 8 12 0s8 8 8 0"/></svg>
+                  </button>
+                  <button class="p-0.5 hover:text-slate-300" title="Столбчатый график">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="20" x2="6" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="18" y1="20" x2="18" y2="14"></line></svg>
+                  </button>
+                  <span class="text-xs">•••</span>
+                </div>
+              </div>
+              <div class="flex items-center space-x-4 text-[10px] font-mono text-slate-400 mb-1">
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span>Network</span>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                  <span>Graphs</span>
+                </span>
+              </div>
+              <div class="flex-1 flex flex-col justify-between">
+                <div class="flex-1 flex items-stretch space-x-1.5 relative">
+                  <div class="flex flex-col justify-between text-[8px] font-mono text-slate-500 pr-1 select-none text-right w-5">
+                    <span>200</span>
+                    <span>150</span>
+                    <span>100</span>
+                    <span>50</span>
+                    <span>0</span>
+                  </div>
+                  <div class="flex-1 relative h-full">
+                    <canvas id="net-telemetry-canvas" class="w-full h-full block"></canvas>
+                  </div>
+                </div>
+                <div class="flex justify-between pl-6 text-[8px] font-mono text-slate-500 pt-0.5 select-none">
+                  <span>120</span>
+                  <span>160</span>
+                  <span>200</span>
+                  <span>240</span>
+                  <span>330</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 3: REAL-TIME THREAT INTELLIGENCE -->
+            <div class="cockpit-card flex-1 justify-between min-h-[220px]">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">REAL-TIME THREAT INTELLIGENCE</span>
+                <span class="text-slate-500 text-xs">•••</span>
+              </div>
+              <div class="space-y-2 font-mono text-xs text-slate-300">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="text-slate-400">Current Cyber threats</span>
+                  <span class="font-bold text-slate-100">2,370</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-400">Cyber Attack</span>
+                    <span class="font-bold text-amber-400">3,448</span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-amber" style="width: 65%;"></div>
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-400">Threat Threats</span>
+                    <span class="font-bold text-amber-400">3,193</span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-amber" style="width: 58%;"></div>
+                  </div>
+                </div>
+                <div class="border-b border-white/[0.06] my-1.5"></div>
+                <div class="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Realtime threat intelligence</span>
+                  <span class="text-slate-200">23 bytes</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Satellite Trajectory</span>
+                  <span class="text-slate-200">100 bytes</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Photon health</span>
+                    <span class="text-cyan-400">24 bytes</span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-cyan" style="width: 42%;"></div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Threat Sources</span>
+                  <span class="text-slate-200">0 Volts</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CENTER COLUMN: 3D GLOBE VIEWPORT -->
+          <div class="relative flex items-center justify-center h-full rounded-xl overflow-hidden border border-white/[0.05] bg-[#06080d]">
+            <canvas id="tactical-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+            
+            <!-- Optional Floating Target Telemetry HUD -->
+            <div id="target-hud-card" class="hud-card hidden">
+              <div class="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span id="hud-type-badge">TACTICAL TARGET INSPECTION</span>
+                <button id="btn-close-target-hud" class="text-slate-500 hover:text-slate-300 text-xs">✕</button>
+              </div>
+              <div class="space-y-2 mb-3">
+                <div>
+                  <div class="text-[10px] text-slate-500 font-mono uppercase">Node IP / Target</div>
+                  <div id="hud-target-ip" class="text-sm font-mono font-bold text-slate-100">198.51.100.42</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-slate-500 font-mono uppercase">Coordinates</div>
+                  <div id="hud-target-coords" class="text-xs font-mono text-slate-300">50.1109° N, 8.6821° E Frankfurt, DE [EU-C1]</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-slate-500 font-mono uppercase mb-1">Open Ports</div>
+                  <div id="hud-target-ports" class="grid grid-cols-3 gap-1.5">
+                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-sky-400 font-mono">22</div><div class="text-[8px] text-slate-400 font-mono">SSH</div></div>
+                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-emerald-400 font-mono">80</div><div class="text-[8px] text-slate-400 font-mono">HTTP</div></div>
+                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-amber-400 font-mono">443</div><div class="text-[8px] text-slate-400 font-mono">HTTPS</div></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase mb-1">
+                    <span>Threat Level</span>
+                    <span id="hud-target-threat-score" class="text-rose-400 font-bold">85%</span>
+                  </div>
+                  <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                    <div id="hud-target-threat-fill" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-1.5 rounded-full" style="width: 85%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-1.5 pt-2 border-t border-slate-800">
+                <button id="btn-hud-exploit" class="w-full py-1 px-2 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-bold">RUN EXPLOIT TEST</button>
+                <button id="btn-hud-trace" class="w-full py-1 px-2 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-mono font-bold">TRACE ROUTE</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: 3 CARDS -->
+          <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
+            
+            <!-- CARD 1: CYBER ATTACK VECTORS -->
+            <div class="cockpit-card h-[175px] justify-between">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">CYBER ATTACK VECTORS</span>
+                <span class="text-slate-500 text-xs">•••</span>
+              </div>
+              <div class="flex-1 relative w-full h-[135px] rounded bg-[#07090e] border border-white/[0.04] overflow-hidden">
+                <canvas id="attack-vectors-canvas" class="w-full h-full block"></canvas>
+              </div>
+            </div>
+
+            <!-- CARD 2: CODE AUDIT [VULNERABILITY] -->
+            <div class="cockpit-card h-[180px] justify-between">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">CODE AUDIT</span>
+                <div class="flex items-center space-x-1.5">
+                  <span class="cockpit-pill-amber">VULNERABILITY</span>
+                  <span class="text-slate-500 text-xs">•••</span>
+                </div>
+              </div>
+              <div class="font-mono text-xs space-y-2">
+                <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-0.5 border-b border-white/[0.04]">
+                  <span>FINDINGS</span>
+                  <span>VULNERABILITY</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px] text-slate-300">
+                    <span>Vulnerability Scan</span>
+                    <span class="text-slate-400">Canned <span class="text-amber-400 font-bold">6/8</span></span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-amber" style="width: 75%;"></div>
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px] text-slate-300">
+                    <span>Vulnerability Scan</span>
+                    <span class="text-slate-400">Retromolized <span class="text-slate-200 font-bold">3/3</span></span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="bg-gradient-to-r from-amber-500 to-cyan-400 h-full rounded" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px] text-slate-300">
+                    <span>Current Status</span>
+                    <span class="text-slate-400">Complete <span class="text-emerald-400 font-bold">8</span></span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="bg-emerald-500 h-full rounded" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 pt-0.5">
+                  <span>Vulnerability Rep</span>
+                  <span>Untracked <span class="text-slate-400">1/0</span></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CARD 3: GEOSPATIAL EVENT MAPPING -->
+            <div class="cockpit-card flex-1 justify-between min-h-[220px]">
+              <div class="cockpit-card-header">
+                <span class="cockpit-card-title">GEOSPATIAL EVENT MAPPING</span>
+                <span class="text-slate-500 text-xs">•••</span>
+              </div>
+              <div class="flex-1 relative w-full h-[140px] rounded bg-[#07090e] border border-white/[0.04] overflow-hidden">
+                <canvas id="geospatial-event-canvas" class="w-full h-full block"></canvas>
+              </div>
+              <div class="pt-2 flex items-center space-x-2 text-[10px] font-mono text-slate-400">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                <span data-i18n="btnIsolateNode">ISOLATE NODE</span>
-              </button>
+                <span>Cyber Attack Vectors</span>
+              </div>
             </div>
+
           </div>
 
-          <!-- Bottom Left DEFCON Posture Dial -->
-          <div class="defcon-dial-container">
-            <div class="text-[10px] font-mono text-amber-400 font-bold tracking-wider mb-1.5" data-i18n="defconLevel">DEFCON POSTURE LEVEL 3</div>
-            <div class="defcon-ring">
-              <span class="defcon-score">84.6%</span>
-            </div>
-            <div class="text-[9px] text-slate-500 font-mono mt-1" data-i18n="securityPosture">Security Posture</div>
-          </div>
         </div>
       </div>
 
@@ -1489,6 +1629,7 @@
   <script src="/js/i18n.js"></script>
   <script src="/js/osint_graph.js"></script>
   <script src="/js/geoint.js"></script>
+  <script src="/js/cockpit_widgets.js"></script>
   <script src="/js/app.js"></script>
 </body>
 </html>

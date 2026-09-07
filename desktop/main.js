@@ -12,6 +12,12 @@ const PORT = 8800;
 const SERVER_URL = `http://127.0.0.1:${PORT}`;
 const ARGUS_IPC_TOKEN = crypto.randomBytes(32).toString('hex');
 
+// macOS Thermal & Energy Efficiency switches
+// Strictly caps rendering at 30 FPS to prevent ProMotion 120Hz CPU/GPU thermal runaway (Target: 30-45°C)
+app.commandLine.appendSwitch('limit-fps', '30');
+app.commandLine.appendSwitch('enable-low-power-gpu');
+app.commandLine.appendSwitch('disable-renderer-backgrounding', 'false');
+
 // Secure IPC handlers for preload bridge
 ipcMain.on('get-ipc-token', (event) => {
   event.returnValue = ARGUS_IPC_TOKEN;
@@ -134,7 +140,8 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
-      allowRunningInsecureContent: false
+      allowRunningInsecureContent: false,
+      backgroundThrottling: true
     }
   });
 
