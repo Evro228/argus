@@ -1,5 +1,5 @@
 """
-🛡️ ARGUS // HEAVY STRESS & GLOBAL HIGH-LOAD VERIFICATION SUITE
+ARGUS // HEAVY STRESS & GLOBAL HIGH-LOAD VERIFICATION SUITE
 Simulates concurrent drive-by attacks, high-load request bursts (500+ requests),
 memory forensic zeroing verification, Air-Gap socket leak detection, and cryptographic tampering.
 """
@@ -9,6 +9,19 @@ import os
 import sys
 import time
 import secrets
+
+# Ensure UTF-8 output encoding across all operating systems and CI runners
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from fastapi.testclient import TestClient
 
 # Set root directory in sys.path
@@ -20,7 +33,7 @@ from backend.app.utils.crypto_vault import encrypt_vault_payload, decrypt_vault_
 from backend.app.api.system import AIR_GAP_STATE
 
 print("=" * 66)
-print("🛡️ ARGUS v1.0.0 // HEAVY STRESS & GLOBAL HIGH-LOAD AUDIT")
+print("ARGUS v1.0.0 // HEAVY STRESS & GLOBAL HIGH-LOAD AUDIT")
 print("=" * 66)
 
 passed = 0
@@ -54,7 +67,7 @@ assert res_ok_tok.status_code == 200, f"Expected 200 for valid token, got {res_o
 
 # Clear token for further tests
 del os.environ["ARGUS_IPC_TOKEN"]
-print("  ✅ PASS | Drive-By & DNS Rebinding Protection: Host filtering (403) & IPC Token validation (401) verified")
+print("  [PASS] | Drive-By & DNS Rebinding Protection: Host filtering (403) & IPC Token validation (401) verified")
 passed += 1
 
 # -------------------------------------------------------------
@@ -88,12 +101,12 @@ async def run_burst_load():
                 error_count += 1
                 
         rps = round(500 / duration, 1)
-        print(f"  • Выполнено 500 запросов за {duration:.3f}с (~{rps} RPS). Успешных/защищенных: {success_count}, Сбоев сервера: {error_count}")
+        print(f"  - Выполнено 500 запросов за {duration:.3f}с (~{rps} RPS). Успешных/защищенных: {success_count}, Сбоев сервера: {error_count}")
         assert error_count == 0, f"Detected {error_count} server crashes during load burst"
         assert success_count == 500
 
 asyncio.run(run_burst_load())
-print("  ✅ PASS | Heavy Concurrency: 500 одновременных асинхронных сессий обработаны с 0% потерь")
+print("  [PASS] | Heavy Concurrency: 500 одновременных асинхронных сессий обработаны с 0% потерь")
 passed += 1
 
 # -------------------------------------------------------------
@@ -110,7 +123,7 @@ with SecureBuffer(secret_payload) as s_buf:
 # Buffer must be zeroed immediately after context exit
 raw_after = bytes(s_buf._buf)
 assert raw_after == b"\x00" * len(secret_payload), f"Memory was not zeroed: {raw_after}"
-print("  ✅ PASS | Memory Zeroing: Гарантированное затирание ctypes.memset (0x00) подтверждено")
+print("  [PASS] | Memory Zeroing: Гарантированное затирание ctypes.memset (0x00) подтверждено")
 passed += 1
 
 # -------------------------------------------------------------
@@ -139,7 +152,7 @@ assert res_osint.json()["total_checked"] == 0
 
 # Turn Air-Gap OFF
 client.post("/api/system/airgap/toggle", json={"enabled": False})
-print("  ✅ PASS | Air-Gapped Stealth: Блокировка внешних сокетов и предотвращение утечек трафика подтверждены")
+print("  [PASS] | Air-Gapped Stealth: Блокировка внешних сокетов и предотвращение утечек трафика подтверждены")
 passed += 1
 
 # -------------------------------------------------------------
@@ -164,7 +177,7 @@ except ValueError as err:
 # Valid decryption
 decrypted = decrypt_vault_payload(envelope, "correct_password_987")
 assert b"TOP_SECRET_ALPHA" in decrypted
-print("  ✅ PASS | Crypto Authenticity: Защита от подмены ciphertext и аутентификация AEAD подтверждены")
+print("  [PASS] | Crypto Authenticity: Защита от подмены ciphertext и аутентификация AEAD подтверждены")
 passed += 1
 
 # -------------------------------------------------------------
@@ -190,7 +203,7 @@ assert pdf_data["indicators"]["embedded_launch"] >= 1
 assert pdf_data["indicators"]["auto_open_actions"] >= 1
 assert pdf_data["risk_score"] >= 70
 assert "КРИТИЧЕСКИЙ РИСК" in pdf_data["verdict"]
-print("  ✅ PASS | Forensics & Dangerzone: Вредоносные директивы /Launch и /JS обнаружены со скорингом 100/100")
+print("  [PASS] | Forensics & Dangerzone: Вредоносные директивы /Launch и /JS обнаружены со скорингом 100/100")
 passed += 1
 
 print("\n" + "=" * 66)

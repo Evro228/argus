@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONIOENCODING: "utf-8"
+  PYTHONUTF8: "1"
+
 jobs:
   security-audit:
     name: Gitleaks & Automated Security Verification

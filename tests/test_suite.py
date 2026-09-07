@@ -2,6 +2,19 @@ import sys
 import os
 import json
 import io
+
+# Ensure UTF-8 output encoding across all operating systems and CI runners (Windows cp1252 fix)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from fastapi.testclient import TestClient
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -15,12 +28,16 @@ client = TestClient(app)
 results = []
 
 def record(test_name, passed, details=""):
-    status = "✅ PASS" if passed else "❌ FAIL"
+    status = "[PASS]" if passed else "[FAIL]"
     results.append({"name": test_name, "passed": passed, "details": details})
-    print(f"{status} | {test_name}: {details}")
+    try:
+        print(f"{status} | {test_name}: {details}")
+    except UnicodeEncodeError:
+        safe_details = details.encode("ascii", "replace").decode("ascii")
+        print(f"{status} | {test_name}: {safe_details}")
 
 print("================================================================")
-print("🛡️ ARGUS v1.0.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
+print("ARGUS v1.0.0 // AUTOMATED FUNCTIONAL VERIFICATION SUITE")
 print("================================================================")
 
 # 1. Health & Service Metadata
@@ -273,13 +290,17 @@ except Exception as e:
 
 # 23. App Bundle & Desktop Launcher Verification
 try:
-    launcher = os.path.join(PROJECT_ROOT, "Launch ARGUS.command")
+    if sys.platform == "win32":
+        launcher = os.path.join(PROJECT_ROOT, "run.bat")
+        has_launcher = os.path.exists(launcher)
+    else:
+        launcher = os.path.join(PROJECT_ROOT, "Launch ARGUS.command")
+        has_launcher = os.path.exists(launcher) and os.access(launcher, os.X_OK)
     main_js = os.path.join(PROJECT_ROOT, "desktop", "main.js")
     preload_js = os.path.join(PROJECT_ROOT, "desktop", "preload.js")
-    has_launcher = os.path.exists(launcher) and os.access(launcher, os.X_OK)
     has_desktop_entry = os.path.exists(main_js) and os.path.exists(preload_js)
     passed = has_launcher and has_desktop_entry
-    record("23. Desktop App Entrypoints & Launcher", passed, "Main: desktop/main.js | Preload: preload.js | Launcher: chmod +x")
+    record("23. Desktop App Entrypoints & Launcher", passed, f"Main: desktop/main.js | Preload: preload.js | Launcher: {os.path.basename(launcher)}")
 except Exception as e:
     record("23. Desktop App Entrypoints & Launcher", False, str(e))
 

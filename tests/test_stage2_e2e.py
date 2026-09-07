@@ -8,6 +8,20 @@ Verifies all interactive functions across the 9 workstations:
 5. OPSEC Sanitizer: DLP PII/Secret Masker, ClearURLs Privacy Stripper, Disposable Persona Generator
 6. Code Audit & Executive Analyst: Secret scanning, Posture assessment, AI SOC Copilot, 818 Skills
 """
+import sys
+
+# Ensure UTF-8 output encoding across all operating systems and CI runners
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from fastapi.testclient import TestClient
 from backend.app.main import app
 
