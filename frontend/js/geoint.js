@@ -101,18 +101,20 @@
 
       // 3D Orbital satellites
       this.satellites = [
-        { name: 'USA 245 (KEYHOLE)', orbit: 0, angle: 0.35, speed: 0.005, color: '#38bdf8' },
-        { name: 'COSMOS 2558', orbit: 1, angle: 1.95, speed: 0.004, color: '#f59e0b' },
-        { name: 'YAOGAN 35-01A', orbit: 2, angle: 3.40, speed: 0.006, color: '#10b981' },
-        { name: 'ISS (ZARYA)', orbit: 0, angle: 4.80, speed: 0.005, color: '#f8fafc' },
-        { name: 'BEIDOU-3 M21', orbit: 1, angle: 5.40, speed: 0.004, color: '#38bdf8' }
+        { name: 'USA 245 (KEYHOLE)', orbit: 0, angle: 0.35, speed: 0.0035, color: '#f8fafc' },
+        { name: 'COSMOS 2558', orbit: 1, angle: 1.95, speed: 0.0030, color: '#f8fafc' },
+        { name: 'YAOGAN 35', orbit: 2, angle: 3.40, speed: 0.0040, color: '#f8fafc' },
+        { name: 'ISS (ZARYA)', orbit: 3, angle: 4.80, speed: 0.0032, color: '#f8fafc' },
+        { name: 'BEIDOU-3', orbit: 4, angle: 5.40, speed: 0.0028, color: '#f8fafc' }
       ];
 
-      // 3D Orbital planes: inclination and ascending node (Euler tilt angles)
+      // 3D Orbital planes: inclination and ascending node (Euler tilt angles matching Image 1)
       this.orbits = [
-        { inc: 0.82, raan: 0.45, rMult: 1.34, color: 'rgba(56, 189, 248, 0.26)' },
-        { inc: -0.68, raan: 1.70, rMult: 1.40, color: 'rgba(245, 158, 11, 0.24)' },
-        { inc: 1.12, raan: 2.95, rMult: 1.46, color: 'rgba(16, 185, 129, 0.22)' }
+        { inc: 0.72, raan: 0.40, rMult: 1.30, color: 'rgba(255, 255, 255, 0.26)' },
+        { inc: -0.65, raan: 1.65, rMult: 1.38, color: 'rgba(255, 255, 255, 0.22)' },
+        { inc: 1.15, raan: 2.85, rMult: 1.45, color: 'rgba(255, 255, 255, 0.24)' },
+        { inc: -0.32, raan: 3.80, rMult: 1.34, color: 'rgba(255, 255, 255, 0.20)' },
+        { inc: 1.42, raan: 5.10, rMult: 1.42, color: 'rgba(255, 255, 255, 0.22)' }
       ];
 
       // Cyber Attack Arcs
@@ -569,98 +571,71 @@
     }
 
     drawSatellites(ctx) {
-      if (this.liveSatellites && this.liveSatellites.length > 0) {
-        for (let sat of this.liveSatellites) {
-          const pt = this.project3D(sat.lat, sat.lon, 1.25);
-          if (!pt.visible) continue;
+      const satsToRender = (this.liveSatellites && this.liveSatellites.length > 0) ? this.liveSatellites.slice(0, 6) : this.satellites;
 
-          ctx.fillStyle = sat.color || '#38bdf8';
-          ctx.strokeStyle = sat.color || '#38bdf8';
-          ctx.lineWidth = 1;
+      for (let sat of satsToRender) {
+        let pt;
+        if (sat.lat !== undefined && sat.lon !== undefined) {
+          pt = this.project3D(sat.lat, sat.lon, 1.28);
+        } else {
+          sat.angle = (sat.angle || 0) + (sat.speed || 0.003);
+          const o = this.orbits[sat.orbit % this.orbits.length];
+          const rOrb = this.radius * o.rMult;
 
-          // Central Avionics Bus
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+          const x0 = rOrb * Math.cos(sat.angle);
+          const y0 = rOrb * Math.sin(sat.angle) * Math.sin(o.inc);
+          const z0 = rOrb * Math.sin(sat.angle) * Math.cos(o.inc);
 
-          // Solar Arrays
-          ctx.fillStyle = sat.color || '#38bdf8';
-          ctx.fillRect(pt.x - 7, pt.y - 1.5, 4, 3);
-          ctx.fillRect(pt.x + 3, pt.y - 1.5, 4, 3);
+          const cosR = Math.cos(o.raan);
+          const sinR = Math.sin(o.raan);
+          const xOrb = x0 * cosR - z0 * sinR;
+          const zOrb = x0 * sinR + z0 * cosR;
 
-          // Nadir Communication Antenna
-          ctx.beginPath();
-          ctx.moveTo(pt.x, pt.y + 2);
-          ctx.lineTo(pt.x, pt.y + 4.5);
-          ctx.strokeStyle = '#f8fafc';
-          ctx.stroke();
-
-          // Front hemisphere label overlay
-          if (pt.z > this.radius * 0.15) {
-            ctx.font = '500 8.5px "JetBrains Mono", monospace';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.fillText(sat.name, pt.x + 9, pt.y - 2);
-
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.beginPath();
-            ctx.moveTo(pt.x + 2, pt.y - 2);
-            ctx.lineTo(pt.x + 7, pt.y - 2);
-            ctx.stroke();
-          }
+          pt = this.projectVector(xOrb, y0, zOrb);
         }
-        return;
-      }
 
-      for (let sat of this.satellites) {
-        sat.angle += sat.speed;
-        const o = this.orbits[sat.orbit];
-        const rOrb = this.radius * o.rMult;
+        if (!pt || !pt.visible) continue;
 
-        const x0 = rOrb * Math.cos(sat.angle);
-        const y0 = rOrb * Math.sin(sat.angle) * Math.sin(o.inc);
-        const z0 = rOrb * Math.sin(sat.angle) * Math.cos(o.inc);
-
-        const cosR = Math.cos(o.raan);
-        const sinR = Math.sin(o.raan);
-        const xOrb = x0 * cosR - z0 * sinR;
-        const zOrb = x0 * sinR + z0 * cosR;
-
-        const pt = this.projectVector(xOrb, y0, zOrb);
-        if (!pt.visible) continue;
-
-        // 3D Realistic Satellite Model with Solar Wings
-        ctx.fillStyle = sat.color;
-        ctx.strokeStyle = sat.color;
-        ctx.lineWidth = 1;
+        // 3D Realistic Wireframe Satellite Model matching Image 1
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
 
         // Central Avionics Bus
         ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 0.8;
+        ctx.fillRect(-2.5, -2.5, 5, 5);
+        ctx.strokeRect(-2.5, -2.5, 5, 5);
 
-        // Rectangular Solar Arrays (perpendicular wings)
-        ctx.fillStyle = sat.color;
-        ctx.fillRect(pt.x - 7, pt.y - 1.5, 4, 3);
-        ctx.fillRect(pt.x + 3, pt.y - 1.5, 4, 3);
+        // Solar Arrays (Left & Right Wings with grid lines)
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.22)';
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 0.75;
+        // Left Wing
+        ctx.fillRect(-9.5, -2, 6, 4);
+        ctx.strokeRect(-9.5, -2, 6, 4);
+        ctx.beginPath();
+        ctx.moveTo(-6.5, -2);
+        ctx.lineTo(-6.5, 2);
+        ctx.stroke();
+
+        // Right Wing
+        ctx.fillRect(3.5, -2, 6, 4);
+        ctx.strokeRect(3.5, -2, 6, 4);
+        ctx.beginPath();
+        ctx.moveTo(6.5, -2);
+        ctx.lineTo(6.5, 2);
+        ctx.stroke();
 
         // Nadir Communication Antenna
         ctx.beginPath();
-        ctx.moveTo(pt.x, pt.y + 2);
-        ctx.lineTo(pt.x, pt.y + 4.5);
+        ctx.moveTo(0, 2.5);
+        ctx.lineTo(0, 5.5);
         ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 0.8;
         ctx.stroke();
 
-        // Front hemisphere label overlay
-        if (pt.z > this.radius * 0.2) {
-          ctx.font = '500 8.5px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-          ctx.fillText(sat.name, pt.x + 9, pt.y - 2);
-
-          // Hairline leader link
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-          ctx.beginPath();
-          ctx.moveTo(pt.x + 2, pt.y - 2);
-          ctx.lineTo(pt.x + 7, pt.y - 2);
-          ctx.stroke();
-        }
+        ctx.restore();
       }
     }
 
@@ -679,13 +654,6 @@
         ctx.lineTo(pt.x + 2.5, pt.y + 2.5);
         ctx.closePath();
         ctx.fill();
-
-        // Label if on front hemisphere
-        if (pt.z > this.radius * 0.2) {
-          ctx.font = '500 8px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.8)';
-          ctx.fillText(craft.callsign, pt.x + 5, pt.y - 2);
-        }
       }
     }
 
@@ -704,13 +672,6 @@
         ctx.lineTo(pt.x - 2.5, pt.y);
         ctx.closePath();
         ctx.fill();
-
-        // Label if front-facing
-        if (pt.z > this.radius * 0.25) {
-          ctx.font = '500 7.5px "JetBrains Mono", monospace';
-          ctx.fillStyle = 'rgba(45, 212, 191, 0.75)';
-          ctx.fillText((ship.name || '').slice(0, 14), pt.x + 5, pt.y - 1);
-        }
       }
     }
 
@@ -837,10 +798,10 @@
         ctx.arc(pt.x, pt.y, isSelected ? 2.5 : 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Label
-        if (isSelected || node.type === 'primary_target') {
+        // Label (only when explicitly selected to keep HUD clean like Image 1)
+        if (isSelected) {
           ctx.font = 'bold 9px "JetBrains Mono", monospace';
-          ctx.fillStyle = isSelected ? '#ffffff' : color;
+          ctx.fillStyle = '#ffffff';
           ctx.fillText(node.name, pt.x + 9, pt.y - 3);
         }
       }

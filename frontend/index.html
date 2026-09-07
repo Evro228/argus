@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="icon" type="image/png" href="/icon.png">
 </head>
-<body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+<body class="bg-[#05070a] text-slate-100 h-screen w-screen overflow-hidden flex flex-col antialiased select-none">
 
   <!-- Top Navigation Header (Image 1 Cockpit Minimalist Spec) -->
   <header class="titlebar-drag-region h-12 border-b border-white/[0.06] bg-[#07090d] pl-24 pr-4 flex items-center justify-between sticky top-0 z-40 select-none shrink-0" style="-webkit-app-region: drag;">
@@ -287,50 +287,47 @@
                 <span class="cockpit-card-title">REAL-TIME THREAT INTELLIGENCE</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="flex-1 flex flex-col justify-between font-mono text-[11px] text-slate-300 min-h-0">
-                <div class="flex items-center justify-between text-[11px]">
-                  <span class="text-slate-400">Current Cyber threats</span>
-                  <span class="font-bold text-slate-100">2,370</span>
+              <div class="flex-1 flex flex-col justify-between font-mono text-[11px] text-slate-300 min-h-0 py-0.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 text-[10px]">Current Cyber threats</span>
+                  <span id="val-cyber-threats" class="font-bold text-slate-100 text-xs">2,370</span>
                 </div>
-                <div class="space-y-0.5">
-                  <div class="flex items-center justify-between text-[10px]">
-                    <span class="text-slate-400">Cyber Attack</span>
-                    <span class="font-bold text-amber-400">3,448</span>
+                <div class="flex items-center justify-between space-x-2">
+                  <span class="text-slate-400 text-[10px] shrink-0 w-24">Cyber Attack</span>
+                  <div class="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div id="bar-cyber-attack" class="h-full bg-amber-500 rounded-full" style="width: 65%;"></div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div class="cockpit-progress-amber" style="width: 65%;"></div>
-                  </div>
+                  <span id="val-cyber-attack" class="font-bold text-amber-400 text-xs text-right w-10">3,448</span>
                 </div>
-                <div class="space-y-0.5">
-                  <div class="flex items-center justify-between text-[10px]">
-                    <span class="text-slate-400">Threat Threats</span>
-                    <span class="font-bold text-amber-400">3,193</span>
+                <div class="flex items-center justify-between space-x-2">
+                  <span class="text-slate-400 text-[10px] shrink-0 w-24">Threat Threats</span>
+                  <div class="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div id="bar-threat-threats" class="h-full bg-amber-600 rounded-full" style="width: 58%;"></div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div class="cockpit-progress-amber" style="width: 58%;"></div>
+                  <span id="val-threat-threats" class="font-bold text-amber-500 text-xs text-right w-10">3,193</span>
+                </div>
+                <div class="border-b border-white/[0.06] my-1"></div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 text-[10px]">Realtime threat intelligence</span>
+                  <span id="val-realtime-bytes" class="text-slate-300 text-[10px]">23 bytes</span>
+                </div>
+                <div class="flex items-center justify-between space-x-2">
+                  <span class="text-slate-400 text-[10px] shrink-0 w-28">Satellite Trajectory</span>
+                  <div class="flex-1 h-0.5 bg-white/[0.08] rounded-full overflow-hidden">
+                    <div id="bar-satellite-traj" class="h-full bg-slate-500" style="width: 40%;"></div>
                   </div>
+                  <span id="val-satellite-traj" class="text-slate-300 text-[10px] text-right w-16">100 bytes</span>
                 </div>
-                <div class="border-b border-white/[0.06] my-0.5"></div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>NORAD Spacecraft</span>
-                  <span id="cockpit-val-satellites" class="text-sky-300 font-bold">21 SAT</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>ADS-B Airborne Radar</span>
-                  <span id="cockpit-val-aircraft" class="text-amber-400 font-bold">25 AIR</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Global AIS Fleet</span>
-                  <span id="cockpit-val-maritime" class="text-teal-300 font-bold">16 VESSEL</span>
-                </div>
-                <div class="space-y-0.5">
-                  <div class="flex items-center justify-between text-[10px] text-slate-400">
-                    <span>Open CCTV Feeds</span>
-                    <span id="cockpit-val-cctv" class="text-cyan-400 font-bold">124 CAMS</span>
+                <div class="flex items-center justify-between space-x-2">
+                  <span class="text-slate-400 text-[10px] shrink-0 w-28">Photon health</span>
+                  <div class="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div id="bar-photon-health" class="h-full bg-cyan-400 rounded-full" style="width: 50%;"></div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div id="cockpit-bar-cctv" class="cockpit-progress-cyan" style="width: 82%;"></div>
-                  </div>
+                  <span id="val-photon-health" class="text-cyan-400 font-bold text-[10px] text-right w-16">24 bytes</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 text-[10px]">Threat Sources</span>
+                  <span id="val-threat-sources" class="text-slate-300 text-[10px]">0 bits</span>
                 </div>
               </div>
             </div>
@@ -397,41 +394,62 @@
                   <span class="text-slate-500 text-xs">•••</span>
                 </div>
               </div>
-              <div class="flex-1 flex flex-col justify-between font-mono text-xs min-h-0">
-                <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-0.5 border-b border-white/[0.04] shrink-0">
+              <div class="flex-1 flex flex-col justify-between font-mono text-xs min-h-0 py-0.5">
+                <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-1 border-b border-white/[0.04] shrink-0">
                   <span>FINDINGS</span>
                   <span>VULNERABILITY</span>
                 </div>
+                
                 <div class="space-y-0.5">
-                  <div class="flex justify-between text-[11px] text-slate-300">
-                    <span>Vulnerability Scan</span>
-                    <span class="text-slate-400">Passed <span class="text-amber-400 font-bold">6/8</span></span>
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-300">Vulnerability Scan</span>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-slate-400 text-[10px]">Caened</span>
+                      <span class="text-amber-400 font-bold text-[11px]">6/8</span>
+                    </div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div class="cockpit-progress-amber" style="width: 75%;"></div>
+                  <div class="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-500 rounded-full" style="width: 75%;"></div>
                   </div>
                 </div>
+
                 <div class="space-y-0.5">
-                  <div class="flex justify-between text-[11px] text-slate-300">
-                    <span>Vulnerability Scan</span>
-                    <span class="text-slate-400">Retromolized <span class="text-slate-200 font-bold">3/3</span></span>
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-300">Vulnerability Scan</span>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-slate-400 text-[10px]">Retromolized</span>
+                      <span class="text-slate-300 font-bold text-[11px]">3/3</span>
+                    </div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div class="bg-gradient-to-r from-amber-500 to-cyan-400 h-full rounded" style="width: 100%;"></div>
+                  <div class="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-700 rounded-full" style="width: 50%;"></div>
                   </div>
                 </div>
+
                 <div class="space-y-0.5">
-                  <div class="flex justify-between text-[11px] text-slate-300">
-                    <span>Current Status</span>
-                    <span class="text-slate-400">Complete <span class="text-emerald-400 font-bold">8</span></span>
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-300">Current Status</span>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-slate-400 text-[10px]">Complete</span>
+                      <span class="text-slate-200 font-bold text-[11px]">8</span>
+                    </div>
                   </div>
-                  <div class="cockpit-progress-track">
-                    <div class="bg-emerald-500 h-full rounded" style="width: 100%;"></div>
+                  <div class="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full bg-slate-500 rounded-full" style="width: 60%;"></div>
                   </div>
                 </div>
-                <div class="flex justify-between text-[10px] text-slate-400 pt-0.5 shrink-0">
-                  <span>Vulnerability Rep</span>
-                  <span>Untracked <span class="text-slate-400">1/0</span></span>
+
+                <div class="space-y-0.5">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-300">Vulnerability Rep</span>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-slate-400 text-[10px]">Untached</span>
+                      <span class="text-slate-400 font-bold text-[11px]">1/0</span>
+                    </div>
+                  </div>
+                  <div class="w-full h-0.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div class="h-full bg-slate-600 rounded-full" style="width: 20%;"></div>
+                  </div>
                 </div>
               </div>
             </div>

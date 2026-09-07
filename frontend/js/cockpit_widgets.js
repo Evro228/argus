@@ -194,8 +194,8 @@
       ctx.lineTo(0, this.h);
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, 0, 0, this.h);
-      grad.addColorStop(0, 'rgba(245, 158, 11, 0.18)');
-      grad.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+      grad.addColorStop(0, 'rgba(226, 232, 240, 0.15)');
+      grad.addColorStop(1, 'rgba(226, 232, 240, 0.0)');
       ctx.fillStyle = grad;
       ctx.fill();
 

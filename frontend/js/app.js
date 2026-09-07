@@ -70,6 +70,7 @@ const App = {
   threatMapInstance: null,
 
   init() {
+    this.bindAntiCopyGuards();
     this.bindNavigation();
     this.bindToolPickers();
     this.bindHudActions();
@@ -105,6 +106,21 @@ const App = {
         }
       }
     }, 150);
+  },
+ 
+  bindAntiCopyGuards() {
+    // Universal HUD tactile mode: prevent copying, context menu, and text drag/selection
+    const preventUnlessEditable = (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('copy', preventUnlessEditable, true);
+    document.addEventListener('cut', preventUnlessEditable, true);
+    document.addEventListener('contextmenu', preventUnlessEditable, true);
+    document.addEventListener('selectstart', preventUnlessEditable, true);
+    document.addEventListener('dragstart', preventUnlessEditable, true);
   },
 
   log(message, type = 'info') {
