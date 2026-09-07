@@ -811,15 +811,15 @@ def get_rf_waterfall_telemetry(center_mhz: float = 121.5, bandwidth_mhz: float =
 
     for i in range(bins):
         f = start_freq + (i * step)
-        # Baseline noise floor: -95 dBm to -88 dBm
-        power = -92.0 + random.uniform(-3.0, 3.0)
+        # Baseline noise floor: -95 dBm to -88 dBm (RF simulation)
+        power = -92.0 + random.uniform(-3.0, 3.0)  # nosec: B311
 
         # Inject known signals if near catalog frequencies
         for cat_f in RF_FREQUENCIES_CATALOG:
             delta = abs(f - cat_f["freq_mhz"])
             if delta < step * 1.5:
                 # Strong peak signal
-                power += random.uniform(25.0, 45.0)
+                power += random.uniform(25.0, 45.0)  # nosec: B311
 
         spectrum.append({
             "freq_mhz": round(f, 4),

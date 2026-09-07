@@ -11,12 +11,12 @@ echo "========================================================"
 # Virtualenv check
 if [ ! -d ".venv" ]; then
     echo "📦 Инициализация окружения Python..."
-    if command -v /Users/slava/.local/bin/uv &> /dev/null; then
-        /Users/slava/.local/bin/uv venv .venv
-        /Users/slava/.local/bin/uv pip install -r requirements.txt
-    elif command -v uv &> /dev/null; then
+    if command -v uv &> /dev/null; then
         uv venv .venv
         uv pip install -r requirements.txt
+    elif [ -x "$HOME/.local/bin/uv" ]; then
+        "$HOME/.local/bin/uv" venv .venv
+        "$HOME/.local/bin/uv" pip install -r requirements.txt
     else
         python3 -m venv .venv
         source .venv/bin/activate

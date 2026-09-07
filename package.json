@@ -26,7 +26,10 @@
     "mac": {
       "icon": "desktop/assets/icon.icns",
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "identity": null
@@ -54,18 +57,24 @@
     },
     "win": {
       "icon": "desktop/assets/icon.ico",
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "linux": {
       "icon": "desktop/assets/icon.png",
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "category": "Development"
     }
   },
   "author": "Evro228 <evro228@users.noreply.github.com>",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^34.0.0",
-    "electron-builder": "^25.1.8"
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3"
   }
 }

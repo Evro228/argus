@@ -41,7 +41,7 @@ def sanitize_sensitive_data(req: SanitizeRequest):
     cleaned = re.sub(phone_pattern, "[REDACTED_PHONE]", cleaned)
 
     # API keys and tokens
-    token_pattern = r'((?:api[_-]?key|token|secret|password)\s*[:=]\s*["\']?)([a-zA-Z0-9_.-]{16,})(["\']?)'
+    token_pattern = r'((?:api[_-]?key|token|secret|password)\s*[:=]\s*["\']?)([a-zA-Z0-9_.-]{16,})(["\']?)'  # nosec: B105
     for m in re.finditer(token_pattern, cleaned, flags=re.IGNORECASE):
         replacements.append(("SECRET_TOKEN", m.group(2)))
     cleaned = re.sub(

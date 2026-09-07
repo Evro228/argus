@@ -27,7 +27,7 @@ router = APIRouter()
 # ----------------------------------------------------------------------
 TELEGRAM_CONFIG: Dict[str, Any] = {
     "enabled": False,
-    "bot_token": "",
+    "bot_token": "",  # nosec: B105
     "chat_id": "",
     "min_severity": "WARNING",  # INFO, WARNING, CRITICAL
 }

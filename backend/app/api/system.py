@@ -158,17 +158,20 @@ def get_system_real_metrics():
 
     try:
         # CPU
-        top_res = subprocess.run(["top", "-l", "1", "-n", "0", "-s", "0"], capture_output=True, text=True, timeout=1.5)
+        top_bin = shutil.which("top") or "top"
+        top_res = subprocess.run([top_bin, "-l", "1", "-n", "0", "-s", "0"], capture_output=True, text=True, timeout=1.5)
         m_cpu = re.search(r"CPU usage:\s*([0-9.]+)%\s*user,\s*([0-9.]+)%\s*sys", top_res.stdout or "")
         if m_cpu:
             cpu_percent = round(float(m_cpu.group(1)) + float(m_cpu.group(2)), 1)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("CPU telemetry read fallback: %s", e)
 
     try:
         # RAM
-        mem_total = int(subprocess.run(["sysctl", "-n", "hw.memsize"], capture_output=True, text=True, timeout=1).stdout.strip())
-        vm_out = subprocess.run(["vm_stat"], capture_output=True, text=True, timeout=1).stdout
+        sysctl_bin = shutil.which("sysctl") or "sysctl"
+        vm_stat_bin = shutil.which("vm_stat") or "vm_stat"
+        mem_total = int(subprocess.run([sysctl_bin, "-n", "hw.memsize"], capture_output=True, text=True, timeout=1).stdout.strip())
+        vm_out = subprocess.run([vm_stat_bin], capture_output=True, text=True, timeout=1).stdout
         page_size = 16384
         m_page = re.search(r"page size of (\d+) bytes", vm_out)
         if m_page:
@@ -183,42 +186,46 @@ def get_system_real_metrics():
         ram_percent = round((used_bytes / mem_total) * 100, 1)
         ram_used_gb = round(used_bytes / (1024**3), 1)
         ram_total_gb = round(mem_total / (1024**3), 1)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("RAM telemetry read fallback: %s", e)
 
     try:
         # Sockets
-        net_out = subprocess.run(["netstat", "-an", "-p", "tcp"], capture_output=True, text=True, timeout=1.5).stdout
+        netstat_bin = shutil.which("netstat") or "netstat"
+        net_out = subprocess.run([netstat_bin, "-an", "-p", "tcp"], capture_output=True, text=True, timeout=1.5).stdout
         active_sockets = net_out.count("ESTABLISHED")
         listening_ports = net_out.count("LISTEN")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Sockets telemetry read fallback: %s", e)
 
     try:
         # Network bytes
-        net_ib = subprocess.run(["netstat", "-ib", "-I", "en0"], capture_output=True, text=True, timeout=1).stdout
+        netstat_bin = shutil.which("netstat") or "netstat"
+        net_ib = subprocess.run([netstat_bin, "-ib", "-I", "en0"], capture_output=True, text=True, timeout=1).stdout
         lines = [l for l in net_ib.splitlines() if "en0" in l]
         if lines:
             parts = lines[0].split()
             if len(parts) >= 10:
                 ibytes = int(parts[6])
                 obytes = int(parts[9])
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Network bytes telemetry read fallback: %s", e)
 
     sip_enabled = True
     try:
-        sip_out = subprocess.run(["csrutil", "status"], capture_output=True, text=True, timeout=1).stdout
+        csrutil_bin = shutil.which("csrutil") or "csrutil"
+        sip_out = subprocess.run([csrutil_bin, "status"], capture_output=True, text=True, timeout=1).stdout
         sip_enabled = "enabled" in sip_out.lower()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("SIP telemetry read fallback: %s", e)
 
     filevault_enabled = True
     try:
-        fv_out = subprocess.run(["fdesetup", "status"], capture_output=True, text=True, timeout=1).stdout
+        fdesetup_bin = shutil.which("fdesetup") or "fdesetup"
+        fv_out = subprocess.run([fdesetup_bin, "status"], capture_output=True, text=True, timeout=1).stdout
         filevault_enabled = "on" in fv_out.lower()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("FileVault telemetry read fallback: %s", e)
 
     # Dynamic DEFCON level based on system state
     defcon = 4 if active_sockets < 50 else (3 if active_sockets < 150 else 2)
@@ -473,8 +480,9 @@ def get_hardening_audit():
 
         # 3. User Account Control (UAC)
         try:
+            reg_bin = shutil.which("reg") or "reg"
             out = subprocess.run(
-                ["reg", "query", r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "/v", "EnableLUA"],
+                [reg_bin, "query", r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "/v", "EnableLUA"],
                 capture_output=True, text=True, timeout=2
             )
             uac_on = "0x1" in (out.stdout or "")
@@ -490,8 +498,9 @@ def get_hardening_audit():
 
         # 4. Windows Firewall Profiles
         try:
+            netsh_bin = shutil.which("netsh") or "netsh"
             out = subprocess.run(
-                ["netsh", "advfirewall", "show", "allprofiles"],
+                [netsh_bin, "advfirewall", "show", "allprofiles"],
                 capture_output=True, text=True, timeout=2
             )
             fw_text = (out.stdout or "").lower()
