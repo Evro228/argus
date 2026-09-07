@@ -126,7 +126,7 @@ function createWindow() {
     minWidth: 1080,
     minHeight: 700,
     title: 'ARGUS // Tactical Intelligence & Defense',
-    backgroundColor: '#0a0e15',
+    backgroundColor: '#05070a',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

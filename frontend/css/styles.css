@@ -1,79 +1,171 @@
 /* ==========================================================================
-   ARGUS // Tactical Intelligence & Defense - Ergonomic Design System
-   Designed for Maximum Human Productivity & Eye-Fatigue Reduction (WCAG AAA)
+   ARGUS // Tactical Intelligence & Defense Cockpit
+   QUANTUM OBSIDIAN DESIGN SYSTEM (WCAG AAA Compliance)
+   Concept #01: Quantum Obsidian (Apple Pro Display x Palantir Gotham x B-21 Raider)
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ==========================================================================
+   01. DESIGN TOKENS & FOUNDATIONS
+   ========================================================================== */
 :root {
+  /* Matte Obsidian Palette (95% Monochromatic) */
   --bg-deep: #05070a;
-  --bg-surface: #0b0f17;
-  --bg-card: rgba(11, 15, 23, 0.88);
-  --titanium-border: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(0, 240, 255, 0.12);
-  --border-active: rgba(0, 240, 255, 0.5);
-  
-  --text-primary: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #475569;
-  
-  --cyan-accent: #00f0ff;
-  --cyan-glow: rgba(0, 240, 255, 0.25);
-  --emerald-accent: #10b981;
-  --amber-accent: #ff9f0a;
-  --ruby-accent: #f43f5e;
+  --bg-surface: #08090b;
+  --bg-panel: #0b0f17;
+  --bg-card: rgba(11, 15, 23, 0.95);
+  --bg-card-hover: rgba(16, 22, 34, 0.98);
+  --bg-subtle: rgba(255, 255, 255, 0.03);
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, monospace;
+  /* Milled Titanium Hairline Borders */
+  --titanium-border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-active: rgba(255, 255, 255, 0.28);
+  --border-focus: rgba(56, 189, 248, 0.5);
+
+  /* Typography Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #8e9aa8;
+  --text-dim: #475569;
+
+  /* Tactical Functional Signals (Strictly for status / telemetry) */
+  --signal-emerald: #10b981;
+  --signal-cyan: #38bdf8;
+  --signal-amber: #f59e0b;
+  --signal-rose: #f43f5e;
+  --signal-violet: #8b5cf6;
+
+  /* DEFCON Posture Levels */
+  --defcon-1: #ef4444;
+  --defcon-2: #f97316;
+  --defcon-3: #f59e0b;
+  --defcon-4: #38bdf8;
+  --defcon-5: #10b981;
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Base Body Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-deep);
+  background-color: var(--bg-deep) !important;
   color: var(--text-primary);
   line-height: 1.6;
   letter-spacing: -0.015em;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-code, pre, .font-mono {
+/* Strict Tabular Numbers on Monospace telemetry & counters */
+code, pre, .font-mono, input, table, .tabular-nums {
   font-family: var(--font-mono);
-  font-feature-settings: "tnum";
+  font-feature-settings: "tnum" 1, "zero" 1;
 }
 
-/* Ergonomic Scrollbar (Soft slate, non-distracting) */
+/* Precision Hairline Focus Ring */
+:focus-visible {
+  outline: 1px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+/* ==========================================================================
+   02. ERGONOMIC TITANIUM SCROLLBAR
+   ========================================================================== */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d14;
+  background: var(--bg-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* Glassmorphism Surface Panels */
+/* ==========================================================================
+   03. PANELS & CARDS (QUANTUM OBSIDIAN SURFACES)
+   ========================================================================== */
 .argus-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--titanium-border);
   border-radius: 0.85rem;
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.argus-panel-hover:hover {
-  border-color: var(--border-active);
-  box-shadow: 0 4px 24px var(--cyan-glow);
+.argus-panel:hover {
+  border-color: var(--border-medium);
 }
 
-/* Tool Picker Segmented Bar (Focus Mode) */
+.tool-card {
+  transition: all 0.2s ease;
+}
+
+/* Tactical Corner Crosshairs */
+.tactical-bracketed {
+  position: relative;
+}
+.tactical-bracketed::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+.tactical-bracketed::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   04. NAVIGATION & SEGMENTED CONTROLS
+   ========================================================================== */
+.nav-tab-btn {
+  border: 1px solid transparent;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.nav-tab-btn.active {
+  background: rgba(56, 189, 248, 0.08);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.08);
+}
+
+/* Tool Picker Segmented Bar (Numbered Controls) */
 .tool-picker-pill {
   display: inline-flex;
   align-items: center;
@@ -82,8 +174,8 @@ code, pre, .font-mono {
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 0.65rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--titanium-border);
+  background: rgba(11, 15, 23, 0.7);
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
@@ -91,27 +183,44 @@ code, pre, .font-mono {
 }
 
 .tool-picker-pill:hover {
-  color: #f8fafc;
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(56, 189, 248, 0.3);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-medium);
 }
 
 .tool-picker-pill.active {
   color: #38bdf8;
-  background: rgba(14, 165, 233, 0.12);
-  border-color: rgba(56, 189, 248, 0.5);
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.12);
 }
 
-/* Tactical Map Viewport */
+/* Tactical Sensor Layer Pills */
+.layer-pill {
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  border: 1px solid var(--titanium-border);
+  transition: all 0.16s ease;
+}
+
+.layer-pill:hover {
+  border-color: var(--border-active);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   05. STATION 01: GEOINT & RADAR VIEWPORT
+   ========================================================================== */
 #tactical-map-viewport {
   position: relative;
   width: 100%;
   height: 540px;
-  background: radial-gradient(circle at center, #0c1220 0%, #060911 100%);
+  background: radial-gradient(circle at center, #0a0e18 0%, #05070a 100%);
   border-radius: 0.85rem;
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--titanium-border);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
 }
 
 #tactical-canvas {
@@ -120,20 +229,25 @@ code, pre, .font-mono {
   display: block;
 }
 
-/* Floating Target Telemetry HUD Card */
+/* Floating HUD Target Inspection Card */
 .hud-card {
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
-  width: 290px;
-  background: rgba(10, 15, 26, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  width: 300px;
+  background: rgba(8, 11, 18, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--titanium-border);
   border-radius: 0.75rem;
   padding: 1.15rem;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(56, 189, 248, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(56, 189, 248, 0.06);
   z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.hud-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
 /* DEFCON Circular Dial */
@@ -141,27 +255,29 @@ code, pre, .font-mono {
   position: absolute;
   bottom: 1.25rem;
   left: 1.25rem;
-  background: rgba(10, 15, 26, 0.9);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  background: rgba(8, 11, 18, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--titanium-border);
   border-radius: 0.75rem;
-  padding: 0.9rem 1.1rem;
+  padding: 0.9rem 1.15rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
 }
 
 .defcon-ring {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: conic-gradient(#10b981 0% 84.6%, #1e293b 84.6% 100%);
+  background: conic-gradient(var(--signal-emerald) 0% 84.6%, rgba(255, 255, 255, 0.08) 84.6% 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
 }
 
 .defcon-ring::after {
@@ -170,7 +286,7 @@ code, pre, .font-mono {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #0a0f1a;
+  background: #080c14;
 }
 
 .defcon-score {
@@ -179,29 +295,253 @@ code, pre, .font-mono {
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.95rem;
-  color: #f8fafc;
-}
-
-/* Live SOC Drawer */
-#soc-drawer-container {
-  background: rgba(8, 12, 20, 0.95);
-  border-top: 1px solid var(--border-subtle);
-  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Pulsing radar effects */
-@keyframes argus-radar-ping {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.08); opacity: 0.3; }
-  100% { transform: scale(0.95); opacity: 0.8; }
-}
-
-.radar-ping {
-  animation: argus-radar-ping 2.5s infinite ease-in-out;
+  color: var(--text-primary);
+  font-feature-settings: "tnum" 1;
 }
 
 /* ==========================================================================
-   QUANTUM OBSIDIAN // Universal Command Palette (⌘K) & HUD Dialog
+   06. STATION 02: NETWORK AUDIT & PERIMETER MATRIX
+   ========================================================================== */
+.zenmap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.zenmap-table th {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid var(--titanium-border);
+}
+
+.zenmap-table td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-feature-settings: "tnum" 1;
+}
+
+.zenmap-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* LAN Asset Cards */
+#lan-devices-grid > div {
+  background: rgba(11, 15, 23, 0.85);
+  border: 1px solid var(--titanium-border);
+  transition: all 0.18s ease;
+}
+
+#lan-devices-grid > div:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   07. STATION 03: OSINT & SYNAPSE 2D ENTITY GRAPH
+   ========================================================================== */
+#osint-synapse-canvas {
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Sherlock findings list */
+#osint-results-list > div {
+  border: 1px solid var(--titanium-border);
+  transition: all 0.14s ease;
+}
+
+#osint-results-list > div:hover {
+  border-color: var(--border-medium);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ==========================================================================
+   08. STATION 04: VULNERABILITY & CONTAINER HARDENING
+   ========================================================================== */
+.finding-card {
+  background: rgba(11, 15, 23, 0.9);
+  border: 1px solid var(--titanium-border);
+  border-left-width: 3px;
+  padding: 0.85rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-mono);
+  transition: all 0.18s ease;
+}
+
+.finding-card.critical {
+  border-left-color: var(--signal-rose);
+}
+.finding-card.high {
+  border-left-color: var(--signal-amber);
+}
+.finding-card.medium {
+  border-left-color: var(--signal-cyan);
+}
+.finding-card.low {
+  border-left-color: var(--text-dim);
+}
+
+.code-snippet-preview {
+  background: #05070a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  overflow-x: auto;
+}
+
+/* ==========================================================================
+   09. STATION 05: IDENTITY VAULT & CRYPTOGRAPHY
+   ========================================================================== */
+.entropy-meter-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.entropy-meter-fill {
+  height: 100%;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+}
+
+/* Touch ID Passkey Enclave Button */
+#btn-webauthn-register, #btn-webauthn-authenticate {
+  border: 1px solid var(--titanium-border);
+  transition: all 0.18s ease;
+}
+
+#btn-webauthn-register:hover, #btn-webauthn-authenticate:hover {
+  border-color: var(--border-active);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   10. STATION 06: FORENSICS LAB & DROP ZONES
+   ========================================================================== */
+#exif-drop-zone, #pdf-drop-zone {
+  border: 1px dashed rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.01);
+  transition: all 0.2s ease;
+}
+
+#exif-drop-zone:hover, #pdf-drop-zone:hover {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  background: rgba(56, 189, 248, 0.03);
+}
+
+/* ==========================================================================
+   11. STATION 07: OPSEC & DATA LOSS PREVENTION
+   ========================================================================== */
+.pasteguard-diff-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.pasteguard-diff-pane {
+  background: #05070a;
+  border: 1px solid var(--titanium-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   12. STATION 08: EXECUTIVE SECURITY ANALYST
+   ========================================================================== */
+.posture-score-badge {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   13. STATION 09: ANTHROPIC 818 TACTICS & PLAYBOOKS
+   ========================================================================== */
+.playbook-cat-btn {
+  border: 1px solid var(--titanium-border);
+  transition: all 0.16s ease;
+  user-select: none;
+}
+
+.playbook-cat-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.playbook-item {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.6rem;
+  background: rgba(11, 15, 23, 0.7);
+  border: 1px solid var(--titanium-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.playbook-item:hover, .playbook-item.selected {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateX(2px);
+}
+
+.mitre-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--titanium-border);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+/* Playbook Markdown Reader Formatting */
+#playbook-detail-body h1, #playbook-detail-body h2, #playbook-detail-body h3 {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#playbook-detail-body h1 { font-size: 1.15rem; border-bottom: 1px solid var(--titanium-border); padding-bottom: 0.4rem; }
+#playbook-detail-body h2 { font-size: 1rem; }
+#playbook-detail-body h3 { font-size: 0.85rem; color: #38bdf8; }
+
+#playbook-detail-body pre {
+  background: #05070a;
+  border: 1px solid var(--titanium-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  margin: 0.6rem 0;
+}
+
+#playbook-detail-body code {
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}
+
+/* ==========================================================================
+   14. COMMAND PALETTE (⌘K) & HUD DIALOGS
    ========================================================================== */
 #cmd-palette-dialog {
   padding: 0;
@@ -214,18 +554,18 @@ code, pre, .font-mono {
 }
 
 #cmd-palette-dialog::backdrop {
-  background: rgba(5, 7, 10, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(5, 7, 10, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .cmd-palette-wrapper {
-  background: rgba(11, 15, 23, 0.95);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 15, 23, 0.96);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--border-medium);
   border-radius: 0.85rem;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 240, 255, 0.12);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 30px rgba(56, 189, 248, 0.1);
   overflow: hidden;
 }
 
@@ -244,9 +584,9 @@ code, pre, .font-mono {
 }
 
 .cmd-item:hover, .cmd-item.selected {
-  background: rgba(0, 240, 255, 0.08);
-  border-color: rgba(0, 240, 255, 0.3);
-  color: #00f0ff;
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
   transform: translateX(2px);
 }
 
@@ -254,12 +594,14 @@ code, pre, .font-mono {
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--titanium-border);
+  color: var(--text-muted);
 }
 
-/* Air-Gapped Stealth Badge */
+/* ==========================================================================
+   15. AIR-GAPPED STEALTH BADGE & WATCHER DAEMON
+   ========================================================================== */
 .airgap-badge {
   display: inline-flex;
   align-items: center;
@@ -273,17 +615,46 @@ code, pre, .font-mono {
   transition: all 0.2s ease;
   cursor: pointer;
   user-select: none;
+  border: 1px solid var(--titanium-border);
 }
 
 .airgap-badge.online {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
   color: #34d399;
 }
 
 .airgap-badge.stealth {
-  background: rgba(244, 63, 94, 0.15);
-  border: 1px solid rgba(244, 63, 94, 0.4);
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.4);
   color: #fb7185;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.18);
+}
+
+/* ==========================================================================
+   16. LIVE SOC DRAWER (COLLAPSIBLE TERMINAL BUFFER)
+   ========================================================================== */
+#soc-drawer-container {
+  background: rgba(6, 8, 13, 0.98);
+  border-top: 1px solid var(--titanium-border);
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#terminal-body {
+  background: #040508;
+  border: 1px solid var(--titanium-border);
+  border-radius: 0.5rem;
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Pulsing radar effects */
+@keyframes argus-radar-ping {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.radar-ping {
+  animation: argus-radar-ping 2.5s infinite ease-in-out;
 }

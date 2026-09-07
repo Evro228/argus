@@ -10,14 +10,14 @@
   <script src="/js/tailwind.config.js"></script>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body class="bg-[#0a0e15] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+<body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
 
   <!-- Top Navigation Header (App Shell) -->
-  <header class="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-50">
+  <header class="h-16 border-b border-white/[0.08] bg-[#08090b]/95 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-50">
     
     <!-- Left: Brand -->
     <div class="flex items-center space-x-3 shrink-0">
-      <div class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-md text-xs font-mono font-black text-sky-400 tracking-tighter">
+      <div class="w-9 h-9 rounded-xl bg-[#0b0f17] border border-white/[0.08] flex items-center justify-center shadow-md text-xs font-mono font-black text-sky-400 tracking-tighter">
         [A]
       </div>
       <div>
@@ -34,11 +34,11 @@
       <div class="w-full relative flex items-center">
         <span class="absolute left-3 text-slate-500 text-xs font-mono">/</span>
         <input 
-          id="cmd-search-input"
+          id="cmd-search-input" 
           type="text" 
           placeholder="Cmd + K // Execute tactical action, probe target..." 
           data-i18n="searchPlaceholder"
-          class="w-full pl-9 pr-4 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 focus:border-sky-500/50 focus:outline-none text-xs font-mono text-slate-200 placeholder-slate-500 transition shadow-inner"
+          class="w-full pl-9 pr-4 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] focus:border-sky-500/50 focus:outline-none text-xs font-mono text-slate-200 placeholder-slate-500 transition shadow-inner"
         >
       </div>
     </div>
@@ -47,7 +47,7 @@
     <div class="flex items-center space-x-3 shrink-0">
       
       <!-- User IP Telemetry Badge with 1-click copy -->
-      <div id="user-ip-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-300 shadow-sm" title="Текущий IP адрес">
+      <div id="user-ip-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] text-xs font-mono text-slate-300 shadow-sm" title="Текущий IP адрес">
         <span class="w-2 h-2 rounded-full bg-sky-400"></span>
         <span class="font-semibold text-sky-400 font-mono" id="val-wan-ip">---.---.---.---</span>
         <span class="text-slate-600">|</span>
@@ -63,7 +63,7 @@
       </button>
 
       <!-- Background Watcher Daemon Indicator -->
-      <button id="btn-watcher-status" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-xs font-mono font-semibold transition cursor-pointer" title="Фоновый сторож ARGUS (Watcher Daemon)">
+      <button id="btn-watcher-status" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono font-semibold transition cursor-pointer" title="Фоновый сторож ARGUS (Watcher Daemon)">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span id="watcher-badge-text">СТОРОЖ: <span class="text-emerald-400">АКТИВЕН</span> (<span id="watcher-alerts-count" class="text-slate-300">0</span>)</span>
       </button>
@@ -75,7 +75,7 @@
       </div>
 
       <!-- Language Switcher (RU / EN) -->
-      <button id="lang-toggle-btn" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-mono transition flex items-center space-x-1" title="Сменить язык / Switch Language">
+      <button id="lang-toggle-btn" class="px-2.5 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono transition flex items-center space-x-1" title="Сменить язык / Switch Language">
         <span class="text-sky-400 font-bold">RU</span>
         <span class="text-slate-600">|</span>
         <span class="text-slate-400">EN</span>
@@ -88,13 +88,13 @@
       </button>
 
       <!-- API Keys & Live Feeds Settings Modal Button -->
-      <button id="btn-open-config-keys" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-mono transition flex items-center space-x-1.5 text-slate-300 hover:text-sky-300" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
+      <button id="btn-open-config-keys" class="px-2.5 py-1.5 rounded-lg bg-[#0b0f17] hover:bg-slate-900 border border-white/[0.08] text-xs font-mono transition flex items-center space-x-1.5 text-slate-300 hover:text-sky-300" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
         <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
         <span class="hidden xl:inline">КЛЮЧИ & FEEDS</span>
       </button>
 
       <!-- System Health -->
-      <div id="system-health-badge" class="flex items-center text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-mono">
+      <div id="system-health-badge" class="flex items-center text-xs px-2.5 py-1.5 rounded-lg bg-[#0b0f17] border border-white/[0.08] text-slate-400 font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> ONLINE
       </div>
     </div>
@@ -104,7 +104,7 @@
   <div class="flex-1 flex overflow-hidden">
     
     <!-- Left Tactical Sidebar -->
-    <aside class="w-60 border-r border-slate-800/80 bg-slate-950/60 p-3 flex flex-col justify-between shrink-0">
+    <aside class="w-60 border-r border-white/[0.08] bg-[#08090b]/90 p-3 flex flex-col justify-between shrink-0">
       <div class="space-y-1">
         <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 mb-2 font-mono">ТАКТИЧЕСКИЕ СТАНЦИИ</div>
         
@@ -133,7 +133,7 @@
           <span data-i18n="stationVault">Identity Vault</span>
         </button>
 
-        <div class="pt-3 border-t border-slate-800/80 space-y-1">
+        <div class="pt-3 border-t border-white/[0.08] space-y-1">
           <button data-tab="forensics" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent transition text-left">
             <span class="font-mono text-[11px] font-bold text-slate-500 w-5 text-center shrink-0">06</span>
             <span>Media & EXIF</span>
@@ -158,7 +158,7 @@
       </div>
 
       <!-- Quick Telemetry Card in Sidebar -->
-      <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-[11px] font-mono text-slate-400 space-y-1">
+      <div class="p-3 rounded-xl bg-[#0b0f17] border border-white/[0.08] text-[11px] font-mono text-slate-400 space-y-1">
         <div class="flex justify-between items-center text-slate-500">
           <span>СИСТЕМА:</span>
           <span class="text-emerald-400">NOMINAL</span>
@@ -175,7 +175,7 @@
     </aside>
 
     <!-- Main Workspace Content (Dynamic Tab Panels) -->
-    <main class="flex-1 overflow-y-auto p-5 relative">
+    <main class="flex-1 overflow-y-auto p-5 relative bg-[#05070a]">
 
       <!-- ========================================================= -->
       <!-- TAB 1: GOD'S EYE VIEW & THREAT MAP (MAIN SCREEN)           -->
@@ -1401,7 +1401,7 @@
             <p class="text-[11px] text-slate-400">Непрерывный фоновый мониторинг хоста, сети и телеметрии</p>
           </div>
         </div>
-        <button id="btn-close-watcher-dialog" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs cursor-pointer">✕</button>
+        <button id="btn-close-watcher-dialog" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 text-xs font-mono cursor-pointer">X</button>
       </div>
 
       <!-- Watcher Status & Action Bar -->

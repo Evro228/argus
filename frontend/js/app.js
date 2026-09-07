@@ -534,7 +534,7 @@ const App = {
         if (data.breached) {
           resultBox.innerHTML = `
             <div class="text-rose-400 font-bold flex items-center space-x-1.5">
-              <span></span> <span>ПАРОЛЬ СКОМПРОМЕТИРОВАН</span>
+              <span>[ALERT]</span> <span>ПАРОЛЬ СКОМПРОМЕТИРОВАН</span>
             </div>
             <div class="text-slate-300 mt-1">Обнаружен в <span class="font-bold text-rose-300">${escapeHtml(data.count.toLocaleString())}</span> публичных утечках.</div>
             <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.recommendation)}</div>
@@ -542,9 +542,10 @@ const App = {
         } else {
           resultBox.innerHTML = `
             <div class="text-emerald-400 font-bold flex items-center space-x-1.5">
-              <span>️</span> <span>ПАРОЛЬ БЕЗОПАСЕН</span>
+              <span>[OK]</span> <span>ПАРОЛЬ БЕЗОПАСЕН</span>
             </div>
-            <div class="text-slate-300 mt-1">Совпадений в базе скомпрометированных ключей не найдено.</div>
+            <div class="text-slate-300 mt-1">Пароль не обнаружен в базах известных компрометаций.</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.recommendation)}</div>
           `;
         }
         this.log(`[PASS-BREACH] Проверка пароля завершена: ${data.breached ? 'Скомпрометирован' : 'Чист'}`, data.breached ? 'error' : 'success');
@@ -670,7 +671,7 @@ const App = {
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = `<span></span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>`;
+        btn.innerHTML = `<span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>`;
       }
     }
   },
@@ -740,7 +741,7 @@ const App = {
           </div>
           <div class="pt-2 border-t border-slate-800/80 flex justify-end">
             <button onclick="window.argusApp.targetForPortScan('${escapeHtml(d.ip)}')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-[10px] font-bold transition flex items-center space-x-1 cursor-pointer">
-              <span></span> <span>СКАН ПОРТОВ</span>
+              <span>СКАН ПОРТОВ</span>
             </button>
           </div>
         </div>
@@ -1057,12 +1058,12 @@ const App = {
             burnRes.classList.remove('hidden');
             burnRes.innerHTML = `
               <div class="text-amber-400 font-bold flex items-center space-x-1">
-                <span></span> <span>ОДНОРАЗОВАЯ ЗАПИСКА СОЗДАНА</span>
+                <span>[CONFIRMED]</span> <span>ОДНОРАЗОВАЯ ЗАПИСКА СОЗДАНА</span>
               </div>
               <div class="text-slate-300 mt-1">Токен: <span class="text-sky-300 font-bold select-all font-mono">${escapeHtml(data.token)}</span></div>
               <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.note)}</div>
               <div class="mt-2 flex space-x-2">
-                <button id="btn-read-burn-${data.token}" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px]"> Прочесть и уничтожить</button>
+                <button id="btn-read-burn-${data.token}" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px]">Прочесть и уничтожить</button>
               </div>
             `;
             document.getElementById(`btn-read-burn-${data.token}`).addEventListener('click', async () => {
@@ -2482,7 +2483,6 @@ const App = {
             <div class="flex items-start justify-between gap-2 mb-2">
               <div>
                 <a href="${escapeHtml(repo.url)}" target="_blank" class="text-xs font-bold font-mono text-purple-300 hover:text-purple-200 hover:underline flex items-center space-x-1.5">
-                  <span></span>
                   <span>${escapeHtml(repo.name)}</span>
                   <span class="text-[10px] text-slate-500">↗</span>
                 </a>
@@ -2498,10 +2498,10 @@ const App = {
             </p>
 
             <div class="flex flex-wrap gap-1.5 text-[10px] font-mono mb-2">
-              <span class="px-2 py-0.5 rounded bg-purple-900/50 text-purple-200 border border-purple-500/40 font-bold"> ${repoCams.length} подключено</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"> ${escapeHtml(repo.volume)}</span>
-              <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30"> ${escapeHtml(repo.format)}</span>
-              <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30"> ${escapeHtml(repo.coverage)}</span>
+              <span class="px-2 py-0.5 rounded bg-purple-900/50 text-purple-200 border border-purple-500/40 font-bold">${repoCams.length} подключено</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${escapeHtml(repo.volume)}</span>
+              <span class="px-2 py-0.5 rounded bg-teal-950/60 text-teal-300 border border-teal-500/30">${escapeHtml(repo.format)}</span>
+              <span class="px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-500/30">${escapeHtml(repo.coverage)}</span>
             </div>
 
             <div class="text-[10px] text-slate-400 font-mono space-y-0.5 pt-2 border-t border-slate-800/80">
@@ -2512,10 +2512,10 @@ const App = {
 
           <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
             <a href="${escapeHtml(repo.url)}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition flex items-center space-x-1">
-              <span></span> <span>GitHub</span>
+              <span>GitHub</span>
             </a>
             <button class="btn-filter-repo-cams px-3 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-mono font-bold transition flex items-center space-x-1 cursor-pointer">
-              <span></span> <span>ФИЛЬТРОВАТЬ КАМЕРЫ (${repoCams.length})</span>
+              <span>ФИЛЬТРОВАТЬ КАМЕРЫ (${repoCams.length})</span>
             </button>
           </div>
         `;
@@ -2706,39 +2706,39 @@ const App = {
       btnSyncAllRepos.addEventListener('click', async () => {
         try {
           btnSyncAllRepos.disabled = true;
-          btnSyncAllRepos.innerHTML = '<span></span> <span>СИНХРОНИЗАЦИЯ ВСЕХ 9 РЕПОЗИТОРИЕВ...</span>';
+          btnSyncAllRepos.innerHTML = '<span>СИНХРОНИЗАЦИЯ ВСЕХ 9 РЕПОЗИТОРИЕВ...</span>';
           const res = await fetch('/api/cameras/sources/sync', {
             method: 'POST',
             headers: getAuthHeaders(),
           });
           if (res.ok) {
             const data = await res.json();
-            this.log(`[CCTV AGGREGATOR]  ${data.message || 'Синхронизация завершена успешно'}`, 'success');
+            this.log(`[CCTV AGGREGATOR] ${data.message || 'Синхронизация завершена успешно'}`, 'success');
             await loadData();
             
             const statsBar = document.getElementById('cctv-repos-stats-bar');
             if (statsBar && data.stats) {
               const s = data.stats;
               statsBar.innerHTML = `
-                <span class="flex items-center space-x-1"><span>️</span> <span>${s.total_repositories || 9} репозиториев</span></span>
+                <span class="flex items-center space-x-1"><span>1. ${s.total_repositories || 9} репозиториев</span></span>
                 <span>|</span>
-                <span class="flex items-center space-x-1"><span></span> <span class="text-teal-300 font-bold">${s.total_github_cameras || 54} агрегированных потоков (124 в каталоге)</span></span>
+                <span class="flex items-center space-x-1"><span class="text-teal-300 font-bold">2. ${s.total_github_cameras || 54} агрегированных потоков (124 в каталоге)</span></span>
                 <span>|</span>
-                <span class="flex items-center space-x-1"><span></span> <span>4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
+                <span class="flex items-center space-x-1"><span>3. 4 протокола (GeoJSON, HLS, RTSP, MJPEG)</span></span>
                 <span>|</span>
-                <span class="flex items-center space-x-1"><span></span> <span>${s.total_countries || 35}+ стран</span></span>
+                <span class="flex items-center space-x-1"><span>4. ${s.total_countries || 35}+ стран</span></span>
                 <span>|</span>
-                <span class="text-emerald-400 font-bold"> СИНХРОНИЗИРОВАНО (${s.last_sync ? s.last_sync.slice(11, 19) : 'UTC'})</span>
+                <span class="text-emerald-400 font-bold">5. СИНХРОНИЗИРОВАНО (${s.last_sync ? s.last_sync.slice(11, 19) : 'UTC'})</span>
               `;
             }
           } else {
-            this.log('[CCTV AGGREGATOR]  Ошибка синхронизации репозиториев', 'error');
+            this.log('[CCTV AGGREGATOR] Ошибка синхронизации репозиториев', 'error');
           }
         } catch (err) {
-          this.log('[CCTV AGGREGATOR]  Сбой: ' + err.message, 'error');
+          this.log('[CCTV AGGREGATOR] Сбой: ' + err.message, 'error');
         } finally {
           btnSyncAllRepos.disabled = false;
-          btnSyncAllRepos.innerHTML = '<span></span> <span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>';
+          btnSyncAllRepos.innerHTML = '<span>ОБЪЕДИНИТЬ И СИНХРОНИЗИРОВАТЬ ВСЕ 9 РЕПОЗИТОРИЕВ</span>';
         }
       });
     }
