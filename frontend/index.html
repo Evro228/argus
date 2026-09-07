@@ -312,20 +312,24 @@
                 </div>
                 <div class="border-b border-white/[0.06] my-0.5"></div>
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Realtime threat intelligence</span>
-                  <span class="text-slate-200">23 bytes</span>
+                  <span>NORAD Spacecraft</span>
+                  <span id="cockpit-val-satellites" class="text-sky-300 font-bold">21 SAT</span>
                 </div>
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Satellite Trajectory</span>
-                  <span class="text-slate-200">100 bytes</span>
+                  <span>ADS-B Airborne Radar</span>
+                  <span id="cockpit-val-aircraft" class="text-amber-400 font-bold">25 AIR</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Global AIS Fleet</span>
+                  <span id="cockpit-val-maritime" class="text-teal-300 font-bold">16 VESSEL</span>
                 </div>
                 <div class="space-y-0.5">
                   <div class="flex items-center justify-between text-[10px] text-slate-400">
-                    <span>Photon health</span>
-                    <span class="text-cyan-400">24 bytes</span>
+                    <span>Open CCTV Feeds</span>
+                    <span id="cockpit-val-cctv" class="text-cyan-400 font-bold">124 CAMS</span>
                   </div>
                   <div class="cockpit-progress-track">
-                    <div class="cockpit-progress-cyan" style="width: 42%;"></div>
+                    <div id="cockpit-bar-cctv" class="cockpit-progress-cyan" style="width: 82%;"></div>
                   </div>
                 </div>
               </div>

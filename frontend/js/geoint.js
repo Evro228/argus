@@ -124,6 +124,10 @@
       ];
 
       this.selectedEntity = { kind: 'node', data: this.nodes[0] };
+      this.liveSatellites = [];
+      this.aircraft = [];
+      this.maritime = [];
+      this.hotspots = [];
 
       // Globe camera orientation
       this.yaw = 0.55;
@@ -252,14 +256,66 @@
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
+        // 1. Check tactical ground nodes
         for (let node of this.nodes) {
           const pt = this.project3D(node.lat, node.lon);
           if (!pt.visible) continue;
-          const dist = Math.hypot(mx - pt.x, my - pt.y);
-          if (dist <= 14) {
+          if (Math.hypot(mx - pt.x, my - pt.y) <= 14) {
             this.selectedEntity = { kind: 'node', data: node };
-            this.updateHudCard(node);
-            break;
+            this.updateHudCard(node, 'node');
+            return;
+          }
+        }
+
+        // 2. Check live satellites
+        if (this.liveSatellites && this.liveSatellites.length > 0) {
+          for (let sat of this.liveSatellites) {
+            const pt = this.project3D(sat.lat, sat.lon, 1.25);
+            if (!pt.visible) continue;
+            if (Math.hypot(mx - pt.x, my - pt.y) <= 14) {
+              this.selectedEntity = { kind: 'satellite', data: sat };
+              this.updateHudCard(sat, 'satellite');
+              return;
+            }
+          }
+        }
+
+        // 3. Check aircraft
+        if (this.aircraft && this.aircraft.length > 0) {
+          for (let craft of this.aircraft) {
+            const pt = this.project3D(craft.lat, craft.lon, 1.05);
+            if (!pt.visible) continue;
+            if (Math.hypot(mx - pt.x, my - pt.y) <= 12) {
+              this.selectedEntity = { kind: 'aircraft', data: craft };
+              this.updateHudCard(craft, 'aircraft');
+              return;
+            }
+          }
+        }
+
+        // 4. Check maritime vessels
+        if (this.maritime && this.maritime.length > 0) {
+          for (let ship of this.maritime) {
+            const pt = this.project3D(ship.lat, ship.lon, 1.0);
+            if (!pt.visible) continue;
+            if (Math.hypot(mx - pt.x, my - pt.y) <= 12) {
+              this.selectedEntity = { kind: 'maritime', data: ship };
+              this.updateHudCard(ship, 'maritime');
+              return;
+            }
+          }
+        }
+
+        // 5. Check hotspots
+        if (this.hotspots && this.hotspots.length > 0) {
+          for (let h of this.hotspots) {
+            const pt = this.project3D(h.lat, h.lon, 1.0);
+            if (!pt.visible) continue;
+            if (Math.hypot(mx - pt.x, my - pt.y) <= 12) {
+              this.selectedEntity = { kind: 'hotspot', data: h };
+              this.updateHudCard(h, 'hotspot');
+              return;
+            }
           }
         }
       });
@@ -458,6 +514,11 @@
       // 8. Great-Circle Ballistic Cyber Attack Arcs
       this.draw3DAttackArcs(ctx);
 
+      // 8b. Real-time Tactical Assets (FIRMS Hotspots, Maritime Fleet, Aircraft)
+      this.drawHotspots(ctx);
+      this.drawMaritime(ctx);
+      this.drawAircraft(ctx);
+
       // 9. Tactical Ground Nodes
       this.drawGroundNodes(ctx);
 
@@ -508,6 +569,47 @@
     }
 
     drawSatellites(ctx) {
+      if (this.liveSatellites && this.liveSatellites.length > 0) {
+        for (let sat of this.liveSatellites) {
+          const pt = this.project3D(sat.lat, sat.lon, 1.25);
+          if (!pt.visible) continue;
+
+          ctx.fillStyle = sat.color || '#38bdf8';
+          ctx.strokeStyle = sat.color || '#38bdf8';
+          ctx.lineWidth = 1;
+
+          // Central Avionics Bus
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+
+          // Solar Arrays
+          ctx.fillStyle = sat.color || '#38bdf8';
+          ctx.fillRect(pt.x - 7, pt.y - 1.5, 4, 3);
+          ctx.fillRect(pt.x + 3, pt.y - 1.5, 4, 3);
+
+          // Nadir Communication Antenna
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y + 2);
+          ctx.lineTo(pt.x, pt.y + 4.5);
+          ctx.strokeStyle = '#f8fafc';
+          ctx.stroke();
+
+          // Front hemisphere label overlay
+          if (pt.z > this.radius * 0.15) {
+            ctx.font = '500 8.5px "JetBrains Mono", monospace';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.fillText(sat.name, pt.x + 9, pt.y - 2);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(pt.x + 2, pt.y - 2);
+            ctx.lineTo(pt.x + 7, pt.y - 2);
+            ctx.stroke();
+          }
+        }
+        return;
+      }
+
       for (let sat of this.satellites) {
         sat.angle += sat.speed;
         const o = this.orbits[sat.orbit];
@@ -559,6 +661,76 @@
           ctx.lineTo(pt.x + 7, pt.y - 2);
           ctx.stroke();
         }
+      }
+    }
+
+    drawAircraft(ctx) {
+      if (!this.aircraft || this.aircraft.length === 0) return;
+      for (let craft of this.aircraft) {
+        const pt = this.project3D(craft.lat, craft.lon, 1.05);
+        if (!pt.visible) continue;
+
+        // Tactical Chevron for aircraft
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.moveTo(pt.x, pt.y - 3);
+        ctx.lineTo(pt.x - 2.5, pt.y + 2.5);
+        ctx.lineTo(pt.x, pt.y + 1);
+        ctx.lineTo(pt.x + 2.5, pt.y + 2.5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Label if on front hemisphere
+        if (pt.z > this.radius * 0.2) {
+          ctx.font = '500 8px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.8)';
+          ctx.fillText(craft.callsign, pt.x + 5, pt.y - 2);
+        }
+      }
+    }
+
+    drawMaritime(ctx) {
+      if (!this.maritime || this.maritime.length === 0) return;
+      for (let ship of this.maritime) {
+        const pt = this.project3D(ship.lat, ship.lon, 1.0);
+        if (!pt.visible) continue;
+
+        // Tactical Diamond for naval vessel
+        ctx.fillStyle = '#2dd4bf';
+        ctx.beginPath();
+        ctx.moveTo(pt.x, pt.y - 2.5);
+        ctx.lineTo(pt.x + 2.5, pt.y);
+        ctx.lineTo(pt.x, pt.y + 2.5);
+        ctx.lineTo(pt.x - 2.5, pt.y);
+        ctx.closePath();
+        ctx.fill();
+
+        // Label if front-facing
+        if (pt.z > this.radius * 0.25) {
+          ctx.font = '500 7.5px "JetBrains Mono", monospace';
+          ctx.fillStyle = 'rgba(45, 212, 191, 0.75)';
+          ctx.fillText((ship.name || '').slice(0, 14), pt.x + 5, pt.y - 1);
+        }
+      }
+    }
+
+    drawHotspots(ctx) {
+      if (!this.hotspots || this.hotspots.length === 0) return;
+      for (let h of this.hotspots) {
+        const pt = this.project3D(h.lat, h.lon, 1.0);
+        if (!pt.visible) continue;
+
+        const pulse = 2.5 + Math.sin(this.pulseTime * 3 + (h.lat || 0)) * 1.5;
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
@@ -674,22 +846,81 @@
       }
     }
 
-    updateHudCard(node) {
+    updateTelemetry(data) {
+      if (!data) return;
+      if (Array.isArray(data.satellites) && data.satellites.length > 0) {
+        this.liveSatellites = data.satellites.map(s => ({
+          ...s,
+          color: s.country === 'RU' ? '#f59e0b' : (s.country === 'CN' ? '#ef4444' : (s.country === 'US' ? '#38bdf8' : '#10b981'))
+        }));
+      }
+      if (Array.isArray(data.aircraft) && data.aircraft.length > 0) {
+        this.aircraft = data.aircraft;
+      }
+      if (Array.isArray(data.maritime) && data.maritime.length > 0) {
+        this.maritime = data.maritime;
+      }
+      if (Array.isArray(data.hotspots) && data.hotspots.length > 0) {
+        this.hotspots = data.hotspots;
+      }
+    }
+
+    updateHudCard(entity, kind = 'node') {
       const card = document.getElementById('target-hud-card');
       if (card) card.classList.remove('hidden');
+      const typeBadge = document.getElementById('hud-type-badge');
       const ipElem = document.getElementById('hud-target-ip');
       const coordsElem = document.getElementById('hud-target-coords');
       const threatElem = document.getElementById('hud-target-threat-score');
       const threatFill = document.getElementById('hud-target-threat-fill');
 
-      if (ipElem) ipElem.textContent = node.ip;
-      if (coordsElem) coordsElem.textContent = `${node.lat.toFixed(4)}° N, ${node.lon.toFixed(4)}° E ${node.name}`;
-      if (threatElem) threatElem.textContent = `${node.threat}%`;
-      if (threatFill) {
-        threatFill.style.width = `${node.threat}%`;
-        threatFill.className = node.threat > 70 
-          ? 'bg-gradient-to-r from-amber-400 to-rose-500 h-1.5 rounded-full' 
-          : 'bg-gradient-to-r from-cyan-400 to-emerald-400 h-1.5 rounded-full';
+      if (kind === 'satellite') {
+        if (typeBadge) typeBadge.textContent = `NORAD SAT // [${entity.country || 'INTL'}]`;
+        if (ipElem) ipElem.textContent = entity.name || entity.id;
+        if (coordsElem) coordsElem.textContent = `${Number(entity.lat).toFixed(2)}° N, ${Number(entity.lon).toFixed(2)}° E | Alt: ${entity.altitude_km || 420}km`;
+        if (threatElem) threatElem.textContent = `${entity.velocity_kms || 7.6} km/s`;
+        if (threatFill) {
+          threatFill.style.width = '75%';
+          threatFill.className = 'bg-gradient-to-r from-sky-400 to-emerald-400 h-1.5 rounded-full';
+        }
+      } else if (kind === 'aircraft') {
+        if (typeBadge) typeBadge.textContent = `ADS-B RADAR // ${entity.category || 'AIRCRAFT'}`;
+        if (ipElem) ipElem.textContent = `${entity.callsign || 'UNKN'} (${entity.model || 'Airframe'})`;
+        if (coordsElem) coordsElem.textContent = `${Number(entity.lat).toFixed(2)}° N, ${Number(entity.lon).toFixed(2)}° E | FL${Math.round((entity.altitude_ft || 0) / 100)}`;
+        if (threatElem) threatElem.textContent = `${entity.speed_kts || 0} kts`;
+        if (threatFill) {
+          threatFill.style.width = '65%';
+          threatFill.className = 'bg-gradient-to-r from-amber-400 to-sky-400 h-1.5 rounded-full';
+        }
+      } else if (kind === 'maritime') {
+        if (typeBadge) typeBadge.textContent = `AIS FLEET // ${entity.type || 'VESSEL'}`;
+        if (ipElem) ipElem.textContent = entity.name;
+        if (coordsElem) coordsElem.textContent = `${Number(entity.lat).toFixed(2)}° N, ${Number(entity.lon).toFixed(2)}° E | Crs: ${entity.course || 0}°`;
+        if (threatElem) threatElem.textContent = `${entity.speed_kts || 0} kts`;
+        if (threatFill) {
+          threatFill.style.width = '55%';
+          threatFill.className = 'bg-gradient-to-r from-teal-400 to-sky-400 h-1.5 rounded-full';
+        }
+      } else if (kind === 'hotspot') {
+        if (typeBadge) typeBadge.textContent = `THERMAL ANOMALY // ${entity.sensor || 'VIIRS'}`;
+        if (ipElem) ipElem.textContent = entity.name;
+        if (coordsElem) coordsElem.textContent = `${Number(entity.lat).toFixed(2)}° N, ${Number(entity.lon).toFixed(2)}° E`;
+        if (threatElem) threatElem.textContent = `${entity.brightness_k || 350} K`;
+        if (threatFill) {
+          threatFill.style.width = '90%';
+          threatFill.className = 'bg-gradient-to-r from-rose-500 to-amber-500 h-1.5 rounded-full';
+        }
+      } else {
+        if (typeBadge) typeBadge.textContent = 'TACTICAL TARGET INSPECTION';
+        if (ipElem) ipElem.textContent = entity.ip;
+        if (coordsElem) coordsElem.textContent = `${Number(entity.lat).toFixed(4)}° N, ${Number(entity.lon).toFixed(4)}° E ${entity.name}`;
+        if (threatElem) threatElem.textContent = `${entity.threat}%`;
+        if (threatFill) {
+          threatFill.style.width = `${entity.threat}%`;
+          threatFill.className = entity.threat > 70 
+            ? 'bg-gradient-to-r from-amber-400 to-rose-500 h-1.5 rounded-full' 
+            : 'bg-gradient-to-r from-cyan-400 to-emerald-400 h-1.5 rounded-full';
+        }
       }
     }
   }

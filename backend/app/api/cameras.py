@@ -1803,7 +1803,7 @@ async def list_open_cameras(
     air_gap = is_air_gap_enabled()
     results = ALL_CAMERAS
 
-    if source:
+    if isinstance(source, str) and source.strip():
         s_src = source.lower().strip()
         if s_src == "github":
             results = [c for c in results if c.get("source_repo")]
@@ -1812,31 +1812,31 @@ async def list_open_cameras(
         elif s_src == "global":
             results = [c for c in results if c["country"] != "RU"]
 
-    if repo_id:
+    if isinstance(repo_id, str) and repo_id.strip():
         r_id = repo_id.lower().strip()
         results = [c for c in results if r_id in c.get("source_repo", "").lower() or r_id in c.get("id", "").lower()]
 
-    if protocol:
+    if isinstance(protocol, str) and protocol.strip():
         p_lower = protocol.lower().strip()
         results = [c for c in results if p_lower in c.get("protocol", "").lower() or p_lower in c.get("stream_type", "").lower()]
 
-    if format:
+    if isinstance(format, str) and format.strip():
         f_lower = format.lower().strip()
         results = [c for c in results if f_lower in c.get("source_format", "").lower()]
 
-    if country:
-        c_upper = country.upper()
+    if isinstance(country, str) and country.strip():
+        c_upper = country.upper().strip()
         results = [c for c in results if c["country"] == c_upper]
 
-    if district:
-        d_lower = district.lower()
-        results = [c for c in results if d_lower in c.get("district", "").lower()]
+    if isinstance(district, str) and district.strip():
+        d_lower = district.lower().strip()
+        results = [c for c in results if d_lower in c.get("district", "").lower() or d_lower in c.get("region", "").lower()]
 
-    if category:
-        cat_lower = category.lower()
+    if isinstance(category, str) and category.strip():
+        cat_lower = category.lower().strip()
         results = [c for c in results if cat_lower in c.get("category", "").lower()]
 
-    if search:
+    if isinstance(search, str) and search.strip():
         s_lower = search.lower().strip()
         results = [
             c for c in results
@@ -1850,8 +1850,9 @@ async def list_open_cameras(
         ]
 
     # In Air-Gapped Stealth Mode, we ensure no live remote stream leakage
+    effective_limit = limit if isinstance(limit, int) and limit > 0 else 200
     sanitized = []
-    for c in results[:limit]:
+    for c in results[:effective_limit]:
         item = dict(c)
         if air_gap:
             item["status"] = "AIR_GAPPED_STEALTH"
@@ -1896,7 +1897,7 @@ async def get_camera_detail(camera_id: str):
     """
     Возвращает подробные технические параметры конкретной камеры и ссылку на прямой поток.
     """
-    cam = next((c for c in ALL_CAMERAS if c["id"] == camera_id), None)
+    cam = next((c for c in ALL_CAMERAS if c["id"].lower() == camera_id.lower()), None)
     if not cam:
         raise HTTPException(status_code=404, detail=f"Камера {camera_id} не найдена в каталоге")
 
@@ -1942,7 +1943,7 @@ async def get_camera_stream(camera_id: str):
     Возвращает статус прямого потока и URL стрима для HLS.js / HTML5 плеера.
     В режиме Air-Gap принудительно активирует защищенный оффлайн-паттерн.
     """
-    cam = next((c for c in ALL_CAMERAS if c["id"] == camera_id), None)
+    cam = next((c for c in ALL_CAMERAS if c["id"].lower() == camera_id.lower()), None)
     if not cam:
         raise HTTPException(status_code=404, detail=f"Камера {camera_id} не найдена в каталоге")
 

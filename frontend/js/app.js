@@ -99,6 +99,10 @@ const App = {
       if (document.getElementById('tactical-canvas')) {
         this.threatMapInstance = new TacticalThreatMap('tactical-canvas');
         this.log('[MAP] Тактическая карта угроз (Live Attack Stream) подключена.', 'info');
+        this.pollGeointTelemetry();
+        if (!this.geointTimer) {
+          this.geointTimer = setInterval(() => this.pollGeointTelemetry(), 10000);
+        }
       }
     }, 150);
   },
@@ -2368,6 +2372,33 @@ const App = {
         }
       });
     }
+  },
+
+  async pollGeointTelemetry() {
+    try {
+      const res = await fetch(`${API_BASE}/geoint/telemetry`, { headers: getApiHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.success) return;
+
+      // Update 3D Threat Map
+      if (this.threatMapInstance && typeof this.threatMapInstance.updateTelemetry === 'function') {
+        this.threatMapInstance.updateTelemetry(data);
+      }
+
+      // Update Cockpit Real-Time Threat Intelligence Card
+      if (data.counts) {
+        const c = data.counts;
+        const satVal = document.getElementById('cockpit-val-satellites');
+        if (satVal) satVal.textContent = `${c.satellites} SAT`;
+        const airVal = document.getElementById('cockpit-val-aircraft');
+        if (airVal) airVal.textContent = `${c.aircraft} AIR`;
+        const marVal = document.getElementById('cockpit-val-maritime');
+        if (marVal) marVal.textContent = `${c.maritime} VESSEL`;
+        const cctvVal = document.getElementById('cockpit-val-cctv');
+        if (cctvVal) cctvVal.textContent = `${c.cameras} CAMS`;
+      }
+    } catch (_) {}
   },
 
   bindCctvMatrix() {
