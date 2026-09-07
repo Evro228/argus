@@ -26,7 +26,10 @@
     "mac": {
       "icon": "desktop/assets/icon.icns",
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"]
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
     },
     "dmg": {
       "title": "${productName} ${version}",
