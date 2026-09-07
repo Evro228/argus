@@ -144,6 +144,38 @@ code, pre, .font-mono, input, table, .tabular-nums {
   text-transform: uppercase;
 }
 
+/* Unified Cockpit Scrollable Station Panels */
+.tab-content:not(#tab-geoint) {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: #05070a;
+}
+
+.tab-content:not(#tab-geoint) .argus-panel,
+.tab-content:not(#tab-geoint) .tool-card {
+  background: #0d1017 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+.tab-content:not(#tab-geoint) input[type="text"],
+.tab-content:not(#tab-geoint) input[type="password"],
+.tab-content:not(#tab-geoint) textarea,
+.tab-content:not(#tab-geoint) select {
+  background: #131720 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  border-radius: 0.5rem !important;
+}
+
+.tab-content:not(#tab-geoint) input:focus,
+.tab-content:not(#tab-geoint) textarea:focus {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  outline: none !important;
+}
+
 .cockpit-pill-amber {
   font-family: var(--font-mono);
   font-size: 0.625rem;
