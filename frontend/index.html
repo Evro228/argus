@@ -13,10 +13,10 @@
 <body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
 
   <!-- Top Navigation Header (Image 1 Cockpit Minimalist Spec) -->
-  <header class="h-12 border-b border-white/[0.06] bg-[#07090d] px-4 flex items-center justify-between sticky top-0 z-40 select-none shrink-0">
+  <header class="titlebar-drag-region h-12 border-b border-white/[0.06] bg-[#07090d] pl-24 pr-4 flex items-center justify-between sticky top-0 z-40 select-none shrink-0" style="-webkit-app-region: drag;">
     
-    <!-- Left: Brand -->
-    <div class="flex items-center space-x-3">
+    <!-- Left: Brand (Clear of traffic lights with pl-24) -->
+    <div class="flex items-center space-x-3 select-none pointer-events-none">
       <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
       </svg>
@@ -24,26 +24,26 @@
     </div>
 
     <!-- Right: Minimalist Controls Cluster -->
-    <div class="flex items-center space-x-3 relative">
+    <div class="titlebar-no-drag flex items-center space-x-3 relative" style="-webkit-app-region: no-drag;">
       <!-- Operator / Minimist Dropdown Pill Button -->
-      <button id="btn-operator-menu" class="px-2.5 py-1 rounded bg-[#0f131d] hover:bg-slate-800 border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center space-x-1.5 transition">
+      <button id="btn-operator-menu" class="titlebar-no-drag px-2.5 py-1 rounded bg-[#0f131d] hover:bg-slate-800 border border-white/[0.08] text-xs font-mono text-slate-300 flex items-center space-x-1.5 transition cursor-pointer" style="-webkit-app-region: no-drag;">
         <span>MINIMISST</span>
         <span class="text-[9px] text-slate-500">▼</span>
       </button>
 
       <!-- Notification Bell with Orange Dot -->
-      <button id="btn-top-notifications" class="relative p-1.5 text-slate-400 hover:text-slate-200 transition" title="Оповещения безопасности">
+      <button id="btn-top-notifications" class="titlebar-no-drag relative p-1.5 text-slate-400 hover:text-slate-200 transition cursor-pointer" style="-webkit-app-region: no-drag;" title="Оповещения безопасности">
         <span class="w-2 h-2 rounded-full bg-amber-500 absolute top-1 right-1"></span>
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
       </button>
 
       <!-- Settings Gear -->
-      <button id="btn-open-config-keys" class="p-1.5 text-slate-400 hover:text-slate-200 transition" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <button id="btn-open-config-keys" class="titlebar-no-drag p-1.5 text-slate-400 hover:text-slate-200 transition cursor-pointer" style="-webkit-app-region: no-drag;" title="Настройки API-ключей и Live-потоков (Cmd + ,)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
 
       <!-- Operator Flyout Menu (Toggled via MINIMISST) -->
-      <div id="operator-flyout-menu" class="hidden absolute right-0 top-10 w-80 bg-[#0d1017] border border-white/10 rounded-xl p-3 shadow-2xl z-50 space-y-2.5 font-mono text-xs">
+      <div id="operator-flyout-menu" class="titlebar-no-drag hidden absolute right-0 top-10 w-80 bg-[#0d1017] border border-white/10 rounded-xl p-3 shadow-2xl z-50 space-y-2.5 font-mono text-xs" style="-webkit-app-region: no-drag;">
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
           <span class="text-slate-400">ОПЕРАТОР:</span>
           <span class="text-emerald-400 font-bold flex items-center space-x-1.5">
@@ -210,19 +210,19 @@
           <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
             
             <!-- CARD 1: DEFCON STATUS -->
-            <div class="cockpit-card h-[175px] justify-between">
+            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">DEFCON STATUS</span>
                 <span class="cockpit-pill-amber">COLOR STATUS</span>
               </div>
               <div class="flex items-center justify-between flex-1 px-1">
                 <!-- Circular Gauge Canvas -->
-                <div class="relative flex items-center justify-center w-[150px] h-[130px]">
+                <div class="relative flex items-center justify-center w-[140px] h-[115px]">
                   <canvas id="defcon-gauge-canvas" class="w-full h-full block"></canvas>
                   <span class="defcon-score hidden">84.6%</span>
                 </div>
                 <!-- Dual Vertical Meter -->
-                <div class="flex items-end space-x-2.5 h-[115px] pr-2">
+                <div class="flex items-end space-x-2.5 h-[105px] pr-2">
                   <div class="cockpit-meter-track" title="DEFCON Posture Level">
                     <div class="cockpit-bar-amber" style="height: 70%;"></div>
                   </div>
@@ -234,14 +234,14 @@
             </div>
 
             <!-- CARD 2: NETWORK TELEMETRY -->
-            <div class="cockpit-card h-[180px] justify-between">
+            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">NETWORK TELEMETRY</span>
                 <div class="flex items-center space-x-1.5 text-slate-500">
-                  <button class="p-0.5 text-sky-400 bg-sky-500/10 rounded" title="Волновой график">
+                  <button class="p-0.5 text-sky-400 bg-sky-500/10 rounded cursor-pointer" title="Волновой график">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12c4-8 8 8 12 0s8 8 8 0"/></svg>
                   </button>
-                  <button class="p-0.5 hover:text-slate-300" title="Столбчатый график">
+                  <button class="p-0.5 hover:text-slate-300 cursor-pointer" title="Столбчатый график">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="20" x2="6" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="18" y1="20" x2="18" y2="14"></line></svg>
                   </button>
                   <span class="text-xs">•••</span>
@@ -281,7 +281,7 @@
             </div>
 
             <!-- CARD 3: REAL-TIME THREAT INTELLIGENCE -->
-            <div class="cockpit-card flex-1 justify-between min-h-[220px]">
+            <div class="cockpit-card flex-[1.2] min-h-[175px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">REAL-TIME THREAT INTELLIGENCE</span>
                 <span class="text-slate-500 text-xs">•••</span>
@@ -384,18 +384,18 @@
           <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
             
             <!-- CARD 1: CYBER ATTACK VECTORS -->
-            <div class="cockpit-card h-[175px] justify-between">
+            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">CYBER ATTACK VECTORS</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="flex-1 relative w-full h-[135px] rounded bg-[#07090e] border border-white/[0.04] overflow-hidden">
+              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-[100px]">
                 <canvas id="attack-vectors-canvas" class="w-full h-full block"></canvas>
               </div>
             </div>
 
             <!-- CARD 2: CODE AUDIT [VULNERABILITY] -->
-            <div class="cockpit-card h-[180px] justify-between">
+            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">CODE AUDIT</span>
                 <div class="flex items-center space-x-1.5">
@@ -403,12 +403,12 @@
                   <span class="text-slate-500 text-xs">•••</span>
                 </div>
               </div>
-              <div class="font-mono text-xs space-y-2">
+              <div class="font-mono text-xs space-y-1.5">
                 <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-0.5 border-b border-white/[0.04]">
                   <span>FINDINGS</span>
                   <span>VULNERABILITY</span>
                 </div>
-                <div class="space-y-1">
+                <div class="space-y-0.5">
                   <div class="flex justify-between text-[11px] text-slate-300">
                     <span>Vulnerability Scan</span>
                     <span class="text-slate-400">Canned <span class="text-amber-400 font-bold">6/8</span></span>
@@ -417,7 +417,7 @@
                     <div class="cockpit-progress-amber" style="width: 75%;"></div>
                   </div>
                 </div>
-                <div class="space-y-1">
+                <div class="space-y-0.5">
                   <div class="flex justify-between text-[11px] text-slate-300">
                     <span>Vulnerability Scan</span>
                     <span class="text-slate-400">Retromolized <span class="text-slate-200 font-bold">3/3</span></span>
@@ -426,7 +426,7 @@
                     <div class="bg-gradient-to-r from-amber-500 to-cyan-400 h-full rounded" style="width: 100%;"></div>
                   </div>
                 </div>
-                <div class="space-y-1">
+                <div class="space-y-0.5">
                   <div class="flex justify-between text-[11px] text-slate-300">
                     <span>Current Status</span>
                     <span class="text-slate-400">Complete <span class="text-emerald-400 font-bold">8</span></span>
@@ -443,15 +443,15 @@
             </div>
 
             <!-- CARD 3: GEOSPATIAL EVENT MAPPING -->
-            <div class="cockpit-card flex-1 justify-between min-h-[220px]">
+            <div class="cockpit-card flex-[1.2] min-h-[175px] justify-between">
               <div class="cockpit-card-header">
                 <span class="cockpit-card-title">GEOSPATIAL EVENT MAPPING</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="flex-1 relative w-full h-[140px] rounded bg-[#07090e] border border-white/[0.04] overflow-hidden">
+              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-[100px]">
                 <canvas id="geospatial-event-canvas" class="w-full h-full block"></canvas>
               </div>
-              <div class="pt-2 flex items-center space-x-2 text-[10px] font-mono text-slate-400">
+              <div class="pt-1.5 flex items-center space-x-2 text-[10px] font-mono text-slate-400">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                 <span>Cyber Attack Vectors</span>
               </div>
@@ -1184,11 +1184,11 @@
   </div>
 
   <!-- Bottom: LIVE SOC DRAWER (Collapsible Terminal Buffer) -->
-  <footer id="soc-drawer-container" class="border-t border-slate-800/80 bg-slate-950 px-4 py-2 shrink-0">
-    <div class="flex items-center justify-between mb-1.5">
+  <footer id="soc-drawer-container" class="border-t border-slate-800/80 bg-slate-950 px-4 py-1.5 shrink-0 select-none">
+    <div class="flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <button id="btn-toggle-terminal" class="text-xs font-mono font-bold text-sky-400 flex items-center space-x-1.5 hover:underline">
-          <span id="terminal-chevron">▼</span>
+        <button id="btn-toggle-terminal" class="text-xs font-mono font-bold text-sky-400 flex items-center space-x-1.5 hover:underline cursor-pointer">
+          <span id="terminal-chevron">▶</span>
           <span data-i18n="socDrawerTitle">LIVE SOC DRAWER</span>
         </button>
         <div class="text-[11px] font-mono text-slate-500">
@@ -1197,13 +1197,13 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <button id="btn-clear-terminal" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 hover:bg-slate-800 text-slate-400">Очистить</button>
-        <button id="btn-copy-terminal" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 hover:bg-slate-800 text-slate-300">КОПИРОВАТЬ БУФЕР</button>
+        <button id="btn-clear-terminal" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 hover:bg-slate-800 text-slate-400 cursor-pointer">Очистить</button>
+        <button id="btn-copy-terminal" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 cursor-pointer">КОПИРОВАТЬ БУФЕР</button>
       </div>
     </div>
 
-    <div id="terminal-body" class="transition-all duration-200" style="max-height: 120px; overflow-y: auto;">
-      <div id="terminal-logs" class="font-mono text-xs space-y-0.5">
+    <div id="terminal-body" class="transition-all duration-200 hidden" style="max-height: 120px; overflow-y: auto; display: none;">
+      <div id="terminal-logs" class="font-mono text-xs space-y-0.5 pt-1.5">
         <div class="text-slate-500 py-0.5">[SYSTEM] ARGUS Tactical Cockpit инициализирован. Запуск ядра...</div>
       </div>
     </div>
@@ -1627,6 +1627,7 @@
 
   <!-- Scripts -->
   <script src="/js/i18n.js"></script>
+  <script src="/js/world_mesh_data.js"></script>
   <script src="/js/osint_graph.js"></script>
   <script src="/js/geoint.js"></script>
   <script src="/js/cockpit_widgets.js"></script>

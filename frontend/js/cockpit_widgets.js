@@ -271,7 +271,9 @@
       const ctx = this.ctx;
       ctx.clearRect(0, 0, this.w, this.h);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      ctx.lineWidth = 0.8;
       CONTINENTS_NORMALIZED.forEach(poly => {
         ctx.beginPath();
         poly.forEach(([px, py], idx) => {
@@ -282,6 +284,7 @@
         });
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
       });
 
       this.arcs.forEach(arc => {
@@ -372,7 +375,9 @@
       const ctx = this.ctx;
       ctx.clearRect(0, 0, this.w, this.h);
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      ctx.lineWidth = 0.8;
       CONTINENTS_NORMALIZED.forEach(poly => {
         ctx.beginPath();
         poly.forEach(([px, py], idx) => {
@@ -383,6 +388,7 @@
         });
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
       });
 
       const ex = this.epicenter.x * this.w;

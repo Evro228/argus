@@ -129,11 +129,14 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1380,
     height: 900,
-    minWidth: 1080,
-    minHeight: 700,
+    minWidth: 960,
+    minHeight: 580,
+    resizable: true,
+    movable: true,
     title: 'ARGUS // Tactical Intelligence & Defense',
     backgroundColor: '#05070a',
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 18, y: 16 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

@@ -111,6 +111,15 @@ code, pre, .font-mono, input, table, .tabular-nums {
   border-color: var(--border-medium);
 }
 
+/* macOS Native Window Drag Regions */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* ==========================================================================
    COCKPIT SYSTEM (IMAGE 1 SPECIFICATION)
    ========================================================================== */
@@ -118,10 +127,12 @@ code, pre, .font-mono, input, table, .tabular-nums {
   background: #0d1017;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.75rem;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.9rem;
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .cockpit-card:hover {

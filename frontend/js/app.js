@@ -336,11 +336,14 @@ const App = {
     const termBody = document.getElementById('terminal-body');
     const termChevron = document.getElementById('terminal-chevron');
     if (toggleTermBtn && termBody) {
-      let isOpen = true;
+      let isOpen = false;
+      termBody.style.display = 'none';
+      if (termChevron) termChevron.textContent = '▶';
       toggleTermBtn.addEventListener('click', () => {
         isOpen = !isOpen;
         termBody.style.display = isOpen ? 'block' : 'none';
-        termChevron.textContent = isOpen ? '▼' : '▲';
+        if (termChevron) termChevron.textContent = isOpen ? '▼' : '▶';
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
       });
     }
   },

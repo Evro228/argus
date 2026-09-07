@@ -337,37 +337,56 @@
       ctx.lineWidth = 0.5;
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.beginPath();
-      for (let lat = -60; lat <= 60; lat += 20) {
-        let first = true;
-        for (let lon = -180; lon <= 180; lon += 8) {
+      for (let lat = -60; lat <= 60; lat += 30) {
+        let started = false;
+        for (let lon = -180; lon <= 180; lon += 15) {
           const pt = this.project3D(lat, lon);
           if (pt.visible) {
-            if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
+            if (!started) { ctx.moveTo(pt.x, pt.y); started = true; }
             else ctx.lineTo(pt.x, pt.y);
           } else {
-            first = true;
+            started = false;
           }
         }
       }
-      for (let lon = -180; lon < 180; lon += 30) {
-        let first = true;
-        for (let lat = -80; lat <= 80; lat += 6) {
+      for (let lon = -180; lon < 180; lon += 45) {
+        let started = false;
+        for (let lat = -80; lat <= 80; lat += 10) {
           const pt = this.project3D(lat, lon);
           if (pt.visible) {
-            if (first) { ctx.moveTo(pt.x, pt.y); first = false; }
+            if (!started) { ctx.moveTo(pt.x, pt.y); started = true; }
             else ctx.lineTo(pt.x, pt.y);
           } else {
-            first = true;
+            started = false;
           }
         }
       }
       ctx.stroke();
 
-      // 4. Geodesic Delaunay Wireframe Triangulation Mesh (Authentic Image 1 Appearance)
+      const meshData = window.ARGUS_WORLD_MESH || WORLD_MESH_DATA;
+
+      // 4. Continental Solid Mass Underlay (Gives real physical body to landmasses)
+      for (const name in meshData.coastlines) {
+        const poly = meshData.coastlines[name];
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < poly.length; i++) {
+          const pt = this.project3D(poly[i][0], poly[i][1]);
+          if (pt.visible) {
+            if (!started) { ctx.moveTo(pt.x, pt.y); started = true; }
+            else ctx.lineTo(pt.x, pt.y);
+          }
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.50)';
+        ctx.fill();
+      }
+
+      // 5. Geodesic Delaunay Wireframe Triangulation Mesh (Authentic Image 1 Appearance)
       ctx.lineWidth = 0.65;
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)';
       ctx.beginPath();
-      const edges = WORLD_MESH_DATA.edges;
+      const edges = meshData.edges;
       for (let i = 0; i < edges.length; i++) {
         const e = edges[i];
         const p1 = this.project3D(e[0][0], e[0][1]);
@@ -379,11 +398,11 @@
       }
       ctx.stroke();
 
-      // 5. Realistic Coastline Contours
-      ctx.lineWidth = 1.1;
-      ctx.strokeStyle = 'rgba(226, 232, 240, 0.40)';
-      for (const name in WORLD_MESH_DATA.coastlines) {
-        const poly = WORLD_MESH_DATA.coastlines[name];
+      // 6. Realistic Coastline Contours
+      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.45)';
+      for (const name in meshData.coastlines) {
+        const poly = meshData.coastlines[name];
         ctx.beginPath();
         let started = false;
         for (let i = 0; i < poly.length; i++) {
