@@ -152,15 +152,21 @@
     initCanvasSize() {
       if (!this.canvas) return;
       const rect = this.canvas.getBoundingClientRect();
-      this.width = rect.width || this.canvas.clientWidth || 600;
-      this.height = rect.height || this.canvas.clientHeight || 500;
+      const parent = this.canvas.parentElement;
+      const parentRect = parent ? parent.getBoundingClientRect() : null;
+
+      const w = Math.max(100, Math.floor(rect.width || (parentRect && parentRect.width) || this.canvas.clientWidth || 500));
+      const h = Math.max(100, Math.floor(rect.height || (parentRect && parentRect.height) || this.canvas.clientHeight || 450));
+      this.width = w;
+      this.height = h;
+
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      this.canvas.width = this.width * dpr;
-      this.canvas.height = this.height * dpr;
+      this.canvas.width = Math.floor(w * dpr);
+      this.canvas.height = Math.floor(h * dpr);
       this.ctx.resetTransform();
       this.ctx.scale(dpr, dpr);
 
-      this.radius = Math.min(this.width, this.height) * 0.33;
+      this.radius = Math.max(35, Math.min(this.width, this.height) * 0.36);
       this.cx = this.width * 0.5;
       this.cy = this.height * 0.5;
     }
@@ -208,6 +214,17 @@
 
     bindEvents() {
       window.addEventListener('resize', () => this.initCanvasSize());
+
+      if (window.ResizeObserver && this.canvas.parentElement) {
+        this.ro = new ResizeObserver((entries) => {
+          for (let entry of entries) {
+            if (entry.contentRect.width > 20 && entry.contentRect.height > 20) {
+              this.initCanvasSize();
+            }
+          }
+        });
+        this.ro.observe(this.canvas.parentElement);
+      }
 
       this.canvas.addEventListener('mousedown', (e) => {
         this.isDragging = true;
@@ -288,31 +305,37 @@
     }
 
     render() {
-      if (!this.isDragging) {
-        this.yaw += 0.0016;
-      }
-      this.pulseTime += 0.04;
+      if (this.isPaused) return;
+      if (this.radius <= 10 || this.width <= 20 || this.height <= 20) return;
 
-      const ctx = this.ctx;
-      const w = this.width;
-      const h = this.height;
-      const r = this.radius;
-      const cx = this.cx;
-      const cy = this.cy;
+      try {
+        if (!this.isDragging) {
+          this.yaw += 0.0016;
+        }
+        this.pulseTime += 0.04;
 
-      ctx.clearRect(0, 0, w, h);
+        const ctx = this.ctx;
+        const w = this.width;
+        const h = this.height;
+        const r = this.radius;
+        const cx = this.cx;
+        const cy = this.cy;
 
-      // 1. Deep 3D Spherical Volume Shading
-      const globeGrad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.05, cx, cy, r);
-      globeGrad.addColorStop(0, '#0f1422');
-      globeGrad.addColorStop(0.5, '#090d18');
-      globeGrad.addColorStop(0.85, '#04060c');
-      globeGrad.addColorStop(1, '#010204');
+        ctx.clearRect(0, 0, w, h);
 
-      ctx.fillStyle = globeGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
+        // 1. Deep 3D Spherical Volume Shading
+        const rInner = Math.max(0.1, r * 0.05);
+        const rOuter = Math.max(1, r);
+        const globeGrad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, rInner, cx, cy, rOuter);
+        globeGrad.addColorStop(0, '#0f1422');
+        globeGrad.addColorStop(0.5, '#090d18');
+        globeGrad.addColorStop(0.85, '#04060c');
+        globeGrad.addColorStop(1, '#010204');
+
+        ctx.fillStyle = globeGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
 
       // 2. Atmospheric Rim Glow Layers
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.32)';
@@ -441,7 +464,10 @@
       // 10. Front-side of Orbital Satellite Rings & 3D Satellites
       this.drawOrbitalRings(ctx, true);
       this.drawSatellites(ctx);
+    } catch (err) {
+      console.error('TacticalThreatMap render frame error:', err);
     }
+  }
 
     drawOrbitalRings(ctx, front) {
       const steps = 64;

@@ -203,15 +203,25 @@ const App = {
     this.log(`[NAV] Смена рабочей станции: [${tabId.toUpperCase()}]`);
 
     if (tabId === 'geoint') {
-      if (!this.threatMapInstance) {
+      if (this.threatMapInstance) {
+        this.threatMapInstance.start();
+        setTimeout(() => {
+          if (this.threatMapInstance) this.threatMapInstance.initCanvasSize();
+        }, 50);
+      } else {
         setTimeout(() => {
           this.threatMapInstance = new TacticalThreatMap('tactical-canvas');
-        }, 100);
+        }, 80);
       }
       if (window.ArgusCockpitWidgets) {
         setTimeout(() => window.ArgusCockpitWidgets.resizeAll(), 50);
       }
+    } else {
+      if (this.threatMapInstance) {
+        this.threatMapInstance.stop();
+      }
     }
+
     if (tabId === 'playbooks') {
       this.loadPlaybooks();
     }
@@ -220,6 +230,9 @@ const App = {
     }
     if (tabId === 'analyst') {
       this.loadSessionHistory();
+    }
+    if (tabId === 'osint' && this.synapseGraph) {
+      setTimeout(() => this.synapseGraph.resize(), 50);
     }
   },
 
@@ -232,22 +245,17 @@ const App = {
         const container = pill.closest('.tab-content');
         if (!container) return;
 
-        // Toggle active pill styling
         container.querySelectorAll('.tool-picker-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
 
         const toolName = pill.getAttribute('data-tool');
-        const cards = container.querySelectorAll('.tool-card');
-
-        if (toolName === 'all') {
-          cards.forEach(c => c.classList.remove('hidden'));
-          this.log('[FOCUS] Режим обзора: отображаются все инструменты подраздела.');
-        } else {
-          cards.forEach(c => {
-            const matches = c.getAttribute('data-card') === toolName;
-            c.classList.toggle('hidden', !matches);
-          });
-          this.log(`[FOCUS] Режим фокуса активирован: [${toolName}]`);
+        if (toolName && toolName !== 'all') {
+          const targetCard = container.querySelector(`[data-card="${toolName}"]`);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetCard.classList.add('ring-1', 'ring-amber-500/50');
+            setTimeout(() => targetCard.classList.remove('ring-1', 'ring-amber-500/50'), 1500);
+          }
         }
       });
     });

@@ -205,29 +205,29 @@
       <!-- ========================================================= -->
       <div id="tab-geoint" class="tab-content flex-1 h-full overflow-hidden">
         
-        <div class="grid grid-cols-[290px_1fr_310px] gap-3.5 h-full p-3.5 items-stretch overflow-hidden">
+        <div class="grid grid-cols-[280px_1fr_290px] gap-3 h-full p-3 items-stretch overflow-hidden">
           
-          <!-- LEFT COLUMN: 3 CARDS -->
-          <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
+          <!-- LEFT COLUMN: 3 EQUAL-HEIGHT CARDS -->
+          <div class="grid grid-rows-3 gap-2.5 h-full overflow-hidden">
             
             <!-- CARD 1: DEFCON STATUS -->
-            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">DEFCON STATUS</span>
                 <span class="cockpit-pill-amber">COLOR STATUS</span>
               </div>
-              <div class="flex items-center justify-between flex-1 px-1">
+              <div class="flex items-center justify-around flex-1 px-1 min-h-0">
                 <!-- Circular Gauge Canvas -->
-                <div class="relative flex items-center justify-center w-[140px] h-[115px]">
+                <div class="relative flex items-center justify-center w-[130px] h-[105px]">
                   <canvas id="defcon-gauge-canvas" class="w-full h-full block"></canvas>
                   <span class="defcon-score hidden">84.6%</span>
                 </div>
                 <!-- Dual Vertical Meter -->
-                <div class="flex items-end space-x-2.5 h-[105px] pr-2">
-                  <div class="cockpit-meter-track" title="DEFCON Posture Level">
+                <div class="flex items-end space-x-2 h-[95px] pr-1">
+                  <div class="cockpit-meter-track" style="height: 90px;" title="DEFCON Posture Level">
                     <div class="cockpit-bar-amber" style="height: 70%;"></div>
                   </div>
-                  <div class="cockpit-meter-track" title="Kinetic Defense Readiness">
+                  <div class="cockpit-meter-track" style="height: 90px;" title="Kinetic Defense Readiness">
                     <div class="cockpit-bar-cyan" style="height: 48%;"></div>
                   </div>
                 </div>
@@ -235,8 +235,8 @@
             </div>
 
             <!-- CARD 2: NETWORK TELEMETRY -->
-            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">NETWORK TELEMETRY</span>
                 <div class="flex items-center space-x-1.5 text-slate-500">
                   <button class="p-0.5 text-sky-400 bg-sky-500/10 rounded cursor-pointer" title="Волновой график">
@@ -248,7 +248,7 @@
                   <span class="text-xs">•••</span>
                 </div>
               </div>
-              <div class="flex items-center space-x-4 text-[10px] font-mono text-slate-400 mb-1">
+              <div class="flex items-center space-x-4 text-[10px] font-mono text-slate-400 mb-0.5 shrink-0">
                 <span class="flex items-center space-x-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                   <span>Network</span>
@@ -258,8 +258,8 @@
                   <span>Graphs</span>
                 </span>
               </div>
-              <div class="flex-1 flex flex-col justify-between">
-                <div class="flex-1 flex items-stretch space-x-1.5 relative">
+              <div class="flex-1 flex flex-col justify-between min-h-0">
+                <div class="flex-1 flex items-stretch space-x-1.5 relative min-h-0">
                   <div class="flex flex-col justify-between text-[8px] font-mono text-slate-500 pr-1 select-none text-right w-5">
                     <span>200</span>
                     <span>150</span>
@@ -271,7 +271,7 @@
                     <canvas id="net-telemetry-canvas" class="w-full h-full block"></canvas>
                   </div>
                 </div>
-                <div class="flex justify-between pl-6 text-[8px] font-mono text-slate-500 pt-0.5 select-none">
+                <div class="flex justify-between pl-6 text-[8px] font-mono text-slate-500 pt-0.5 select-none shrink-0">
                   <span>120</span>
                   <span>160</span>
                   <span>200</span>
@@ -282,18 +282,18 @@
             </div>
 
             <!-- CARD 3: REAL-TIME THREAT INTELLIGENCE -->
-            <div class="cockpit-card flex-[1.2] min-h-[175px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">REAL-TIME THREAT INTELLIGENCE</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="space-y-2 font-mono text-xs text-slate-300">
+              <div class="flex-1 flex flex-col justify-between font-mono text-[11px] text-slate-300 min-h-0">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-slate-400">Current Cyber threats</span>
                   <span class="font-bold text-slate-100">2,370</span>
                 </div>
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between text-[11px]">
+                <div class="space-y-0.5">
+                  <div class="flex items-center justify-between text-[10px]">
                     <span class="text-slate-400">Cyber Attack</span>
                     <span class="font-bold text-amber-400">3,448</span>
                   </div>
@@ -301,8 +301,8 @@
                     <div class="cockpit-progress-amber" style="width: 65%;"></div>
                   </div>
                 </div>
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between text-[11px]">
+                <div class="space-y-0.5">
+                  <div class="flex items-center justify-between text-[10px]">
                     <span class="text-slate-400">Threat Threats</span>
                     <span class="font-bold text-amber-400">3,193</span>
                   </div>
@@ -310,7 +310,7 @@
                     <div class="cockpit-progress-amber" style="width: 58%;"></div>
                   </div>
                 </div>
-                <div class="border-b border-white/[0.06] my-1.5"></div>
+                <div class="border-b border-white/[0.06] my-0.5"></div>
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
                   <span>Realtime threat intelligence</span>
                   <span class="text-slate-200">23 bytes</span>
@@ -319,7 +319,7 @@
                   <span>Satellite Trajectory</span>
                   <span class="text-slate-200">100 bytes</span>
                 </div>
-                <div class="space-y-1">
+                <div class="space-y-0.5">
                   <div class="flex items-center justify-between text-[10px] text-slate-400">
                     <span>Photon health</span>
                     <span class="text-cyan-400">24 bytes</span>
@@ -328,91 +328,80 @@
                     <div class="cockpit-progress-cyan" style="width: 42%;"></div>
                   </div>
                 </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Threat Sources</span>
-                  <span class="text-slate-200">0 Volts</span>
-                </div>
               </div>
             </div>
 
           </div>
 
           <!-- CENTER COLUMN: 3D GLOBE VIEWPORT -->
-          <div class="relative flex items-center justify-center h-full rounded-xl overflow-hidden border border-white/[0.05] bg-[#06080d]">
+          <div class="relative flex items-center justify-center h-full min-w-0 overflow-hidden">
             <canvas id="tactical-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
             
-            <!-- Optional Floating Target Telemetry HUD -->
+            <!-- Floating Target Telemetry HUD -->
             <div id="target-hud-card" class="hud-card hidden">
               <div class="text-[10px] font-mono text-sky-400 font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                 <span id="hud-type-badge">TACTICAL TARGET INSPECTION</span>
                 <button id="btn-close-target-hud" class="text-slate-500 hover:text-slate-300 text-xs">✕</button>
               </div>
               <div class="space-y-2 mb-3">
-                <div>
-                  <div class="text-[10px] text-slate-500 font-mono uppercase">Node IP / Target</div>
-                  <div id="hud-target-ip" class="text-sm font-mono font-bold text-slate-100">198.51.100.42</div>
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-400">TARGET HOST:</span>
+                  <span id="hud-target-ip" class="text-white font-bold">192.168.1.1</span>
                 </div>
-                <div>
-                  <div class="text-[10px] text-slate-500 font-mono uppercase">Coordinates</div>
-                  <div id="hud-target-coords" class="text-xs font-mono text-slate-300">50.1109° N, 8.6821° E Frankfurt, DE [EU-C1]</div>
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-400">GEOLOCATION:</span>
+                  <span id="hud-target-coords" class="text-sky-300">55.7558° N, 37.6173° E</span>
                 </div>
-                <div>
-                  <div class="text-[10px] text-slate-500 font-mono uppercase mb-1">Open Ports</div>
-                  <div id="hud-target-ports" class="grid grid-cols-3 gap-1.5">
-                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-sky-400 font-mono">22</div><div class="text-[8px] text-slate-400 font-mono">SSH</div></div>
-                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-emerald-400 font-mono">80</div><div class="text-[8px] text-slate-400 font-mono">HTTP</div></div>
-                    <div class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-center"><div class="text-xs font-bold text-amber-400 font-mono">443</div><div class="text-[8px] text-slate-400 font-mono">HTTPS</div></div>
+                <div class="space-y-1">
+                  <div class="flex justify-between text-xs font-mono">
+                    <span class="text-slate-400">THREAT POSTURE:</span>
+                    <span id="hud-target-threat-score" class="text-amber-400 font-bold">84%</span>
                   </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase mb-1">
-                    <span>Threat Level</span>
-                    <span id="hud-target-threat-score" class="text-rose-400 font-bold">85%</span>
-                  </div>
-                  <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                    <div id="hud-target-threat-fill" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-1.5 rounded-full" style="width: 85%"></div>
+                  <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="hud-target-threat-fill" class="bg-gradient-to-r from-amber-400 to-rose-500 h-1.5 rounded-full" style="width: 84%;"></div>
                   </div>
                 </div>
               </div>
-              <div class="space-y-1.5 pt-2 border-t border-slate-800">
-                <button id="btn-hud-exploit" class="w-full py-1 px-2 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-bold">RUN EXPLOIT TEST</button>
-                <button id="btn-hud-trace" class="w-full py-1 px-2 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-mono font-bold">TRACE ROUTE</button>
+              <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/[0.08]">
+                <button id="btn-hud-exploit" class="px-2 py-1 text-[10px] font-mono font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded transition">EXPLOIT</button>
+                <button id="btn-hud-trace" class="px-2 py-1 text-[10px] font-mono font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 rounded transition">TRACE</button>
+                <button id="btn-hud-isolate" class="px-2 py-1 text-[10px] font-mono font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded transition">ISOLATE</button>
               </div>
             </div>
           </div>
 
-          <!-- RIGHT COLUMN: 3 CARDS -->
-          <div class="flex flex-col justify-between gap-3 h-full overflow-hidden">
+          <!-- RIGHT COLUMN: 3 EQUAL-HEIGHT CARDS -->
+          <div class="grid grid-rows-3 gap-2.5 h-full overflow-hidden">
             
             <!-- CARD 1: CYBER ATTACK VECTORS -->
-            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">CYBER ATTACK VECTORS</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-[100px]">
+              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-0">
                 <canvas id="attack-vectors-canvas" class="w-full h-full block"></canvas>
               </div>
             </div>
 
             <!-- CARD 2: CODE AUDIT [VULNERABILITY] -->
-            <div class="cockpit-card flex-1 min-h-[145px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">CODE AUDIT</span>
                 <div class="flex items-center space-x-1.5">
                   <span class="cockpit-pill-amber">VULNERABILITY</span>
                   <span class="text-slate-500 text-xs">•••</span>
                 </div>
               </div>
-              <div class="font-mono text-xs space-y-1.5">
-                <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-0.5 border-b border-white/[0.04]">
+              <div class="flex-1 flex flex-col justify-between font-mono text-xs min-h-0">
+                <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase tracking-wider pb-0.5 border-b border-white/[0.04] shrink-0">
                   <span>FINDINGS</span>
                   <span>VULNERABILITY</span>
                 </div>
                 <div class="space-y-0.5">
                   <div class="flex justify-between text-[11px] text-slate-300">
                     <span>Vulnerability Scan</span>
-                    <span class="text-slate-400">Canned <span class="text-amber-400 font-bold">6/8</span></span>
+                    <span class="text-slate-400">Passed <span class="text-amber-400 font-bold">6/8</span></span>
                   </div>
                   <div class="cockpit-progress-track">
                     <div class="cockpit-progress-amber" style="width: 75%;"></div>
@@ -436,7 +425,7 @@
                     <div class="bg-emerald-500 h-full rounded" style="width: 100%;"></div>
                   </div>
                 </div>
-                <div class="flex justify-between text-[10px] text-slate-400 pt-0.5">
+                <div class="flex justify-between text-[10px] text-slate-400 pt-0.5 shrink-0">
                   <span>Vulnerability Rep</span>
                   <span>Untracked <span class="text-slate-400">1/0</span></span>
                 </div>
@@ -444,15 +433,15 @@
             </div>
 
             <!-- CARD 3: GEOSPATIAL EVENT MAPPING -->
-            <div class="cockpit-card flex-[1.2] min-h-[175px] justify-between">
-              <div class="cockpit-card-header">
+            <div class="cockpit-card flex flex-col justify-between overflow-hidden">
+              <div class="cockpit-card-header shrink-0">
                 <span class="cockpit-card-title">GEOSPATIAL EVENT MAPPING</span>
                 <span class="text-slate-500 text-xs">•••</span>
               </div>
-              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-[100px]">
+              <div class="flex-1 relative w-full rounded bg-[#07090e] border border-white/[0.04] overflow-hidden min-h-0">
                 <canvas id="geospatial-event-canvas" class="w-full h-full block"></canvas>
               </div>
-              <div class="pt-1.5 flex items-center space-x-2 text-[10px] font-mono text-slate-400">
+              <div class="flex items-center space-x-1.5 pt-1 text-[9px] font-mono text-slate-400 shrink-0">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                 <span>Cyber Attack Vectors</span>
               </div>
@@ -466,697 +455,910 @@
       <!-- ========================================================= -->
       <!-- TAB 2: NETWORK AUDIT & PERIMETER                          -->
       <!-- ========================================================= -->
-      <div id="tab-network" class="tab-content space-y-4 hidden">
-        
-        <!-- Subsection Tool Picker -->
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="net-matrix">1. Scan Matrix (Nmap)</button>
-          <button class="tool-picker-pill" data-tool="net-lan">2. 1-Click LAN Discovery</button>
-          <button class="tool-picker-pill" data-tool="net-topology">3. Ingress Topology</button>
-          <button class="tool-picker-pill" data-tool="net-telemetry">4. Gateway Telematics</button>
-          <button class="tool-picker-pill" data-tool="net-wifi">5. Wi-Fi & RF Recon</button>
-          <button class="tool-picker-pill" data-tool="net-rf">6. RF Spectrum & WebSDR</button>
-          <button class="tool-picker-pill" data-tool="all">7. Overview All</button>
-        </div>
-
-        <!-- 1-Click LAN Asset Discovery Card -->
-        <div class="tool-card argus-panel p-4" data-card="net-lan">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
-            <div>
-              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-400">01</span>
-                <span>LAN ASSET DISCOVERY // АВТООБНАРУЖЕНИЕ УСТРОЙСТВ В СЕТИ</span>
-              </h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">
-                Пассивный и активный аудит локального сегмента: ARP-кэш, OUI-распознавание вендоров, обнаружение открытых IP-камер (RTSP:554) и шлюзов.
-              </p>
-            </div>
-            <div class="flex items-center space-x-2 shrink-0">
-              <button id="btn-discover-lan" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white font-mono font-bold text-xs rounded-lg transition shadow-md flex items-center space-x-1.5 cursor-pointer">
-                <span class="w-1.5 h-1.5 rounded-full bg-cyan-300"></span> <span>ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- LAN Metrics Chips -->
-          <div class="flex flex-wrap gap-2 text-xs font-mono mb-3">
-            <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300">
-              Всего хостов: <span id="lan-count-total" class="text-cyan-400 font-bold">0</span>
-            </span>
-            <span class="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-500/30 text-amber-300">
-              Маршрутизаторы/Шлюзы: <span id="lan-count-gateway" class="font-bold">0</span>
-            </span>
-            <span class="px-2.5 py-1 rounded bg-rose-950/40 border border-rose-500/30 text-rose-300">
-              IP-Камеры (RTSP): <span id="lan-count-cameras" class="font-bold">0</span>
-            </span>
-          </div>
-
-          <!-- LAN Discovered Devices Grid -->
-          <div id="lan-devices-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1">
-            <div class="col-span-full py-8 text-center text-slate-500 font-mono text-xs">
-              Нажмите «ОБНАРУЖИТЬ УСТРОЙСТВА В СЕТИ» для автоматического сканирования текущей подсети.
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Port Scanner Card -->
-          <div class="tool-card argus-panel p-4" data-card="net-matrix">
-            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">02</span>
-              <span>SEC-PERIMETER // SCAN MATRIX</span>
-            </h3>
-            <div class="flex space-x-2 mb-3">
-              <input id="net-scan-target" type="text" placeholder="192.168.1.1 или domain.com" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-              <button id="net-scan-btn" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">СКАН</button>
-            </div>
-            <div id="net-port-results" class="text-xs font-mono text-slate-400 space-y-1 max-h-56 overflow-y-auto">
-              <div class="text-slate-500 py-4 text-center">Готов к сканированию портов и хостов.</div>
-            </div>
-          </div>
-
-          <!-- Wi-Fi & RF Monitor Card -->
-          <div class="tool-card argus-panel p-4" data-card="net-wifi">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-sm font-bold font-mono text-emerald-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-400">03</span>
-                <span>WIRELESS & RADIO RECON</span>
-              </h3>
-              <button id="btn-refresh-wifi" class="text-xs text-sky-400 hover:underline font-mono">ОБНОВИТЬ</button>
-            </div>
-            <div id="wifi-recon-box" class="space-y-2 text-xs font-mono">
-              <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                <div class="text-slate-500 text-[10px]">ТЕКУЩАЯ СЕТЬ (SSID)</div>
-                <div id="wifi-ssid-val" class="text-slate-200 font-bold">Опрос интерфейса...</div>
+      <div id="tab-network" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr_350px] gap-3.5 items-start">
+          
+          <!-- LEFT COLUMN: SCAN MATRIX & WIRELESS RECON -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Port Scanner -->
+            <div class="cockpit-card p-4" data-card="net-matrix">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">SEC-PERIMETER // SCAN MATRIX</span>
+                <span class="cockpit-pill-amber">NMAP ENGINE</span>
               </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div class="p-2 rounded bg-slate-900/80 border border-slate-800">
-                  <div class="text-slate-500 text-[10px]">СТАНДАРТ</div>
-                  <div id="wifi-phy-val" class="text-slate-300">802.11ax (Wi-Fi 6)</div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Синхронное сканирование портов, баннеров служб и обнаружение ОС (SYN/Connect/Version).
+              </p>
+              <div class="flex space-x-2 mb-2">
+                <input id="net-scan-target" type="text" placeholder="192.168.1.1 или domain.com" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-amber-500/50 outline-none">
+                <button id="net-scan-btn" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">СКАН</button>
+              </div>
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 mb-2">
+                <span>ПОРТЫ: 21, 22, 80, 443, 554, 8080</span>
+                <span class="text-amber-400">FAST SYN</span>
+              </div>
+              <div id="net-port-results" class="text-xs font-mono text-slate-400 space-y-1 max-h-60 overflow-y-auto p-2 rounded bg-black/40 border border-white/[0.04]">
+                <div class="text-slate-500 py-6 text-center">Готов к сканированию портов и сервисов.</div>
+              </div>
+            </div>
+
+            <!-- Card 2: Wi-Fi & RF Recon -->
+            <div class="cockpit-card p-4" data-card="net-wifi">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">WIRELESS & RADIO RECON</span>
+                <button id="btn-refresh-wifi" class="cockpit-pill-cyan cursor-pointer hover:bg-sky-500/25">ОБНОВИТЬ</button>
+              </div>
+              <div id="wifi-recon-box" class="space-y-2 text-xs font-mono">
+                <div class="p-2.5 rounded bg-[#131720] border border-white/5">
+                  <div class="text-slate-500 text-[10px]">ТЕКУЩАЯ СЕТЬ (SSID)</div>
+                  <div id="wifi-ssid-val" class="text-slate-200 font-bold">Опрос интерфейса...</div>
                 </div>
-                <div class="p-2 rounded bg-slate-900/80 border border-slate-800">
-                  <div class="text-slate-500 text-[10px]">БЕЗОПАСНОСТЬ</div>
-                  <div id="wifi-sec-val" class="text-emerald-400">WPA3-SAE / WPA2</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="p-2 rounded bg-[#131720] border border-white/5">
+                    <div class="text-slate-500 text-[10px]">СТАНДАРТ</div>
+                    <div id="wifi-phy-val" class="text-slate-300">802.11ax (Wi-Fi 6)</div>
+                  </div>
+                  <div class="p-2 rounded bg-[#131720] border border-white/5">
+                    <div class="text-slate-500 text-[10px]">БЕЗОПАСНОСТЬ</div>
+                    <div id="wifi-sec-val" class="text-emerald-400">WPA3-SAE / WPA2</div>
+                  </div>
+                </div>
+                <div class="p-2 rounded bg-[#131720] border border-white/5 space-y-1">
+                  <div class="flex justify-between text-[10px] text-slate-400">
+                    <span>УРОВЕНЬ СИГНАЛА (RSSI)</span>
+                    <span class="text-sky-400 font-bold">-48 dBm [ОТЛИЧНЫЙ]</span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-cyan" style="width: 82%;"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- RF Spectrum & WebSDR Grid Card -->
-        <div class="tool-card argus-panel p-4" data-card="net-rf">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
-            <div>
-              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-400">04</span>
-                <span>RF SPECTRUM & GLOBAL WEBSDR GRID</span>
-              </h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">
-                Мониторинг радиочастот гражданской авиации (121.5 MHz), морской безопасности (VHF Ch 16) и онлайн WebSDR приемников.
+          <!-- CENTER COLUMN: RF SPECTRUM & INGRESS TOPOLOGY -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: RF Spectrum FFT & WebSDR Waterfall -->
+            <div class="cockpit-card p-4" data-card="net-rf">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">RF SPECTRUM & GLOBAL WEBSDR GRID</span>
+                <button id="btn-refresh-rf" class="cockpit-pill-cyan cursor-pointer hover:bg-sky-500/25">ОБНОВИТЬ СПЕКТР</button>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Мониторинг радиочастот гражданской авиации (121.5 MHz), морской безопасности (VHF Ch 16) и WebSDR.
               </p>
+              <!-- Radio Waterfall Canvas -->
+              <div class="relative w-full h-36 bg-slate-950 rounded-lg border border-white/5 overflow-hidden mb-3">
+                <canvas id="rf-waterfall-canvas" class="w-full h-full block"></canvas>
+                <div class="absolute top-2 left-3 text-[10px] font-mono text-cyan-400 pointer-events-none">
+                  LIVE SPECTRUM FFT: <span id="rf-center-label">121.500 MHz (VHF Guard)</span> | SPAN: 2.0 MHz
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs font-mono">
+                <!-- Frequencies Directory -->
+                <div class="p-2.5 bg-[#131720] rounded-lg border border-white/5 space-y-1.5">
+                  <div class="text-slate-300 font-bold flex justify-between text-[11px]">
+                    <span>АВАРИЙНЫЕ ЧАСТОТЫ</span>
+                    <span class="text-[9px] text-slate-500">ICAO/IMO</span>
+                  </div>
+                  <div id="rf-frequencies-list" class="space-y-1 max-h-44 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Global WebSDR Receivers -->
+                <div class="p-2.5 bg-[#131720] rounded-lg border border-white/5 space-y-1.5">
+                  <div class="text-slate-300 font-bold flex justify-between text-[11px]">
+                    <span>ОТКРЫТЫЕ WEBSDR</span>
+                    <span class="text-[9px] text-emerald-400">ONLINE</span>
+                  </div>
+                  <div id="rf-receivers-list" class="space-y-1 max-h-44 overflow-y-auto pr-1"></div>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center space-x-2">
-              <button id="btn-refresh-rf" class="px-2.5 py-1 text-xs font-mono rounded bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700">ОБНОВИТЬ СПЕКТР</button>
+
+            <!-- Card 2: Ingress Topology & Gateway Telematics -->
+            <div class="cockpit-card p-4" data-card="net-telemetry">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">INGRESS TOPOLOGY & GATEWAY TELEMATICS</span>
+                <span class="cockpit-pill-emerald">GATEWAY ACTIVE</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono mb-3">
+                <div class="p-2 rounded bg-[#131720] border border-white/5">
+                  <div class="text-slate-500 text-[10px]">ШЛЮЗ (DEFAULT GW)</div>
+                  <div class="text-amber-400 font-bold">192.168.1.1</div>
+                </div>
+                <div class="p-2 rounded bg-[#131720] border border-white/5">
+                  <div class="text-slate-500 text-[10px]">МАСКА ПОДСЕТИ</div>
+                  <div class="text-slate-200">255.255.255.0</div>
+                </div>
+                <div class="p-2 rounded bg-[#131720] border border-white/5">
+                  <div class="text-slate-500 text-[10px]">DNS LATENCY</div>
+                  <div class="text-emerald-400 font-bold">4.2 ms</div>
+                </div>
+                <div class="p-2 rounded bg-[#131720] border border-white/5">
+                  <div class="text-slate-500 text-[10px]">ПОТЕРИ ПАКЕТОВ</div>
+                  <div class="text-slate-200 font-bold">0.0%</div>
+                </div>
+              </div>
+              <div class="p-2.5 rounded bg-[#131720] border border-white/5 space-y-2 text-xs font-mono">
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-slate-400">МАРШРУТИЗАЦИЯ И NAT ТРАССИРОВКА:</span>
+                  <span class="text-sky-400 font-bold">FULL CONE NAT // PASS-THROUGH</span>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-500">
+                  <span>DNS Шлюзы: 1.1.1.1 (Cloudflare DoH), 9.9.9.9 (Quad9 DoT)</span>
+                  <span class="text-emerald-400">DNSSEC VERIFIED</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Radio Waterfall Canvas -->
-          <div class="relative w-full h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden mb-3">
-            <canvas id="rf-waterfall-canvas" class="w-full h-full block"></canvas>
-            <div class="absolute top-2 left-3 text-[10px] font-mono text-cyan-400 pointer-events-none">
-              LIVE SPECTRUM FFT: <span id="rf-center-label">121.500 MHz (VHF Guard)</span> | SPAN: 2.0 MHz
+          <!-- RIGHT COLUMN: 1-CLICK LAN DISCOVERY & PERIMETER POSTURE -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: 1-Click LAN Asset Discovery -->
+            <div class="cockpit-card p-4" data-card="net-lan">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">LAN ASSET DISCOVERY</span>
+                <button id="btn-discover-lan" class="px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-mono font-bold text-xs rounded-md transition shadow flex items-center space-x-1.5 cursor-pointer">
+                  <span>ОБНАРУЖИТЬ СЕТЬ</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Пассивный ARP-аудит, OUI вендоры, RTSP камеры (554) и открытые хосты.
+              </p>
+
+              <!-- LAN Metrics Chips -->
+              <div class="flex flex-wrap gap-1.5 text-xs font-mono mb-2.5">
+                <span class="px-2 py-0.5 rounded bg-[#131720] border border-white/5 text-slate-300 text-[11px]">
+                  Хостов: <span id="lan-count-total" class="text-cyan-400 font-bold">0</span>
+                </span>
+                <span class="px-2 py-0.5 rounded bg-amber-950/40 border border-amber-500/30 text-amber-300 text-[11px]">
+                  Шлюзы: <span id="lan-count-gateway" class="font-bold">0</span>
+                </span>
+                <span class="px-2 py-0.5 rounded bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px]">
+                  Камеры: <span id="lan-count-cameras" class="font-bold">0</span>
+                </span>
+              </div>
+
+              <!-- LAN Discovered Devices Grid -->
+              <div id="lan-devices-grid" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                <div class="py-8 text-center text-slate-500 font-mono text-xs">
+                  Нажмите «ОБНАРУЖИТЬ СЕТЬ» для автоматического аудита локального сегмента.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Perimeter Posture -->
+            <div class="cockpit-card p-4">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">PERIMETER DEFENSE POSTURE</span>
+                <span class="cockpit-pill-emerald">SECURE</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">Rogue DHCP Guard:</span>
+                  <span class="text-emerald-400 font-bold">АКТИВЕН</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">ARP Poisoning Watcher:</span>
+                  <span class="text-emerald-400 font-bold">МОНИТОРИНГ</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">Stealth Port Filter Rate:</span>
+                  <span class="text-amber-400 font-bold">100% BLOCKED</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
-            <!-- Frequencies Directory -->
-            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
-              <div class="text-slate-300 font-bold flex justify-between">
-                <span>АВАРИЙНЫЕ & ТАКТИЧЕСКИЕ ЧАСТОТЫ</span>
-                <span class="text-[10px] text-slate-500">ICAO / IMO</span>
-              </div>
-              <div id="rf-frequencies-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                <!-- Injected dynamically -->
-              </div>
-            </div>
-
-            <!-- Global WebSDR Receivers -->
-            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
-              <div class="text-slate-300 font-bold flex justify-between">
-                <span>ОТКРЫТЫЕ ПРИЕМНИКИ WEBSDR</span>
-                <span class="text-[10px] text-emerald-400">ONLINE</span>
-              </div>
-              <div id="rf-receivers-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                <!-- Injected dynamically -->
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 3: OSINT & THREAT INTELLIGENCE HUB                     -->
       <!-- ========================================================= -->
-      <div id="tab-osint" class="tab-content space-y-4 hidden">
-        
-        <!-- Subsection Tool Picker -->
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="osint-username">1. Username Recon (Sherlock)</button>
-          <button class="tool-picker-pill" data-tool="osint-synapse">2. Synapse Entity Graph</button>
-          <button class="tool-picker-pill" data-tool="osint-leaks">3. Leak Check (HIBP)</button>
-          <button class="tool-picker-pill" data-tool="osint-dorks">4. Dorks Studio</button>
-          <button class="tool-picker-pill" data-tool="all">5. Overview All</button>
-        </div>
-
-        <!-- Interactive 2D Synapse Entity Graph Card -->
-        <div class="tool-card argus-panel p-4" data-card="osint-synapse">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
-            <div>
-              <h3 class="text-sm font-bold font-mono text-cyan-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-400">01</span>
-                <span>SYNAPSE // 2D TOPOLOGICAL ENTITY GRAPH</span>
-              </h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">
-                Интерактивная визуализация цифрового следа сущности (никнейм, email, сервисы, домены) с физикой связей на 60 FPS Canvas.
+      <div id="tab-osint" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr_350px] gap-3.5 items-start">
+          
+          <!-- LEFT COLUMN: SHERLOCK RECON & DORKS STUDIO -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Sherlock Username Recon -->
+            <div class="cockpit-card p-4" data-card="osint-username">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">SHERLOCK // MULTI-PLATFORM RECON</span>
+                <span class="cockpit-pill-cyan">400+ TARGETS</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Глубокий поиск следов оператора или цели по базам социальных сетей, репозиториев и мессенджеров.
               </p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button id="btn-graph-reset" class="px-2.5 py-1 text-xs font-mono rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">СБРОС ВИДА</button>
-              <button id="btn-graph-physics" class="px-2.5 py-1 text-xs font-mono rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30">ФИЗИКА</button>
-            </div>
-          </div>
-          <div class="relative w-full h-80 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-            <canvas id="osint-synapse-canvas" class="w-full h-full block cursor-grab"></canvas>
-            <div class="absolute bottom-2 left-3 text-[10px] font-mono text-slate-500 pointer-events-none">
-              1. Перетаскивание узлов мышью | 2. Колесо: Зум | 3. Клик: Открыть сервис | 4. Зеленый: Подтвержден
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Username Recon Card -->
-          <div class="tool-card argus-panel p-4" data-card="osint-username">
-            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">02</span>
-              <span>SHERLOCK // MULTI-PLATFORM RECON</span>
-            </h3>
-            <div class="flex space-x-2 mb-3">
-              <input id="osint-username-input" type="text" placeholder="Введите handle (например: alex_vance)" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-              <button id="osint-search-btn" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">ИСКАТЬ</button>
-            </div>
-            <div id="osint-results-list" class="space-y-1.5 max-h-64 overflow-y-auto text-xs font-mono">
-              <div class="text-slate-500 py-6 text-center">Введите никнейм для сканирования 400+ публичных сервисов.</div>
-            </div>
-          </div>
-
-          <!-- Leak & Breach Verification -->
-          <div class="tool-card argus-panel p-4" data-card="osint-leaks">
-            <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">03</span>
-              <span>AUTONOMOUS BREACH & LEAK INTEL</span>
-            </h3>
-            
-            <!-- Email Breach Check Form -->
-            <div class="mb-3">
-              <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА КОМПРОМЕТАЦИИ EMAIL</div>
-              <div class="flex space-x-2">
-                <input id="breach-email-input" type="email" placeholder="target@domain.com" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-                <button id="breach-check-btn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ</button>
-              </div>
-            </div>
-
-            <!-- In-App Breach Intelligence Box (Zero External Redirects) -->
-            <div id="breach-result-box" class="hidden p-3 rounded-lg bg-slate-900/90 border border-amber-500/30 text-xs font-mono space-y-2 mb-3">
-              <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                <span class="text-slate-300 font-bold" id="breach-target-label">target@domain.com</span>
-                <span id="breach-risk-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">HIGH RISK</span>
-              </div>
-              <div id="breach-intel-details" class="text-slate-400 text-[11px] space-y-1">
-                <!-- Injected dynamically -->
-              </div>
-              <div class="hidden">
-                <a id="breach-hibp-link" target="_blank"></a>
-                <a id="breach-dehashed-link" target="_blank"></a>
-              </div>
-            </div>
-
-            <!-- Password Breach & Exposure Checker -->
-            <div class="pt-3 border-t border-slate-800/80">
-              <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА ПАРОЛЯ ПО БАЗЕ УТЕЧЕК (K-ANONYMITY & OFFLINE)</div>
               <div class="flex space-x-2 mb-2">
-                <input id="breach-pass-input" type="password" placeholder="Введите пароль для проверки" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-                <button id="breach-pass-btn" class="px-3 py-1.5 bg-rose-500/80 hover:bg-rose-500 text-white font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ ПАРОЛЬ</button>
+                <input id="osint-username-input" type="text" placeholder="Введите handle (например: alex_vance)" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-cyan-500/50 outline-none">
+                <button id="osint-search-btn" class="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">ИСКАТЬ</button>
               </div>
-              <div id="pass-breach-result" class="hidden p-2 rounded bg-slate-900/90 border border-slate-800 text-[11px] font-mono">
-                <!-- Injected dynamically -->
+              <div id="osint-results-list" class="space-y-1.5 max-h-72 overflow-y-auto text-xs font-mono p-2 rounded bg-black/40 border border-white/[0.04]">
+                <div class="text-slate-500 py-8 text-center">Введите никнейм для сканирования 400+ публичных сервисов.</div>
+              </div>
+            </div>
+
+            <!-- Card 2: Dorks Studio -->
+            <div class="cockpit-card p-4" data-card="osint-dorks">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">DORKS STUDIO // RECON BUILDER</span>
+                <span class="cockpit-pill-amber">GOOGLE / SHODAN</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="text-[10px] text-slate-400">БЫСТРЫЕ ШАБЛОНЫ ПОИСКА УТЕЧЕК:</div>
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button onclick="document.getElementById('osint-username-input').value='filetype:env DB_PASSWORD'; document.getElementById('osint-search-btn').click();" class="p-2 rounded bg-[#131720] hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 text-left transition cursor-pointer">
+                    <span class="text-amber-400 font-bold block">.env Files</span>
+                    <span>Пароли и ключи</span>
+                  </button>
+                  <button onclick="document.getElementById('osint-username-input').value='inurl:gitlab intext:API_KEY'; document.getElementById('osint-search-btn').click();" class="p-2 rounded bg-[#131720] hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 text-left transition cursor-pointer">
+                    <span class="text-sky-400 font-bold block">GitLab Leaks</span>
+                    <span>API токены</span>
+                  </button>
+                  <button onclick="document.getElementById('osint-username-input').value='inurl:view/index.shtml'; document.getElementById('osint-search-btn').click();" class="p-2 rounded bg-[#131720] hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 text-left transition cursor-pointer">
+                    <span class="text-emerald-400 font-bold block">Live CCTV</span>
+                    <span>Открытые камеры</span>
+                  </button>
+                  <button onclick="document.getElementById('osint-username-input').value='intitle:&quot;index of&quot; &quot;dump.sql&quot;'; document.getElementById('osint-search-btn').click();" class="p-2 rounded bg-[#131720] hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 text-left transition cursor-pointer">
+                    <span class="text-rose-400 font-bold block">SQL Dumps</span>
+                    <span>Дампы баз данных</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          <!-- CENTER COLUMN: INTERACTIVE 2D SYNAPSE ENTITY GRAPH -->
+          <div class="flex flex-col gap-3.5">
+            <div class="cockpit-card p-4" data-card="osint-synapse">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">SYNAPSE // 2D TOPOLOGICAL ENTITY GRAPH</span>
+                <div class="flex items-center space-x-2">
+                  <button id="btn-graph-reset" class="px-2 py-0.5 text-[10px] font-mono rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 cursor-pointer">СБРОС</button>
+                  <button id="btn-graph-physics" class="cockpit-pill-cyan cursor-pointer hover:bg-sky-500/25">ФИЗИКА</button>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Интерактивная топологическая карта связей сущности (никнейм, почта, социальные графы, серверы).
+              </p>
+              <div class="relative w-full h-[420px] bg-slate-950 rounded-lg border border-white/5 overflow-hidden">
+                <canvas id="osint-synapse-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+                <div class="absolute bottom-2 left-3 text-[10px] font-mono text-slate-500 pointer-events-none">
+                  ЛКМ: Перетаскивание | Колесо: Зум | Клик: Инспекция узла | Зеленый: Подтвержден
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: BREACH & LEAK INTEL & PASSWORD EXPOSURE -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Autonomous Breach & Leak Intel -->
+            <div class="cockpit-card p-4" data-card="osint-leaks">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">AUTONOMOUS BREACH INTEL</span>
+                <span class="cockpit-pill-amber">HIBP & DEHASHED</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Проверка компрометации почты по массивам публичных и даркнет-утечек.
+              </p>
+              
+              <div class="flex space-x-2 mb-3">
+                <input id="breach-email-input" type="email" placeholder="target@domain.com" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-amber-500/50 outline-none">
+                <button id="breach-check-btn" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">ПРОВЕРИТЬ</button>
+              </div>
+
+              <!-- In-App Breach Intelligence Box -->
+              <div id="breach-result-box" class="hidden p-3 rounded bg-black/50 border border-amber-500/30 text-xs font-mono space-y-2 mb-3">
+                <div class="flex justify-between items-center border-b border-white/5 pb-1.5">
+                  <span class="text-slate-200 font-bold" id="breach-target-label">target@domain.com</span>
+                  <span id="breach-risk-badge" class="cockpit-pill-amber">HIGH RISK</span>
+                </div>
+                <div id="breach-intel-details" class="text-slate-400 text-[11px] space-y-1"></div>
+                <div class="hidden">
+                  <a id="breach-hibp-link" target="_blank"></a>
+                  <a id="breach-dehashed-link" target="_blank"></a>
+                </div>
+              </div>
+
+              <!-- Password Breach & Exposure Checker -->
+              <div class="pt-3 border-t border-white/5">
+                <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА ПАРОЛЯ (K-ANONYMITY OFFLINE)</div>
+                <div class="flex space-x-2 mb-2">
+                  <input id="breach-pass-input" type="password" placeholder="Пароль для аудита утечки" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-rose-500/50 outline-none">
+                  <button id="breach-pass-btn" class="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">ПРОВЕРИТЬ</button>
+                </div>
+                <div id="pass-breach-result" class="hidden p-2 rounded bg-black/40 border border-white/5 text-[11px] font-mono"></div>
+              </div>
+            </div>
+
+            <!-- Card 2: Threat Actor Attribution -->
+            <div class="cockpit-card p-4">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">THREAT ACTOR ATTRIBUTION</span>
+                <span class="cockpit-pill-cyan">IOC CORRELATION</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-slate-400">Активные кампании APT:</span>
+                  <span class="text-amber-400 font-bold">14 выявлено</span>
+                </div>
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-slate-400">Корреляция хэшей:</span>
+                  <span class="text-emerald-400 font-bold">VIRUSTOTAL / ALIENVAULT</span>
+                </div>
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-slate-400">DNS Passive Recon:</span>
+                  <span class="text-slate-300">SECURITYTRAILS READY</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 4: VULN, SECRETS & CONTAINER HARDENING                 -->
       <!-- ========================================================= -->
-      <div id="tab-audit" class="tab-content space-y-4 hidden">
-        
-        <!-- Subsection Tool Picker -->
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="audit-secrets">1. Git Secret Scanner (TruffleHog)</button>
-          <button class="tool-picker-pill" data-tool="audit-docker">2. CIS Docker Hardening</button>
-          <button class="tool-picker-pill" data-tool="audit-knowledge">3. Knowledge & Wordlists</button>
-          <button class="tool-picker-pill" data-tool="all">4. Overview All</button>
-        </div>
+      <div id="tab-audit" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr_350px] gap-3.5 items-start">
+          
+          <!-- LEFT COLUMN: CODE & SECRET AUDIT + CIS DOCKER -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Code & Secret Scanner -->
+            <div class="cockpit-card p-4" data-card="audit-secrets">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">AUDIT MATRIX // CODE & SECRETS</span>
+                <span class="cockpit-pill-rose">TRUFFLEHOG / GITLEAKS</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Глубокий статический аудит репозиториев: выявление утекших ключей AWS, токенов GitHub/GitLab, паролей и приватных ключей.
+              </p>
+              <div class="flex space-x-2 mb-2">
+                <input id="audit-path-input" type="text" placeholder="/Users/username/Projects/app" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-rose-500/50 outline-none">
+                <button id="audit-path-btn" class="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">СКАНИРОВАТЬ</button>
+              </div>
+              <div id="audit-findings-list" class="space-y-2 max-h-72 overflow-y-auto text-xs font-mono p-2 rounded bg-black/40 border border-white/[0.04]">
+                <div class="text-slate-500 py-8 text-center">Укажите путь к локальному проекту для выявления утекших секретов и уязвимостей.</div>
+              </div>
+            </div>
 
-        <div class="tool-card argus-panel p-4" data-card="audit-secrets">
-          <h3 class="text-sm font-bold font-mono text-rose-400 mb-2 flex items-center space-x-2">
-            <span class="px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/30 text-[10px] text-rose-400">01</span>
-            <span>AUDIT MATRIX // CODE & SECRET AUDIT</span>
-          </h3>
-          <div class="flex space-x-2 mb-3">
-            <input id="audit-path-input" type="text" placeholder="/Users/username/Projects/app" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
-            <button id="audit-path-btn" class="px-4 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">СКАНИРОВАТЬ</button>
+            <!-- Card 2: CIS Docker Hardening -->
+            <div class="cockpit-card p-4" data-card="audit-docker">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">CIS DOCKER HARDENING BENCHMARK</span>
+                <span class="cockpit-pill-amber">CIS v1.6.0</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="p-2 rounded bg-[#131720] border border-white/5 space-y-1">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Сокет Docker Daemon:</span>
+                    <span class="text-emerald-400 font-bold">ЗАЩИЩЕН (NO-ROOT)</span>
+                  </div>
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Read-Only Root Filesystem:</span>
+                    <span class="text-emerald-400 font-bold">ВКЛЮЧЕНО</span>
+                  </div>
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-300">Linux Capabilities Drop:</span>
+                    <span class="text-amber-400 font-bold">ALL DROPPED</span>
+                  </div>
+                </div>
+                <div class="p-2 rounded bg-[#131720] border border-white/5 space-y-1">
+                  <div class="flex justify-between text-[10px] text-slate-400">
+                    <span>СКОРИНГ БЕЗОПАСНОСТИ КОНТЕЙНЕРОВ</span>
+                    <span class="text-emerald-400 font-bold">92 / 100</span>
+                  </div>
+                  <div class="cockpit-progress-track">
+                    <div class="cockpit-progress-amber" style="width: 92%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div id="audit-findings-list" class="space-y-2 max-h-64 overflow-y-auto text-xs font-mono">
-            <div class="text-slate-500 py-6 text-center">Укажите путь к локальному репозиторию для выявления утекших токенов, ключей AWS/SSH и паролей.</div>
-          </div>
-        </div>
 
-        <!-- Curated Knowledge & Wordlists Card -->
-        <div class="tool-card argus-panel p-4 hidden" data-card="audit-knowledge">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-            <h3 class="text-sm font-bold font-mono text-amber-400 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">02</span>
-              <span>CURATED KNOWLEDGE & RECON WORDLISTS HUB</span>
-            </h3>
-            <span class="text-[10px] font-mono text-slate-400">GOLD STANDARD REPOSITORIES</span>
+          <!-- CENTER COLUMN: CURATED KNOWLEDGE & WORDLISTS HUB -->
+          <div class="flex flex-col gap-3.5">
+            <div class="cockpit-card p-4" data-card="audit-knowledge">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">CURATED KNOWLEDGE & RECON WORDLISTS HUB</span>
+                <span class="cockpit-pill-amber">OWASP / SECLISTS</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-3">
+                Официальные курируемые репозитории, словари SecLists, базы инъекций PayloadsAllTheThings и руководства OWASP.
+              </p>
+              <div id="knowledge-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs font-mono max-h-[500px] overflow-y-auto pr-1">
+                <div class="text-slate-500 py-12 text-center col-span-2">Загрузка каталога знаний...</div>
+              </div>
+            </div>
           </div>
-          <p class="text-xs text-slate-400 font-mono mb-3">Официальные курируемые репозитории, словари SecLists, базы инъекций PayloadsAllTheThings и руководства OWASP для автономного аудита.</p>
-          <div id="knowledge-catalog-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
-            <div class="text-slate-500 py-4 text-center col-span-2">Загрузка каталога знаний...</div>
+
+          <!-- RIGHT COLUMN: ENTROPY & COMPLIANCE -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Secret Entropy & Token Rules -->
+            <div class="cockpit-card p-4">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">HIGH-ENTROPY SCANNER</span>
+                <span class="cockpit-pill-cyan">SHANNON 4.5+</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="p-2 rounded bg-[#131720] border border-white/5 space-y-1">
+                  <div class="text-slate-400 text-[10px]">АКТИВНЫЕ ПАТТЕРНЫ ЭНТРОПИИ:</div>
+                  <div class="text-slate-300 text-[11px] flex justify-between"><span>AWS Access Key (AKIA...):</span> <span class="text-rose-400 font-bold">REGEX VERIFIED</span></div>
+                  <div class="text-slate-300 text-[11px] flex justify-between"><span>GitHub Fine-Grained Token:</span> <span class="text-rose-400 font-bold">REGEX VERIFIED</span></div>
+                  <div class="text-slate-300 text-[11px] flex justify-between"><span>OpenAI Secret API Key:</span> <span class="text-rose-400 font-bold">REGEX VERIFIED</span></div>
+                  <div class="text-slate-300 text-[11px] flex justify-between"><span>RSA/ECDSA Private Key:</span> <span class="text-rose-400 font-bold">REGEX VERIFIED</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: SAST Hardening Matrix -->
+            <div class="cockpit-card p-4">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">SAST COMPLIANCE MATRIX</span>
+                <span class="cockpit-pill-emerald">OWASP TOP 10</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">A01: Broken Access Control:</span>
+                  <span class="text-emerald-400 font-bold">PASS</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">A02: Cryptographic Failures:</span>
+                  <span class="text-emerald-400 font-bold">PASS</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">A03: Injection (SQL/Cmd):</span>
+                  <span class="text-emerald-400 font-bold">PASS</span>
+                </div>
+                <div class="flex justify-between items-center text-[11px]">
+                  <span class="text-slate-400">A05: Security Misconfig:</span>
+                  <span class="text-amber-400 font-bold">AUDITING</span>
+                </div>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 5: IDENTITY VAULT & CRYPTOGRAPHY                      -->
       <!-- ========================================================= -->
-      <div id="tab-crypto" class="tab-content space-y-4 hidden">
-        
-        <!-- Subsection Tool Picker -->
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="vault-entropy">1. Password Entropy</button>
-          <button class="tool-picker-pill" data-tool="vault-stego">2. Zero-Width Stego</button>
-          <button class="tool-picker-pill" data-tool="vault-burn">3. Burn Notes</button>
-          <button class="tool-picker-pill" data-tool="vault-veracrypt">4. AES-256 Vault</button>
-          <button class="tool-picker-pill" data-tool="vault-webauthn">5. Touch ID / Passkeys</button>
-          <button class="tool-picker-pill" data-tool="all">6. Overview All</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Password Entropy Card -->
-          <div class="tool-card argus-panel p-4" data-card="vault-entropy">
-            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">01</span>
-              <span>HIGH-ENTROPY CIPHER GENERATOR</span>
-            </h3>
-            <div class="space-y-3 text-xs font-mono">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400">Длина пароля: <span id="pwd-len-val" class="text-sky-400 font-bold">24</span></span>
-                <input id="pwd-len-range" type="range" min="12" max="64" value="24" class="w-36">
+      <div id="tab-crypto" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[330px_1fr_350px] gap-3.5 items-start">
+          
+          <!-- LEFT COLUMN: HIGH-ENTROPY CIPHER & WEBAUTHN -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Password Entropy -->
+            <div class="cockpit-card p-4" data-card="vault-entropy">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">HIGH-ENTROPY CIPHER GENERATOR</span>
+                <span class="cockpit-pill-cyan">CSPRN RNG</span>
               </div>
-              <button id="pwd-gen-btn" class="w-full py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold rounded-lg transition">СГЕНЕРИРОВАТЬ ПАРОЛЬ</button>
-              <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                <span id="generated-pwd" class="text-emerald-400 select-all break-all">Нажмите «Сгенерировать»</span>
-                <button id="btn-copy-pwd" class="text-[10px] font-mono text-slate-400 hover:text-white px-2">COPY</button>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Генерация криптографически стойких паролей с проверкой энтропии по Шеннону и NIST SP 800-63B.
+              </p>
+              <div class="space-y-3 text-xs font-mono">
+                <div class="flex items-center justify-between p-2 rounded bg-[#131720] border border-white/5">
+                  <span class="text-slate-400">Длина пароля: <span id="pwd-len-val" class="text-sky-400 font-bold">24</span> симв.</span>
+                  <input id="pwd-len-range" type="range" min="12" max="64" value="24" class="w-32 accent-sky-400">
+                </div>
+                <button id="pwd-gen-btn" class="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold rounded-lg transition cursor-pointer">СГЕНЕРИРОВАТЬ ПАРОЛЬ</button>
+                <div class="p-2.5 rounded bg-black/50 border border-white/10 flex items-center justify-between">
+                  <span id="generated-pwd" class="text-emerald-400 select-all break-all font-bold">Нажмите «Сгенерировать»</span>
+                  <button id="btn-copy-pwd" class="text-[10px] font-mono text-slate-400 hover:text-white px-2 py-1 rounded bg-[#131720] cursor-pointer">COPY</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: WebAuthn / Touch ID Passkeys -->
+            <div class="cockpit-card p-4" data-card="vault-webauthn">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">W3C WEBAUTHN / TOUCH ID</span>
+                <span id="webauthn-status-badge" class="cockpit-pill-emerald">SECURE ENCLAVE</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Биометрическая аутентификация через Apple Secure Enclave / TPM 2.0. Приватный ключ аппаратно изолирован.
+              </p>
+              <div class="space-y-2 text-xs font-mono">
+                <div class="grid grid-cols-1 gap-2">
+                  <button id="btn-webauthn-register" class="py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-bold transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <span>Привязать Touch ID / Passkey</span>
+                  </button>
+                  <button id="btn-webauthn-authenticate" class="py-2 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 font-bold transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <span>Вход по биометрии (Touch ID)</span>
+                  </button>
+                </div>
+                <div id="webauthn-result-box" class="p-2 rounded bg-black/40 border border-white/5 hidden select-all break-all text-[11px]"></div>
               </div>
             </div>
           </div>
 
-          <!-- Zero-Width Steganography Card -->
-          <div class="tool-card argus-panel p-4" data-card="vault-stego">
-            <h3 class="text-sm font-bold font-mono text-violet-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/30 text-[10px] text-violet-400">02</span>
-              <span>ZERO-WIDTH STEGANOGRAPHY (AES-256)</span>
-            </h3>
-            <div class="space-y-2 text-xs font-mono">
-              <textarea id="stego-cover-text" rows="2" placeholder="Обычный текст прикрытия (контейнер)..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
-              <textarea id="stego-secret-text" rows="2" placeholder="Секретное сообщение для сокрытия..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
-              <div class="flex space-x-2">
-                <input id="stego-password" type="password" placeholder="Ключ AES (опционально)" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1 text-slate-200">
-                <button id="stego-encode-btn" class="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-lg transition">СКРЫТЬ</button>
-                <button id="stego-decode-btn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition">ИЗВЛЕЧЬ</button>
+          <!-- CENTER COLUMN: AUTHENTICATED AES-256-GCM VAULT -->
+          <div class="flex flex-col gap-3.5">
+            <div class="cockpit-card p-4" data-card="vault-veracrypt">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">AUTHENTICATED AES-256-GCM VAULT</span>
+                <span class="cockpit-pill-amber">ZERO-KNOWLEDGE</span>
               </div>
-              <div id="stego-result-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[11px] hidden select-all break-all"></div>
+              <p class="text-[11px] text-slate-400 font-mono mb-3">
+                Автономный криптографический сейф с аутентификацией данных (AEAD). Защита от фальсификации шифротекста.
+              </p>
+              <div class="space-y-3 text-xs font-mono">
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">ДАННЫЕ ДЛЯ ЗАЩИТЫ (PAYLOAD):</label>
+                  <textarea id="vault-data-input" rows="5" placeholder="Введите токены, секретные ключи, конфиги или чувствительный текст..." class="w-full bg-[#131720] border border-white/10 rounded-lg p-2.5 text-slate-200 focus:border-amber-500/50 outline-none"></textarea>
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400 block mb-1">МАСТЕР-ПАРОЛЬ СЕЙФА (MIN 8 СИМВОЛОВ):</label>
+                  <input id="vault-passphrase-input" type="password" placeholder="Мастер-пароль шифрования" class="w-full bg-[#131720] border border-white/10 rounded-lg px-3 py-2 text-slate-200 focus:border-amber-500/50 outline-none">
+                </div>
+                <div class="flex space-x-2">
+                  <button id="vault-encrypt-btn" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">ЗАШИФРОВАТЬ (AES-GCM)</button>
+                  <button id="vault-decrypt-btn" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition border border-white/10 cursor-pointer">РАСШИФРОВАТЬ</button>
+                </div>
+                <div id="vault-result-box" class="p-3 rounded bg-black/50 border border-white/10 text-[11px] hidden break-all select-all"></div>
+              </div>
             </div>
           </div>
 
-          <!-- Ephemeral Burn Notes Card -->
-          <div class="tool-card argus-panel p-4" data-card="vault-burn">
-            <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">03</span>
-              <span>EPHEMERAL BURN NOTES (RAM ZEROING)</span>
-            </h3>
-            <div class="space-y-2 text-xs font-mono">
-              <textarea id="burn-note-input" rows="2" placeholder="Текст одноразового секрета..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
-              <div class="flex items-center space-x-2">
-                <select id="burn-ttl-select" class="bg-slate-900 border border-slate-700/80 rounded-lg px-2 py-1 text-slate-300">
-                  <option value="600">10 минут</option>
-                  <option value="3600" selected>1 час</option>
-                  <option value="86400">24 часа</option>
-                </select>
-                <button id="burn-note-create-btn" class="flex-1 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">СОЗДАТЬ СЕКРЕТ</button>
+          <!-- RIGHT COLUMN: ZERO-WIDTH STEGO & BURN NOTES -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Card 1: Zero-Width Stego -->
+            <div class="cockpit-card p-4" data-card="vault-stego">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">ZERO-WIDTH STEGANOGRAPHY</span>
+                <span class="cockpit-pill-cyan">AES-256 HIDDEN</span>
               </div>
-              <div id="burn-note-result" class="p-2 rounded bg-slate-900 border border-slate-800 text-[11px] hidden break-all"></div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Сокрытие шифрованных данных в невидимых Unicode-символах нулевой ширины внутри обычного текста.
+              </p>
+              <div class="space-y-2 text-xs font-mono">
+                <textarea id="stego-cover-text" rows="2" placeholder="Обычный текст прикрытия (контейнер)..." class="w-full bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-slate-200 focus:border-cyan-500/50 outline-none"></textarea>
+                <textarea id="stego-secret-text" rows="2" placeholder="Секретное сообщение для сокрытия..." class="w-full bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-slate-200 focus:border-cyan-500/50 outline-none"></textarea>
+                <div class="flex space-x-2">
+                  <input id="stego-password" type="password" placeholder="Ключ AES (опционально)" class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-slate-200 focus:border-cyan-500/50 outline-none">
+                  <button id="stego-encode-btn" class="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">СКРЫТЬ</button>
+                  <button id="stego-decode-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition border border-white/10 cursor-pointer">ИЗВЛЕЧЬ</button>
+                </div>
+                <div id="stego-result-box" class="p-2 rounded bg-black/50 border border-white/10 text-[11px] hidden select-all break-all"></div>
+              </div>
+            </div>
+
+            <!-- Card 2: Ephemeral Burn Notes -->
+            <div class="cockpit-card p-4" data-card="vault-burn">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">EPHEMERAL BURN NOTES</span>
+                <span class="cockpit-pill-rose">RAM ZEROING</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-2">
+                Одноразовые самоуничтожающиеся записки. Надежное затирание памяти SecureBuffer после прочтения.
+              </p>
+              <div class="space-y-2 text-xs font-mono">
+                <textarea id="burn-note-input" rows="2" placeholder="Текст одноразового секрета..." class="w-full bg-[#131720] border border-white/10 rounded-lg px-3 py-1.5 text-slate-200 focus:border-rose-500/50 outline-none"></textarea>
+                <div class="flex items-center space-x-2">
+                  <select id="burn-ttl-select" class="bg-[#131720] border border-white/10 rounded-lg px-2 py-1.5 text-slate-300 text-xs">
+                    <option value="600">10 минут</option>
+                    <option value="3600" selected>1 час</option>
+                    <option value="86400">24 часа</option>
+                  </select>
+                  <button id="burn-note-create-btn" class="flex-1 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">СОЗДАТЬ СЕКРЕТ</button>
+                </div>
+                <div id="burn-note-result" class="p-2 rounded bg-black/50 border border-white/10 text-[11px] hidden break-all"></div>
+              </div>
             </div>
           </div>
 
-          <!-- VeraCrypt & AES-256 Vault Card -->
-          <div class="tool-card argus-panel p-4" data-card="vault-veracrypt">
-            <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-400">04</span>
-              <span>AUTHENTICATED AES-256-GCM VAULT</span>
-            </h3>
-            <div class="space-y-2 text-xs font-mono">
-              <input id="vault-data-input" type="text" placeholder="Данные для шифрования (токен, пароли, конфиг)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <input id="vault-passphrase-input" type="password" placeholder="Мастер-пароль сейфа (минимум 8 знаков)" class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <div class="flex space-x-2">
-                <button id="vault-encrypt-btn" class="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">ЗАШИФРОВАТЬ</button>
-                <button id="vault-decrypt-btn" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg transition">РАСШИФРОВАТЬ</button>
-              </div>
-              <div id="vault-result-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[10px] hidden break-all"></div>
-            </div>
-          </div>
-
-          <!-- WebAuthn Passkeys / Touch ID Card -->
-          <div class="tool-card argus-panel p-4 md:col-span-2" data-card="vault-webauthn">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-              <h3 class="text-sm font-bold font-mono text-emerald-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-400">05</span>
-                <span>W3C WEBAUTHN / TOUCH ID PASSKEYS ENCLAVE</span>
-              </h3>
-              <span id="webauthn-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-400 border border-slate-700">ГОТОВ К ПРИВЯЗКЕ</span>
-            </div>
-            <p class="text-xs text-slate-400 font-mono mb-3">Аппаратная биометрическая аутентификация через Apple Secure Enclave / Windows Hello TPM 2.0. Приватный ключ никогда не покидает защищённый чип устройства.</p>
-            <div class="space-y-3 text-xs font-mono">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button id="btn-webauthn-register" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> <span>Привязать Touch ID / Passkey</span>
-                </button>
-                <button id="btn-webauthn-authenticate" class="py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-sky-950/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-white"></span> <span>Вход по биометрии (Touch ID)</span>
-                </button>
-              </div>
-              <div id="webauthn-result-box" class="p-3 rounded-lg bg-slate-900 border border-slate-800 hidden select-all break-all text-[11px] space-y-1"></div>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 6: FORENSICS LAB & METADATA EXPLOIT AUDIT             -->
       <!-- ========================================================= -->
-      <div id="tab-forensics" class="tab-content space-y-4 hidden">
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="forensics-exif">1. EXIF & GPS Recon</button>
-          <button class="tool-picker-pill" data-tool="forensics-pdf">2. Dangerzone PDF Audit</button>
-          <button class="tool-picker-pill" data-tool="forensics-threats">3. YARA & Sigma Threats</button>
-          <button class="tool-picker-pill" data-tool="all">4. Overview All</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- EXIF Metadata Card -->
-          <div class="tool-card argus-panel p-4" data-card="forensics-exif">
-            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">01</span>
-              <span>IMAGE EXIF & GEOLOCATION RECON</span>
-            </h3>
+      <div id="tab-forensics" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-3.5 items-start">
+          
+          <!-- COLUMN 1: EXIF METADATA & GEOLOCATION RECON -->
+          <div class="cockpit-card p-4" data-card="forensics-exif">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">IMAGE EXIF & GEOLOCATION RECON</span>
+              <span class="cockpit-pill-cyan">GPS TELEMETRY</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Извлечение скрытых метаданных съемки, модели камеры, GPS-координат и маркеров синтетической генерации ИИ.
+            </p>
             <div class="space-y-3 text-xs font-mono">
-              <p class="text-slate-400 text-[11px]">Извлечение скрытых метаданных съемки, модели камеры, GPS-координат и маркеров синтетической генерации ИИ.</p>
-              <div class="p-3 border-2 border-dashed border-slate-700/80 hover:border-sky-500/60 rounded-xl text-center cursor-pointer transition" id="exif-drop-zone">
+              <div class="p-4 border-2 border-dashed border-sky-500/20 hover:border-sky-500/50 bg-[#131720] rounded-xl text-center cursor-pointer transition flex flex-col items-center justify-center space-y-1.5" id="exif-drop-zone">
                 <input type="file" id="exif-file-input" accept="image/*" class="hidden">
-                <span class="text-slate-400">Перетащите изображение или <span class="text-sky-400 underline">выберите файл</span></span>
+                <div class="text-[11px] text-slate-300 font-bold">ПЕРЕТАЩИТЕ ИЗОБРАЖЕНИЕ СЮДА</div>
+                <div class="text-[10px] text-sky-400 underline">или нажмите для выбора файла (JPEG, PNG, HEIC, TIFF)</div>
               </div>
-              <div id="exif-results-box" class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2 hidden">
+              <div id="exif-results-box" class="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2 hidden">
                 <!-- Injected dynamically -->
               </div>
             </div>
           </div>
 
-          <!-- Dangerzone PDF Security Card -->
-          <div class="tool-card argus-panel p-4" data-card="forensics-pdf">
-            <h3 class="text-sm font-bold font-mono text-rose-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/30 text-[10px] text-rose-400">02</span>
-              <span>DANGERZONE PDF SECURITY & EXPLOIT AUDITOR</span>
-            </h3>
+          <!-- COLUMN 2: DANGERZONE PDF SECURITY & EXPLOIT AUDITOR -->
+          <div class="cockpit-card p-4" data-card="forensics-pdf">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">DANGERZONE PDF EXPLOIT AUDITOR</span>
+              <span class="cockpit-pill-rose">DEEP PARSER</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Глубокий анализ PDF на скрытые вредоносные директивы: /JavaScript, /Launch, /OpenAction и встроенные эксплойты.
+            </p>
             <div class="space-y-3 text-xs font-mono">
-              <p class="text-slate-400 text-[11px]">Глубокий анализ PDF на скрытые вредоносные директивы: /JavaScript, /Launch, /OpenAction и встроенные эксплойты.</p>
-              <div class="p-3 border-2 border-dashed border-slate-700/80 hover:border-rose-500/60 rounded-xl text-center cursor-pointer transition" id="pdf-drop-zone">
+              <div class="p-4 border-2 border-dashed border-rose-500/20 hover:border-rose-500/50 bg-[#131720] rounded-xl text-center cursor-pointer transition flex flex-col items-center justify-center space-y-1.5" id="pdf-drop-zone">
                 <input type="file" id="pdf-file-input" accept="application/pdf" class="hidden">
-                <span class="text-slate-400">Перетащите PDF или <span class="text-rose-400 underline">выберите файл</span></span>
+                <div class="text-[11px] text-slate-300 font-bold">ПЕРЕТАЩИТЕ PDF ДОКУМЕНТ</div>
+                <div class="text-[10px] text-rose-400 underline">или нажмите для выбора документа</div>
               </div>
-              <div id="pdf-results-box" class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2 hidden">
+              <div id="pdf-results-box" class="p-3 rounded-lg bg-black/40 border border-white/5 space-y-2 hidden">
                 <!-- Injected dynamically -->
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- YARA & Sigma Threat Inspector Card -->
-        <div class="tool-card argus-panel p-4" data-card="forensics-threats">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
-            <div>
-              <h3 class="text-sm font-bold font-mono text-amber-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">03</span>
-                <span>YARA & SIGMA // MALWARE & LOLBIN THREAT DETECTOR</span>
-              </h3>
-              <p class="text-xs text-slate-400 font-mono mt-0.5">
-                Автономный сигнатурный анализ веб-шеллов (c99/r57/b374k/WSO), реверс-шеллов, обфусцированного PowerShell и LOLBins.
-              </p>
+          <!-- COLUMN 3: YARA & SIGMA THREAT DETECTOR -->
+          <div class="cockpit-card p-4" data-card="forensics-threats">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">YARA & SIGMA THREAT DETECTOR</span>
+              <span id="threat-rules-count-badge" class="cockpit-pill-amber">11 СИГНАТУР</span>
             </div>
-            <div class="flex items-center space-x-2">
-              <span id="threat-rules-count-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/30">11 сигнатур загружено</span>
-            </div>
-          </div>
-          <div class="space-y-3 text-xs font-mono">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div class="md:col-span-2 space-y-2">
-                <textarea id="threat-scan-input" rows="4" placeholder="Вставьте код скрипта, лог процесса или подозрительную полезную нагрузку для анализа..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2.5 text-slate-200 text-xs font-mono focus:border-amber-500/50 outline-none"></textarea>
-                <div class="flex items-center space-x-2">
-                  <button id="threat-scan-btn" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-lg transition text-xs">СКАНИРОВАТЬ СИГНАТУРЫ</button>
-                  <label class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg cursor-pointer transition text-xs border border-slate-700">
-                    Выбрать файл
-                    <input type="file" id="threat-file-input" class="hidden">
-                  </label>
-                  <span id="threat-scan-filename" class="text-slate-500 text-[11px] truncate max-w-xs"></span>
-                </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Автономный сигнатурный анализ веб-шеллов (c99/r57/b374k/WSO), реверс-шеллов, PowerShell и LOLBins.
+            </p>
+            <div class="space-y-3 text-xs font-mono">
+              <textarea id="threat-scan-input" rows="3" placeholder="Вставьте код скрипта, лог процесса или подозрительную полезную нагрузку..." class="w-full bg-[#131720] border border-white/10 rounded-lg p-2.5 text-slate-200 text-xs font-mono focus:border-amber-500/50 outline-none"></textarea>
+              <div class="flex items-center space-x-2">
+                <button id="threat-scan-btn" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-lg transition text-xs cursor-pointer">СКАНИРОВАТЬ</button>
+                <label class="px-3 py-2 bg-[#181c26] hover:bg-[#202634] text-slate-200 rounded-lg cursor-pointer transition text-xs border border-white/10 shrink-0">
+                  Файл
+                  <input type="file" id="threat-file-input" class="hidden">
+                </label>
               </div>
-              <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800 space-y-1.5 text-[11px]">
+              <span id="threat-scan-filename" class="text-slate-500 text-[10px] truncate block"></span>
+              
+              <div class="p-2.5 bg-black/40 rounded-lg border border-white/5 space-y-1 text-[11px]">
                 <div class="text-slate-400 font-bold mb-1">СИГНАТУРНЫЙ КАТАЛОГ:</div>
-                <div class="text-slate-500 flex items-center justify-between"><span>WebShells (c99/r57/eval):</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
-                <div class="text-slate-500 flex items-center justify-between"><span>Reverse TCP Connect-back:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
-                <div class="text-slate-500 flex items-center justify-between"><span>PowerShell Memory Exec:</span> <span class="text-amber-400 font-bold">HIGH</span></div>
-                <div class="text-slate-500 flex items-center justify-between"><span>Mimikatz LSASS Dump:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
-                <div class="text-slate-500 flex items-center justify-between"><span>LOLBins (certutil/bitsadmin):</span> <span class="text-amber-400 font-bold">HIGH</span></div>
+                <div class="text-slate-400 flex items-center justify-between"><span>WebShells (c99/r57/eval):</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-400 flex items-center justify-between"><span>Reverse TCP Connect-back:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-400 flex items-center justify-between"><span>PowerShell Memory Exec:</span> <span class="text-amber-400 font-bold">HIGH</span></div>
+                <div class="text-slate-400 flex items-center justify-between"><span>Mimikatz LSASS Dump:</span> <span class="text-rose-400 font-bold">CRITICAL</span></div>
+                <div class="text-slate-400 flex items-center justify-between"><span>LOLBins (certutil/bitsadmin):</span> <span class="text-amber-400 font-bold">HIGH</span></div>
+              </div>
+              
+              <div id="threat-scan-results" class="hidden p-3 rounded-lg bg-black/40 border border-white/5 space-y-2">
+                <!-- Injected dynamically -->
               </div>
             </div>
-            <div id="threat-scan-results" class="hidden p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
-              <!-- Injected dynamically -->
-            </div>
           </div>
+
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 7: OPSEC & DATA LOSS PREVENTION (PASTEGUARD)          -->
       <!-- ========================================================= -->
-      <div id="tab-opsec" class="tab-content space-y-4 hidden">
-        <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-          <button class="tool-picker-pill active" data-tool="opsec-sanitize">1. Pasteguard DLP</button>
-          <button class="tool-picker-pill" data-tool="opsec-urls">2. ClearURLs Stripper</button>
-          <button class="tool-picker-pill" data-tool="opsec-disposable">3. Disposable Identity</button>
-          <button class="tool-picker-pill" data-tool="all">4. Overview All</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Pasteguard DLP Sanitizer Card -->
-          <div class="tool-card argus-panel p-4" data-card="opsec-sanitize">
-            <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-400">01</span>
-              <span>PASTEGUARD DATA LOSS SANITIZER</span>
-            </h3>
-            <div class="space-y-2 text-xs font-mono">
-              <textarea id="opsec-sanitize-input" rows="3" placeholder="Вставьте конфиденциальный текст для вымарывания email, телефонов, карт и токенов..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200"></textarea>
-              <button id="opsec-sanitize-btn" class="w-full py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition">ВЫМАРАТЬ ДАННЫЕ (SANITIZE)</button>
-              <div id="opsec-sanitize-result" class="p-2.5 rounded bg-slate-900 border border-slate-800 hidden space-y-1">
+      <div id="tab-opsec" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-3.5 items-start">
+          
+          <!-- COLUMN 1: PASTEGUARD DLP SANITIZER -->
+          <div class="cockpit-card p-4" data-card="opsec-sanitize">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">PASTEGUARD DLP SANITIZER</span>
+              <span class="cockpit-pill-emerald">DLP MASKING</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Автоматическое обнаружение и маскирование PII, номеров карт, API токенов, приватных ключей и паролей в буфере.
+            </p>
+            <div class="space-y-3 text-xs font-mono">
+              <textarea id="opsec-sanitize-input" rows="4" placeholder="Вставьте конфиденциальный текст для вымарывания email, телефонов, карт и токенов..." class="w-full bg-[#131720] border border-white/10 rounded-lg p-2.5 text-slate-200 outline-none focus:border-emerald-500/50"></textarea>
+              <button id="opsec-sanitize-btn" class="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">ВЫМАРАТЬ ДАННЫЕ (SANITIZE)</button>
+              <div id="opsec-sanitize-result" class="p-2.5 rounded bg-black/40 border border-white/5 hidden space-y-1.5">
                 <div class="flex justify-between text-[11px] text-slate-400">
                   <span>Очищенный текст:</span>
-                  <button id="btn-copy-sanitized" class="text-sky-400 hover:underline">Копировать</button>
+                  <button id="btn-copy-sanitized" class="text-sky-400 hover:underline cursor-pointer">Копировать</button>
                 </div>
-                <div id="sanitized-text-output" class="text-slate-200 select-all break-all whitespace-pre-wrap"></div>
+                <div id="sanitized-text-output" class="text-slate-200 select-all break-all whitespace-pre-wrap text-[11px] bg-[#131720] p-2 rounded"></div>
               </div>
             </div>
           </div>
 
-          <!-- ClearURLs Tracker Stripper Card -->
-          <div class="tool-card argus-panel p-4" data-card="opsec-urls">
-            <h3 class="text-sm font-bold font-mono text-sky-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">02</span>
-              <span>CLEARURLS TRACKER STRIPPER</span>
-            </h3>
-            <div class="space-y-2 text-xs font-mono">
-              <input id="opsec-url-input" type="text" placeholder="https://example.com/item?utm_source=ad&fbclid=xyz..." class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <button id="opsec-url-btn" class="w-full py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg transition">УДАЛИТЬ ТРЕКЕРЫ СЛЕЖКИ</button>
-              <div id="opsec-url-result" class="p-2.5 rounded bg-slate-900 border border-slate-800 hidden space-y-1">
+          <!-- COLUMN 2: CLEARURLS TRACKER STRIPPER -->
+          <div class="cockpit-card p-4" data-card="opsec-urls">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">CLEARURLS TRACKER STRIPPER</span>
+              <span class="cockpit-pill-cyan">ANTI-TELEMETRY</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Очистка внешних ссылок от следящих UTM-меток, рекламных параметров, редиректов и идентификаторов отслеживания (fbclid, gclid).
+            </p>
+            <div class="space-y-3 text-xs font-mono">
+              <input id="opsec-url-input" type="text" placeholder="https://example.com/item?utm_source=ad&fbclid=xyz..." class="w-full bg-[#131720] border border-white/10 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-sky-500/50">
+              <button id="opsec-url-btn" class="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">УДАЛИТЬ ТРЕКЕРЫ СЛЕЖКИ</button>
+              <div id="opsec-url-result" class="p-2.5 rounded bg-black/40 border border-white/5 hidden space-y-1.5">
                 <div class="text-[10px] text-emerald-400 font-bold" id="url-removed-count"></div>
-                <div id="cleaned-url-output" class="text-sky-300 select-all break-all"></div>
+                <div id="cleaned-url-output" class="text-sky-300 select-all break-all text-[11px] bg-[#131720] p-2 rounded"></div>
               </div>
             </div>
           </div>
 
-          <!-- Disposable Identity Generator Card -->
-          <div class="tool-card argus-panel p-4 md:col-span-2" data-card="opsec-disposable">
-            <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
-              <span class="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400">03</span>
-              <span>DISPOSABLE IDENTITY & BURNER PROFILE</span>
-            </h3>
-            <div class="flex items-center space-x-3 text-xs font-mono">
-              <input id="disposable-prefix-input" type="text" placeholder="Префикс (например: operator)" value="operator" class="w-48 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-slate-200">
-              <button id="disposable-gen-btn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition">СОЗДАТЬ АНОНИМНЫЙ ПРОФИЛЬ</button>
+          <!-- COLUMN 3: DISPOSABLE IDENTITY & BURNER PROFILE -->
+          <div class="cockpit-card p-4" data-card="opsec-disposable">
+            <div class="cockpit-card-header shrink-0">
+              <span class="cockpit-card-title">DISPOSABLE IDENTITY & PERSONA</span>
+              <span class="cockpit-pill-amber">BURNER PROFILE</span>
             </div>
-            <div id="disposable-identity-result" class="mt-3 p-3 rounded bg-slate-900 border border-slate-800 hidden text-xs font-mono space-y-1">
-              <!-- Injected dynamically -->
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Генерация временного цифрового профиля для тестирования (случайное имя, псевдоним, временный email, фингерпринт).
+            </p>
+            <div class="space-y-3 text-xs font-mono">
+              <div class="flex items-center space-x-2">
+                <input id="disposable-prefix-input" type="text" placeholder="Префикс" value="operator" class="w-1/2 bg-[#131720] border border-white/10 rounded-lg px-3 py-2 text-slate-200 outline-none focus:border-amber-500/50">
+                <button id="disposable-gen-btn" class="w-1/2 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition cursor-pointer">СОЗДАТЬ</button>
+              </div>
+              <div id="disposable-identity-result" class="p-2.5 rounded bg-black/40 border border-white/5 hidden text-xs font-mono space-y-1">
+                <!-- Injected dynamically -->
+              </div>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- ========================================================= -->
       <!-- TAB 8: EXECUTIVE SECURITY ANALYST                         -->
       <!-- ========================================================= -->
-      <div id="tab-analyst" class="tab-content space-y-4 hidden">
-        <div class="tool-card argus-panel p-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div>
-              <h3 class="text-sm font-bold font-mono text-sky-400 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">01</span>
-                <span>EXECUTIVE POSTURE & SECURITY AUDIT DASHBOARD</span>
-              </h3>
-              <p class="text-slate-400 text-xs">Комплексный скоринг защищенности рабочей станции: FileVault, SIP, Gatekeeper, открытые порты и аудит кода.</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button id="btn-generate-analyst-report" class="px-3.5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition shadow-lg shadow-sky-950/40">
-                СОСТАВИТЬ ОТЧЕТ
-              </button>
-              <button id="btn-export-markdown-report" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono font-bold text-xs rounded-lg transition flex items-center space-x-1.5">
-                <span>Экспорт (.md)</span>
-              </button>
-              <button id="btn-print-pdf-report" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono font-bold text-xs rounded-lg transition flex items-center space-x-1.5">
-                <span>Печать / PDF</span>
-              </button>
+      <div id="tab-analyst" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-[340px_1fr_360px] gap-3.5 items-start">
+          
+          <!-- LEFT COLUMN: EXECUTIVE POSTURE & HARDENING SCORES -->
+          <div class="flex flex-col gap-3.5">
+            <div class="cockpit-card p-4" data-card="analyst-posture">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">EXECUTIVE SECURITY POSTURE</span>
+                <span class="cockpit-pill-emerald">SOC MATRIX</span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mb-3">
+                Комплексный скоринг защищенности рабочей станции: FileVault, SIP, Gatekeeper, открытые сокеты и аудит кода.
+              </p>
+              <div class="space-y-2.5 font-mono">
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 text-center">
+                    <div class="text-[9px] text-slate-400">SCORE</div>
+                    <div id="analyst-score-val" class="text-2xl font-bold text-emerald-400 mt-0.5">--</div>
+                    <div id="analyst-verdict-badge" class="text-[9px] text-slate-500 mt-0.5 truncate">Ожидание...</div>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 text-center">
+                    <div class="text-[9px] text-slate-400">HARDENING</div>
+                    <div id="analyst-hardening-val" class="text-2xl font-bold text-sky-400 mt-0.5">--</div>
+                    <div class="text-[9px] text-slate-500 mt-0.5">SIP & Vault</div>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 text-center">
+                    <div class="text-[9px] text-slate-400">AIR-GAP</div>
+                    <div id="analyst-airgap-val" class="text-xl font-bold text-slate-200 mt-1">ONLINE</div>
+                    <div class="text-[9px] text-slate-500 mt-0.5">Egress</div>
+                  </div>
+                </div>
+
+                <button id="btn-generate-analyst-report" class="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">
+                  СОСТАВИТЬ СВОДНЫЙ ОТЧЕТ
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="btn-export-markdown-report" class="py-1.5 px-2 bg-[#181c26] hover:bg-[#202634] text-slate-300 border border-white/10 font-mono text-[10px] rounded-lg transition cursor-pointer text-center">
+                    Экспорт (.md)
+                  </button>
+                  <button id="btn-print-pdf-report" class="py-1.5 px-2 bg-[#181c26] hover:bg-[#202634] text-slate-300 border border-white/10 font-mono text-[10px] rounded-lg transition cursor-pointer text-center">
+                    Печать / PDF
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div id="analyst-report-container" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
-                <div class="text-xs text-slate-400 font-mono">SECURITY POSTURE SCORE</div>
-                <div id="analyst-score-val" class="text-3xl font-bold font-mono text-emerald-400 mt-1">--</div>
-                <div id="analyst-verdict-badge" class="text-[10px] font-mono text-slate-400 mt-1">Ожидание расчета...</div>
+          <!-- CENTER COLUMN: AI SOC COPILOT (ANTHROPIC GROUNDED) -->
+          <div class="cockpit-card p-4" data-card="analyst-ai">
+            <div class="cockpit-card-header shrink-0">
+              <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                <span class="cockpit-card-title">AI SOC COPILOT // ANTHROPIC GROUNDED</span>
               </div>
-              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
-                <div class="text-xs text-slate-400 font-mono">HOST HARDENING</div>
-                <div id="analyst-hardening-val" class="text-3xl font-bold font-mono text-sky-400 mt-1">--</div>
-                <div class="text-[10px] font-mono text-slate-500 mt-1">macOS System Integrity</div>
-              </div>
-              <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-center">
-                <div class="text-xs text-slate-400 font-mono">AIR-GAP STATUS</div>
-                <div id="analyst-airgap-val" class="text-2xl font-bold font-mono text-slate-200 mt-1">ONLINE</div>
-                <div class="text-[10px] font-mono text-slate-500 mt-1">Socket Egress Guard</div>
-              </div>
+              <span id="ai-provider-badge" class="cockpit-pill-cyan">818 SKILLS</span>
             </div>
-
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
-              <div class="text-xs font-bold font-mono text-slate-300">ПРИОРИТИЗИРОВАННЫЙ ПЛАН УСТРАНЕНИЯ РИСКОВ (ACTIONABLE REMEDIATIONS):</div>
-              <div id="analyst-remediations-list" class="space-y-1 text-xs font-mono text-slate-400">
-                <div>Нажмите «Составить отчет» для анализа состояния хоста и сканирований.</div>
-              </div>
-            </div>
-
-            <!-- AI SOC Copilot (Anthropic Grounded) Assistant -->
-            <div class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-sky-400"></span>
-                  <span class="text-xs font-bold font-mono text-sky-400">AI SOC COPILOT // ANTHROPIC PLAYBOOKS ASSISTANT</span>
-                </div>
-                <span id="ai-provider-badge" class="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">Grounded 818 Skills</span>
-              </div>
+            <p class="text-[11px] text-slate-400 font-mono mb-3">
+              Интеллектуальный ассистент расследования киберинцидентов, обученный на 818 проверенных правилах и тактиках MITRE ATT&CK.
+            </p>
+            <div class="space-y-3 font-mono text-xs">
               <div class="flex space-x-2">
-                <input id="ai-assist-input" type="text" placeholder="Задайте вопрос по инциденту (например: jwt signature bypass, ransomware containment, mimikatz, aws s3 leak)..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:border-sky-500 outline-none">
-                <button id="btn-ai-assist-send" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition">СПРОСИТЬ</button>
+                <input id="ai-assist-input" type="text" placeholder="Задайте вопрос по инциденту (jwt bypass, ransomware, mimikatz, aws leak)..." class="flex-1 bg-[#131720] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 focus:border-sky-500/50 outline-none">
+                <button id="btn-ai-assist-send" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs rounded-lg transition cursor-pointer">СПРОСИТЬ</button>
               </div>
-              <div id="ai-assist-output" class="text-xs font-mono text-slate-300 space-y-2 p-3 rounded bg-slate-950/80 border border-slate-800/80 max-h-80 overflow-y-auto hidden">
+              <div id="ai-assist-output" class="text-xs font-mono text-slate-300 space-y-2 p-3 rounded-lg bg-black/40 border border-white/5 max-h-96 overflow-y-auto hidden leading-relaxed">
                 <!-- Answer populated dynamically -->
               </div>
             </div>
+          </div>
 
-            <!-- Session History & Audit Log Persistence Card -->
-            <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
-              <div class="flex justify-between items-center">
-                <div class="text-xs font-bold font-mono text-slate-300">ИСТОРИЯ СЕССИЙ И АКТИВНОСТИ (SESSION LOGS):</div>
-                <span id="history-count-badge" class="text-[10px] font-mono text-slate-500">0 записей</span>
+          <!-- RIGHT COLUMN: REMEDIATIONS & SESSION HISTORY -->
+          <div class="flex flex-col gap-3.5">
+            <!-- Remediations -->
+            <div class="cockpit-card p-4" data-card="analyst-remediations">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">ACTIONABLE REMEDIATIONS</span>
+                <span class="cockpit-pill-amber">MITRE DEFEND</span>
               </div>
-              <div id="analyst-history-list" class="space-y-1 text-xs font-mono text-slate-400 max-h-48 overflow-y-auto pr-1">
-                <div class="text-slate-500 text-center py-3">История сессий пуста. Запустите аудит или расчет отчета.</div>
+              <div class="space-y-2 text-xs font-mono">
+                <div id="analyst-remediations-list" class="space-y-1.5 text-[11px] text-slate-400">
+                  <div class="text-slate-500 py-2">Нажмите «Составить отчет» для анализа состояния хоста и сканирований.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Session History -->
+            <div class="cockpit-card p-4" data-card="analyst-history">
+              <div class="cockpit-card-header shrink-0">
+                <span class="cockpit-card-title">SESSION LOGS & TIMELINE</span>
+                <span id="history-count-badge" class="cockpit-pill-cyan">0 ЗАПИСЕЙ</span>
+              </div>
+              <div class="space-y-2 text-xs font-mono">
+                <div id="analyst-history-list" class="space-y-1 text-[11px] text-slate-400 max-h-48 overflow-y-auto pr-1">
+                  <div class="text-slate-500 text-center py-3">История сессий пуста. Запустите аудит или расчет отчета.</div>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
-      <!-- TAB 9: TACTICS & PLAYBOOKS HUB (ANTHROPIC 818) -->
-      <div id="tab-playbooks" class="tab-content space-y-4 hidden">
-        <div class="rounded-2xl bg-slate-950/80 border border-slate-800/80 p-5 space-y-4">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <!-- ========================================================= -->
+      <!-- TAB 9: TACTICS & PLAYBOOKS HUB (ANTHROPIC 818)            -->
+      <!-- ========================================================= -->
+      <div id="tab-playbooks" class="tab-content flex-1 h-full overflow-y-auto p-3.5 hidden">
+        <div class="cockpit-card p-4 space-y-3.5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div>
-              <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
-                <span class="px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400">01</span>
-                <span>ТАКТИЧЕСКИЙ ХАБ ПЛЕЙБУКОВ БЕЗОПАСНОСТИ (ANTHROPIC 818)</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5 font-mono">818 пошаговых сценариев реагирования, аудита и харденинга по стандартам MITRE ATT&CK и NIST CSF.</p>
+              <div class="cockpit-card-title flex items-center space-x-2">
+                <span class="text-amber-400 font-bold">TACTICS & PLAYBOOKS HUB // MITRE ATT&CK</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5 font-mono">818 пошаговых сценариев реагирования, аудита и харденинга по стандартам MITRE ATT&CK и NIST CSF.</p>
             </div>
             <div class="flex items-center space-x-2">
-              <span id="playbooks-counter" class="text-xs font-mono text-sky-400 px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/30 font-bold">818 Плейбуков</span>
+              <span id="playbooks-counter" class="cockpit-pill-amber">818 Плейбуков</span>
             </div>
           </div>
 
           <!-- Search & Category Filter Bar -->
           <div class="space-y-2">
             <div class="relative">
-              <span class="absolute left-3 top-2.5 text-slate-500 text-xs font-mono">/</span>
+              <span class="absolute left-3 top-2 text-slate-500 text-xs font-mono">/</span>
               <input 
                 id="playbooks-search-input" 
                 type="text" 
-                placeholder="Поиск тактик и плейбуков (напр. ransomware, aws, active directory, docker, phishing, memory)..." 
-                class="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition"
+                placeholder="Поиск тактик и плейбуков (ransomware, aws, active directory, docker, phishing, memory)..." 
+                class="w-full pl-8 pr-4 py-2 rounded-lg bg-[#131720] border border-white/10 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition"
               >
             </div>
 
             <!-- Quick category chips -->
             <div id="playbooks-category-chips" class="flex flex-wrap gap-1.5 text-xs font-mono">
-              <button data-cat="all" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 text-[11px] font-bold">Все (818)</button>
-              <button data-cat="cloud" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Cloud & AWS/Azure</button>
-              <button data-cat="malware" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Malware & Reverse</button>
-              <button data-cat="forensics" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Forensics & Memory</button>
-              <button data-cat="hunting" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Threat Hunting & SIEM</button>
-              <button data-cat="zero-trust" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Zero Trust & IAM</button>
-              <button data-cat="web" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 text-[11px]">Web & API Security</button>
+              <button data-cat="all" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold cursor-pointer">Все (818)</button>
+              <button data-cat="cloud" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Cloud & AWS/Azure</button>
+              <button data-cat="malware" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Malware & Reverse</button>
+              <button data-cat="forensics" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Forensics & Memory</button>
+              <button data-cat="hunting" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Threat Hunting & SIEM</button>
+              <button data-cat="zero-trust" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Zero Trust & IAM</button>
+              <button data-cat="web" class="playbook-cat-btn px-2.5 py-1 rounded-lg bg-[#131720] hover:bg-[#181c26] text-slate-400 border border-white/5 text-[11px] cursor-pointer">Web & API Security</button>
             </div>
           </div>
 
           <!-- Playbooks Explorer (Two Columns) -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
             <div class="lg:col-span-5 space-y-2">
               <div class="text-[11px] font-bold font-mono text-slate-400 flex justify-between items-center px-1">
                 <span>СПИСОК ТАКТИК:</span>
@@ -1168,10 +1370,10 @@
             </div>
 
             <!-- Right: Playbook Detailed Reader -->
-            <div class="lg:col-span-7 rounded-xl bg-slate-900/90 border border-slate-800 p-4 space-y-3 min-h-[500px]">
-              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <div class="lg:col-span-7 rounded-xl bg-[#131720] border border-white/5 p-4 space-y-3 min-h-[500px]">
+              <div class="flex justify-between items-center border-b border-white/5 pb-2">
                 <div class="font-bold text-slate-200 text-xs font-mono truncate mr-2" id="playbook-detail-title">Выберите плейбук из списка слева</div>
-                <button id="btn-copy-playbook" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white text-[10px] font-mono shrink-0 hidden">КОПИРОВАТЬ MARKDOWN</button>
+                <button id="btn-copy-playbook" class="px-2.5 py-1 rounded bg-[#181c26] text-slate-300 hover:text-white text-[10px] font-mono shrink-0 hidden cursor-pointer">КОПИРОВАТЬ MARKDOWN</button>
               </div>
               <div id="playbook-detail-body" class="text-xs text-slate-300 font-mono space-y-2 max-h-[450px] overflow-y-auto leading-relaxed pr-2">
                 <div class="text-slate-500 text-center py-20">Нажмите на любой плейбук из списка, чтобы открыть полное руководство с пошаговыми командами и матрицей MITRE ATT&CK.</div>
