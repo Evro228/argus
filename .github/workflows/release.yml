@@ -45,6 +45,10 @@ jobs:
           pip install -r requirements.txt
           npm install
 
+      - name: Run Automated Test Suite
+        run: |
+          python tests/test_suite.py
+
       - name: Build macOS App (.dmg)
         if: matrix.os == 'macos-latest'
         run: npx electron-builder --mac
@@ -66,6 +70,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
+      - name: Generate Checksums
+        shell: bash
+        run: |
+          cd dist
+          for file in *.dmg *.zip *.exe *.AppImage *.deb; do
+            if [ -f "$file" ]; then
+              if command -v shasum >/dev/null 2>&1; then
+                shasum -a 256 "$file" > "${file}.sha256"
+              elif command -v sha256sum >/dev/null 2>&1; then
+                sha256sum "$file" > "${file}.sha256"
+              fi
+            fi
+          done
+
       - name: Upload Artifacts to Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
@@ -76,6 +94,7 @@ jobs:
             dist/*.exe
             dist/*.AppImage
             dist/*.deb
+            dist/*.sha256
           draft: false
           prerelease: false
         env:

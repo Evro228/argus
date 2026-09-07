@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARGUS // Tactical Intelligence & Defense Cockpit</title>
+  <meta name="description" content="Автономный десктопный комплекс кибербезопасности, тактической разведки GEOINT, OSINT и криптографии.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            argus: {
+              50: "#f0f9ff",
+              400: "#00f0ff",
+              500: "#0ea5e9",
+              600: "#0284c7",
+              900: "#0c4a6e",
+              950: "#05070a"
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* macOS App Window Frame for Landing */
+    .app-window-frame {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 1rem;
+      box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 240, 255, 0.12);
+      overflow: hidden;
+      background: #05070a;
+    }
+    .window-titlebar {
+      height: 38px;
+      background: rgba(11, 15, 23, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      justify-content: space-between;
+    }
+    .mac-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-400 selection:text-black">
+
+  <!-- ========================================================= -->
+  <!-- TOP ANNOUNCEMENT & DOWNLOAD BANNER                        -->
+  <!-- ========================================================= -->
+  <div class="bg-gradient-to-r from-slate-950 via-cyan-950/40 to-slate-950 border-b border-white/[0.08] py-2.5 px-6 flex flex-wrap items-center justify-between text-xs font-mono">
+    <div class="flex items-center space-x-2 my-1">
+      <span class="px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-400 font-bold border border-cyan-400/40">ОФИЦИАЛЬНЫЙ РЕЛИЗ v1.0.0</span>
+      <span class="text-slate-400 hidden sm:inline">Автономный десктопный комплекс кибербезопасности, GEOINT и криптографии</span>
+      <span class="text-[10px] text-slate-500 hidden md:inline font-mono">SHA-256: 1f2d1ad9e76e...</span>
+    </div>
+
+    <div class="flex items-center space-x-3 my-1">
+      <a href="assets/ARGUS-1.0.0-arm64.dmg" download="ARGUS-1.0.0-arm64.dmg" class="px-3.5 py-1.5 rounded-md bg-cyan-400 hover:bg-cyan-300 text-black font-bold transition flex items-center space-x-1.5 shadow-lg shadow-cyan-400/20 cursor-pointer">
+        <span></span>
+        <span>СКАЧАТЬ .DMG (96 МБ)</span>
+      </a>
+      <a href="https://github.com/Evro228/argus" target="_blank" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition flex items-center space-x-1 cursor-pointer">
+        <span>★</span>
+        <span>GITHUB</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- HERO HEADLINE                                             -->
+  <!-- ========================================================= -->
+  <section class="pt-10 pb-6 px-6 max-w-7xl mx-auto text-center">
+    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-xs font-mono mb-4">
+      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+      <span>QUANTUM OBSIDIAN COCKPIT // AIR-GAPPED DEFENSE</span>
+    </div>
+
+    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight font-mono mb-3">
+      ARGUS // ALL-SEEING INTELLIGENCE
+    </h1>
+    <p class="text-sm sm:text-base text-slate-400 max-w-3xl mx-auto mb-6">
+      Испытайте интерактивную рабочую станцию прямо сейчас. Все 8 боевых отсеков функционируют локально с нулевой задержкой.
+    </p>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- LIVE INTERACTIVE ARGUS COCKPIT WINDOW (EXACT APP DESIGN)  -->
+  <!-- ========================================================= -->
+  <div class="max-w-7xl w-full mx-auto px-4 pb-16">
+    <div class="app-window-frame">
+      
+      <!-- macOS Window Titlebar -->
+      <div class="window-titlebar">
+        <div class="flex items-center space-x-2">
+          <span class="mac-dot bg-[#ff5f56]"></span>
+          <span class="mac-dot bg-[#ffbd2e]"></span>
+          <span class="mac-dot bg-[#27c93f]"></span>
+          <span class="text-[11px] font-mono text-slate-400 ml-3 hidden sm:inline">ARGUS — Quantum Obsidian Cockpit (Interactive Web Preview)</span>
+        </div>
+        <div class="flex items-center space-x-2 text-[10px] font-mono text-slate-500">
+          <span>HOST: macOS Sonoma (Apple Silicon)</span>
+          <span>•</span>
+          <span class="text-emerald-400 font-bold">AIR-GAP READY</span>
+        </div>
+      </div>
+
+      <!-- App Header Shell (Exact match) -->
+      <header class="h-16 border-b border-white/[0.08] bg-[#05070a]/90 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
+        
+        <!-- Left: Brand -->
+        <div class="flex items-center space-x-3 shrink-0">
+          <img src="assets/icon.png" alt="ARGUS" class="w-9 h-9 rounded-xl shadow-lg shadow-cyan-400/20 border border-white/10">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-black tracking-wider text-base uppercase bg-gradient-to-r from-slate-100 via-sky-200 to-cyan-400 bg-clip-text text-transparent font-mono">ARGUS</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-400/10 text-cyan-400 font-mono border border-cyan-400/30">v1.0.0</span>
+            </div>
+            <div class="text-[10px] text-slate-400 font-mono">Tactical Intelligence & Defense Cockpit</div>
+          </div>
+        </div>
+
+        <!-- Center: Universal Command Search Bar -->
+        <div class="hidden md:flex flex-1 max-w-xl mx-6">
+          <div class="w-full relative flex items-center">
+            <span class="absolute left-3 text-slate-500 text-xs">🔍</span>
+            <input 
+              id="cmd-search-input"
+              type="text" 
+              placeholder="Cmd + K // Выполнить действие, найти цель (нажмите для поиска)..." 
+              class="w-full pl-9 pr-4 py-1.5 rounded-lg bg-slate-900/90 border border-white/10 focus:border-cyan-400/50 focus:outline-none text-xs font-mono text-slate-200 placeholder-slate-500 transition shadow-inner cursor-pointer"
+              readonly
+            >
+          </div>
+        </div>
+
+        <!-- Right: Telemetry cluster -->
+        <div class="flex items-center space-x-3 shrink-0">
+          
+          <!-- User IP Telemetry Badge -->
+          <div id="user-ip-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-white/10 text-xs font-mono text-slate-300 shadow-sm">
+            <span class="text-cyan-400">🌐</span>
+            <span class="font-semibold text-cyan-400 font-mono">37.46.199.239</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-slate-400 text-[11px]">LAN: <span class="text-slate-300">198.18.0.1</span></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400" title="Protected Connection"></span>
+          </div>
+
+          <!-- Air-Gapped Stealth Mode Toggle -->
+          <button id="btn-airgap-toggle" class="airgap-badge online" title="Переключить режим автономности">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="airgap-label">AIR-GAP: OFF</span>
+          </button>
+
+          <!-- Operator Status Badge -->
+          <div class="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>OPERATOR_01 ONLINE</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Layout: Sidebar + Cockpit Workspace -->
+      <div class="flex flex-1 min-h-[640px] bg-[#05070a]">
+        
+        <!-- Left Sidebar (Exact Navigation) -->
+        <aside class="w-64 border-r border-white/[0.08] bg-[#070b12] p-4 flex flex-col justify-between shrink-0">
+          <div class="space-y-6">
+            <div>
+              <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest px-3 mb-2">РАБОЧИЕ СТАНЦИИ</div>
+              <nav class="space-y-1">
+                <button class="nav-tab-btn active w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-left" data-tab="geoint">
+                  <span class="text-sm">🛰️</span>
+                  <span class="flex-1 font-semibold">GEOINT & Threat Map</span>
+                  <span class="text-[9px] px-1 rounded bg-cyan-400/10 text-cyan-400 border border-cyan-400/30">⌘1</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="network">
+                  <span class="text-sm">📡</span>
+                  <span class="flex-1">Network Recon (Nmap)</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘2</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="osint">
+                  <span class="text-sm">👤</span>
+                  <span class="flex-1">OSINT & Leaks Hub</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘3</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="audit">
+                  <span class="text-sm">🔑</span>
+                  <span class="flex-1">Code & Secret Audit</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘4</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="crypto">
+                  <span class="text-sm">🔐</span>
+                  <span class="flex-1">Crypto Stronghold</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘5</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="forensics">
+                  <span class="text-sm">🔬</span>
+                  <span class="flex-1">Digital Forensics</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘6</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left" data-tab="opsec">
+                  <span class="text-sm">🥷</span>
+                  <span class="flex-1">OPSEC Sanitizer</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘7</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left cursor-pointer" data-tab="analyst">
+                  <span class="text-sm">📊</span>
+                  <span class="flex-1">Executive Posture</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘8</span>
+                </button>
+                <button class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-mono transition text-slate-400 hover:text-slate-200 text-left cursor-pointer" data-tab="playbooks">
+                  <span class="text-sm">📖</span>
+                  <span class="flex-1">Tactics & Playbooks (818)</span>
+                  <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">⌘9</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          <!-- Bottom Sidebar: System Metrics -->
+          <div class="border-t border-white/[0.08] pt-4 space-y-2 text-[11px] font-mono text-slate-500">
+            <div class="flex justify-between">
+              <span>RAM USAGE:</span>
+              <span class="text-cyan-400">189 MB (OPTIMAL)</span>
+            </div>
+            <div class="flex justify-between">
+              <span>LOCAL CVEs:</span>
+              <span class="text-emerald-400">10 ACTIVE B-TREE</span>
+            </div>
+            <div class="flex justify-between">
+              <span>DEFCON POSTURE:</span>
+              <span class="text-amber-400 font-bold">LEVEL 3 (84.6%)</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Workspace (Cockpit Station Content) -->
+        <main class="flex-1 p-6 overflow-y-auto">
+          
+          <!-- TAB 1: GEOINT & TACTICAL THREAT MAP -->
+          <div id="tab-geoint" class="tab-content space-y-4">
+            
+            <div id="tactical-map-viewport" class="relative">
+              <canvas id="tactical-canvas"></canvas>
+
+              <!-- Floating Target Telemetry HUD Card (Exact match) -->
+              <div id="hud-target-card" class="hud-card">
+                <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2.5">
+                  <div class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                    <span id="hud-target-name" class="font-mono text-xs font-bold text-rose-400 tracking-wider uppercase">TARGET ACQUIRED</span>
+                  </div>
+                  <span id="hud-target-ip" class="font-mono text-[11px] text-cyan-400 font-bold">193.142.146.21</span>
+                </div>
+
+                <div class="space-y-2 mb-3">
+                  <div>
+                    <div class="text-[10px] text-slate-500 font-mono uppercase">Coordinates & Region</div>
+                    <div id="hud-target-coords" class="text-xs font-mono text-slate-300">50.1109° N, 8.6821° E Frankfurt, DE [EU-C1]</div>
+                  </div>
+
+                  <div>
+                    <div class="text-[10px] text-slate-500 font-mono uppercase mb-1">Open Ports</div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                      <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
+                        <div class="text-xs font-bold text-cyan-400 font-mono">22</div>
+                        <div class="text-[9px] text-slate-400 font-mono">SSH</div>
+                      </div>
+                      <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
+                        <div class="text-xs font-bold text-emerald-400 font-mono">80</div>
+                        <div class="text-[9px] text-slate-400 font-mono">HTTP</div>
+                      </div>
+                      <div class="px-2 py-1 rounded bg-slate-900/90 border border-slate-700/80 text-center">
+                        <div class="text-xs font-bold text-amber-400 font-mono">443</div>
+                        <div class="text-[9px] text-slate-400 font-mono">HTTPS</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase mb-1">
+                      <span>Threat Level</span>
+                      <span class="text-rose-400 font-bold">85%</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                      <div class="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-1.5 rounded-full" style="width: 85%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-1.5 pt-2 border-t border-white/10">
+                  <button class="w-full py-1.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
+                    <span>⚡</span>
+                    <span>RUN EXPLOIT TEST</span>
+                  </button>
+                  <button class="w-full py-1.5 px-3 rounded-lg bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 text-xs font-mono font-bold transition flex items-center justify-center space-x-1.5">
+                    <span>📍</span>
+                    <span>TRACE ROUTE</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bottom Left DEFCON Posture Dial -->
+              <div class="defcon-dial-container">
+                <div class="text-[10px] font-mono text-amber-400 font-bold tracking-wider mb-1.5">DEFCON POSTURE LEVEL 3</div>
+                <div class="defcon-ring">
+                  <span class="defcon-score">84.6%</span>
+                </div>
+                <div class="text-[9px] text-slate-500 font-mono mt-1">Security Posture</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: NETWORK AUDIT -->
+          <div id="tab-network" class="tab-content space-y-4 hidden">
+            <div class="flex items-center space-x-2 pb-1">
+              <button class="tool-picker-pill active">🎯 Scan Matrix (Nmap)</button>
+              <button class="tool-picker-pill">🌐 Ingress Topology</button>
+              <button class="tool-picker-pill">📶 Wi-Fi & RF Recon</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="argus-panel p-4">
+                <h3 class="text-sm font-bold font-mono text-cyan-400 mb-2 flex items-center space-x-2">
+                  <span>🎯</span> <span>SEC-PERIMETER // SCAN MATRIX</span>
+                </h3>
+                <div class="flex space-x-2 mb-3">
+                  <input id="demo-net-target" type="text" value="192.168.1.1" class="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
+                  <button id="btn-demo-scan" class="px-4 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-black font-mono font-bold text-xs rounded-lg transition">СКАН 🔎</button>
+                </div>
+                <div id="demo-net-results" class="text-xs font-mono text-slate-400 space-y-1.5 max-h-56 overflow-y-auto">
+                  <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="text-emerald-400 font-bold">22/TCP</span> 
+                        <span class="text-slate-300 ml-2">OpenSSH 8.9p1</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">⚠️ CVE-2024-6387</span>
+                      </div>
+                      <span class="text-slate-500 text-[10px]">OPEN</span>
+                    </div>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="text-emerald-400 font-bold">80/TCP</span> 
+                        <span class="text-slate-300 ml-2">Apache 2.4.49</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 ml-2">🚨 CVE-2021-41773</span>
+                      </div>
+                      <span class="text-slate-500 text-[10px]">OPEN</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="argus-panel p-4">
+                <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
+                  <span>📶</span> <span>WIRELESS & RADIO RECON</span>
+                </h3>
+                <div class="space-y-2 text-xs font-mono">
+                  <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                    <div class="text-slate-500 text-[10px]">ТЕКУЩАЯ СЕТЬ (SSID)</div>
+                    <div class="text-slate-200 font-bold">DEFENSE_HQ_SECURE_5G</div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800">
+                      <div class="text-slate-500 text-[10px]">СТАНДАРТ</div>
+                      <div class="text-slate-300">802.11ax (Wi-Fi 6)</div>
+                    </div>
+                    <div class="p-2 rounded bg-slate-900/80 border border-slate-800">
+                      <div class="text-slate-500 text-[10px]">БЕЗОПАСНОСТЬ</div>
+                      <div class="text-emerald-400">WPA3-SAE / WPA2</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: OSINT & BREACH -->
+          <div id="tab-osint" class="tab-content space-y-4 hidden">
+            <div class="flex items-center space-x-2 pb-1">
+              <button class="tool-picker-pill active">👤 Username Recon</button>
+              <button class="tool-picker-pill">✉️ Leak Check & Passwords</button>
+              <button class="tool-picker-pill">🔎 Google Dorks</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="argus-panel p-4">
+                <h3 class="text-sm font-bold font-mono text-cyan-400 mb-2 flex items-center space-x-2">
+                  <span>👤</span> <span>SHERLOCK // MULTI-PLATFORM RECON</span>
+                </h3>
+                <div class="flex space-x-2 mb-3">
+                  <input id="demo-osint-user" type="text" value="alex_sec" class="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
+                  <button id="btn-demo-osint" class="px-4 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-black font-mono font-bold text-xs rounded-lg transition">ИСКАТЬ 🔎</button>
+                </div>
+                <div class="space-y-1 text-xs font-mono">
+                  <div class="p-2 rounded bg-slate-900 border border-slate-800 flex justify-between">
+                    <span class="text-slate-200 font-bold">GitHub</span>
+                    <span class="text-emerald-400">FOUND (HTTP 200)</span>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900 border border-slate-800 flex justify-between">
+                    <span class="text-slate-200 font-bold">Telegram</span>
+                    <span class="text-emerald-400">FOUND (HTTP 200)</span>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900 border border-slate-800 flex justify-between">
+                    <span class="text-slate-200 font-bold">GitLab</span>
+                    <span class="text-emerald-400">FOUND (HTTP 200)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="argus-panel p-4">
+                <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
+                  <span>✉️</span> <span>AUTONOMOUS BREACH & PASSWORDS</span>
+                </h3>
+                <div class="mb-3">
+                  <div class="text-[10px] text-slate-500 font-mono mb-1">ПРОВЕРКА ПАРОЛЯ (K-ANONYMITY & BLOOM FILTER)</div>
+                  <div class="flex space-x-2">
+                    <input id="demo-pass-val" type="text" value="password123" class="flex-1 bg-slate-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200">
+                    <button id="btn-demo-pass" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white font-mono font-bold text-xs rounded-lg transition">ПРОВЕРИТЬ</button>
+                  </div>
+                </div>
+                <div id="demo-pass-box" class="p-2.5 rounded bg-slate-900/90 border border-rose-500/40 text-xs font-mono">
+                  <div class="text-rose-400 font-bold">💥 СКОМПРОМЕТИРОВАН В 3,861,493 УТЕЧКАХ</div>
+                  <div class="text-[10px] text-slate-400 mt-1">Хэш SHA-1 найден в мировой базе. Замените пароль.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: CRYPTO STRONGHOLD -->
+          <div id="tab-crypto" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <h3 class="text-sm font-bold font-mono text-cyan-400 mb-2 flex items-center space-x-2">
+                <span>🔐</span> <span>CRYPTO STRONGHOLD // SHANNON ENTROPY METER</span>
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] text-slate-500 font-mono">ЭНТРОПИЯ ШЕННОНА</div>
+                  <div class="text-lg font-bold text-cyan-400 font-mono mt-1">153.2 bits</div>
+                  <div class="text-[10px] text-emerald-400 font-mono mt-1">Военный стандарт (AES-256)</div>
+                </div>
+                <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] text-slate-500 font-mono">W3C WEBAUTHN PASSKEYS</div>
+                  <div class="text-sm font-bold text-slate-200 font-mono mt-1">FIDO2 Hardware Enclave</div>
+                  <div class="text-[10px] text-cyan-400 font-mono mt-1">Биометрическая привязка</div>
+                </div>
+                <div class="p-3 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] text-slate-500 font-mono">СТЕГАНОГРАФИЯ ZERO-WIDTH</div>
+                  <div class="text-sm font-bold text-slate-200 font-mono mt-1">Unicode Invisible Byte</div>
+                  <div class="text-[10px] text-amber-400 font-mono mt-1">Скрытие без модификации пикселей</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: CODE AUDIT -->
+          <div id="tab-audit" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <h3 class="text-sm font-bold font-mono text-rose-400 mb-2 flex items-center space-x-2">
+                <span>🔑</span> <span>CODE AUDIT // TRUFFLEHOG & GITLEAKS SCANNER</span>
+              </h3>
+              <div class="p-3 rounded bg-slate-900 border border-slate-800 text-xs font-mono space-y-1">
+                <div class="text-emerald-400 font-bold">✓ 142 ФАЙЛА ПРОИНСПЕКТИРОВАНО</div>
+                <div class="text-slate-300">Утечек ключей AWS, OpenAI, GitHub, токенов Slack не обнаружено.</div>
+                <div class="text-[10px] text-slate-500">Сигнатурный движок: 100% автономный офлайн-анализ.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: FORENSICS -->
+          <div id="tab-forensics" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <h3 class="text-sm font-bold font-mono text-cyan-400 mb-2 flex items-center space-x-2">
+                <span>🔬</span> <span>DIGITAL FORENSICS // EXIF & PDF INSPECTOR</span>
+              </h3>
+              <div class="p-3 rounded bg-slate-900 border border-slate-800 text-xs font-mono space-y-1">
+                <div class="text-cyan-400 font-bold">ОПТИЧЕСКАЯ И СТРУКТУРНАЯ ФОРЕНЗИКА</div>
+                <div class="text-slate-300">Парсинг скрытых GPS-тегов, анализ структуры PDF на скрытый JavaScript и автозапуск.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 7: OPSEC -->
+          <div id="tab-opsec" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <h3 class="text-sm font-bold font-mono text-amber-400 mb-2 flex items-center space-x-2">
+                <span>🥷</span> <span>OPSEC // DATA LOSS PREVENTION (DLP)</span>
+              </h3>
+              <div class="p-3 rounded bg-slate-900 border border-slate-800 text-xs font-mono space-y-1">
+                <div class="text-amber-400 font-bold">LIVE PASTEGUARD & DLP</div>
+                <div class="text-slate-300">Автоматическая санитизация: [REDACTED_EMAIL], [REDACTED_PHONE], [REDACTED_TOKEN].</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 8: ANALYST -->
+          <div id="tab-analyst" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <h3 class="text-sm font-bold font-mono text-emerald-400 mb-2 flex items-center space-x-2">
+                <span>📊</span> <span>EXECUTIVE SECURITY POSTURE & REPORT</span>
+              </h3>
+              <div class="p-3 rounded bg-slate-900 border border-slate-800 text-xs font-mono space-y-1">
+                <div class="text-emerald-400 font-bold">DEFCON РЕЙТИНГ: 84.6% (ОПТИМАЛЬНО)</div>
+                <div class="text-slate-300">Сгенерирован структурированный CISO-отчет по рекомендациям NIST & CIS Benchmark.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 9: TACTICS & PLAYBOOKS HUB -->
+          <div id="tab-playbooks" class="tab-content space-y-4 hidden">
+            <div class="argus-panel p-4">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+                <div class="flex items-center space-x-2">
+                  <span class="text-amber-400 font-bold font-mono">ЦЕНТР ТАКТИК И ПЛЕЙБУКОВ // MITRE ATT&CK</span>
+                  <span class="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold">818 СЦЕНАРИЕВ</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 font-mono mb-4">
+                Пошаговые регламенты расследования инцидентов, аудита облака и реагирования на атаки.
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+                <div class="p-3 rounded bg-slate-900 border border-slate-800 space-y-1">
+                  <div class="text-sky-400 font-bold">Cloud & AWS/Azure (200)</div>
+                  <div class="text-[11px] text-slate-400">S3 Bucket Leaks, IAM Escalation, CloudTrail Bypass</div>
+                </div>
+                <div class="p-3 rounded bg-slate-900 border border-slate-800 space-y-1">
+                  <div class="text-rose-400 font-bold">Malware & Ransomware (184)</div>
+                  <div class="text-[11px] text-slate-400">Memory Dumping, Process Injection, LOLBins</div>
+                </div>
+                <div class="p-3 rounded bg-slate-900 border border-slate-800 space-y-1">
+                  <div class="text-emerald-400 font-bold">Zero Trust & Forensics (215)</div>
+                  <div class="text-[11px] text-slate-400">Kerberoasting, Pass-the-Hash, Memory Volatility</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      <!-- Live SOC Drawer at Bottom (Exact match) -->
+      <footer id="soc-drawer-container" class="border-t border-white/[0.08] bg-[#070b12] px-4 py-2 shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3 text-xs font-mono">
+            <span class="text-cyan-400 font-bold">▼ LIVE SOC DRAWER</span>
+            <span class="text-slate-500">BUFFER READY • ALL <span class="text-slate-300">1.42M</span> • CVEs <span class="text-rose-400 font-bold">10</span> • AIR-GAP ACTIVE</span>
+          </div>
+          <div class="text-[10px] font-mono text-slate-500">
+            Нажмите ⌘K для командной палитры
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- DOWNLOAD & INTEGRITY VAULT                                -->
+  <!-- ========================================================= -->
+  <section class="py-16 px-6 max-w-5xl mx-auto text-center border-t border-white/[0.08]">
+    <div class="argus-panel p-8 sm:p-12 border-cyan-400/30">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-400/10 text-cyan-400 text-xs font-mono mb-4 border border-cyan-400/30">
+        <span>RELEASE v1.0.0 STABLE</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black font-mono mb-3">СКАЧАТЬ ДЛЯ MACOS</h2>
+      <p class="text-slate-400 text-xs max-w-xl mx-auto mb-6">
+        Установка в один клик. Проверено на macOS Sonoma и Sequoia (Apple Silicon arm64).
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
+        <a href="assets/ARGUS-1.0.0-arm64.dmg" download="ARGUS-1.0.0-arm64.dmg" class="px-6 py-3 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-mono font-bold text-sm transition shadow-lg shadow-cyan-400/20 flex items-center space-x-2 cursor-pointer">
+          <span></span>
+          <span>СКАЧАТЬ ARGUS-1.0.0-ARM64.DMG (96 МБ)</span>
+        </a>
+      </div>
+
+      <div class="bg-slate-950 border border-white/10 rounded-lg p-3 max-w-xl mx-auto text-left text-xs font-mono">
+        <div class="flex justify-between text-[10px] text-slate-500 uppercase mb-1">
+          <span>SHA-256 CHECKSUM</span>
+          <span class="text-cyan-400">VERIFIED</span>
+        </div>
+        <div class="text-slate-300 break-all select-all">
+          1f2d1ad9e76e4c0b300ec55d1c851d8a53cd3ac5ce92fc9728bfc21952596a45
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- COMMAND PALETTE ⌘K DIALOG                                 -->
+  <!-- ========================================================= -->
+  <dialog id="cmd-palette-dialog">
+    <div class="cmd-palette-wrapper">
+      <div class="p-3 border-b border-white/10 flex items-center space-x-2">
+        <span class="text-cyan-400 font-mono text-sm">⌘</span>
+        <input 
+          id="cmd-palette-input" 
+          type="text" 
+          placeholder="Поиск инструмента (geoint, net, osint, crypto, cve)..." 
+          class="w-full bg-transparent border-none outline-none text-xs font-mono text-slate-100 placeholder-slate-500"
+          autocomplete="off"
+        >
+        <button id="cmd-palette-close" class="text-slate-500 hover:text-slate-300 text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">ESC</button>
+      </div>
+      <div id="cmd-palette-results" class="p-2 space-y-1 max-h-72 overflow-y-auto"></div>
+      <div class="px-3 py-2 bg-slate-950/80 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500 font-mono">
+        <span>↑↓ Навигация • ↵ Выбрать</span>
+        <span class="text-cyan-400 font-mono">ARGUS HUD ⌘K</span>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="js/geoint.js"></script>
+  <script>
+    // Interactive Tab Switching & Tactical Globe Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Initialize Tactical Threat Map
+      let threatMap = null;
+      if (document.getElementById("tactical-canvas")) {
+        threatMap = new TacticalThreatMap("tactical-canvas");
+      }
+
+      // 2. Tab Navigation
+      const tabs = document.querySelectorAll(".nav-tab-btn");
+      const contents = document.querySelectorAll(".tab-content");
+
+      function switchTab(tabId) {
+        tabs.forEach(btn => {
+          const active = btn.getAttribute("data-tab") === tabId;
+          btn.classList.toggle("active", active);
+          btn.classList.toggle("text-slate-400", !active);
+        });
+
+        contents.forEach(c => {
+          c.classList.toggle("hidden", c.id !== `tab-${tabId}`);
+        });
+
+        if (tabId === "geoint" && threatMap) {
+          setTimeout(() => threatMap.resize(), 50);
+        }
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const target = btn.getAttribute("data-tab");
+          switchTab(target);
+        });
+      });
+
+      // 3. Air-Gapped Toggle
+      let isAirGapped = false;
+      const airgapBtn = document.getElementById("btn-airgap-toggle");
+      const airgapLabel = document.getElementById("airgap-label");
+
+      if (airgapBtn && airgapLabel) {
+        airgapBtn.addEventListener("click", () => {
+          isAirGapped = !isAirGapped;
+          if (isAirGapped) {
+            airgapBtn.className = "airgap-badge stealth";
+            airgapLabel.textContent = "AIR-GAP: ON (STEALTH)";
+          } else {
+            airgapBtn.className = "airgap-badge online";
+            airgapLabel.textContent = "AIR-GAP: OFF";
+          }
+        });
+      }
+
+      // 4. Command Palette ⌘K
+      const dialog = document.getElementById("cmd-palette-dialog");
+      const input = document.getElementById("cmd-palette-input");
+      const resultsContainer = document.getElementById("cmd-palette-results");
+      const closeBtn = document.getElementById("cmd-palette-close");
+      const topSearch = document.getElementById("cmd-search-input");
+
+      const commands = [
+        { id: "geoint", title: "🛰️ Тактическая карта угроз (GEOINT)", kbd: "⌘1" },
+        { id: "network", title: "📡 Сетевой радар & Nmap (Network Recon)", kbd: "⌘2" },
+        { id: "osint", title: "👤 Разведка по открытым источникам (OSINT)", kbd: "⌘3" },
+        { id: "audit", title: "🔑 Аудит секретов и кода (Code Audit)", kbd: "⌘4" },
+        { id: "crypto", title: "🔐 Криптографический сейф (Crypto Stronghold)", kbd: "⌘5" },
+        { id: "forensics", title: "🔬 Цифровая криминалистика (Forensics Lab)", kbd: "⌘6" },
+        { id: "opsec", title: "🥷 Операционная безопасность (OPSEC DLP)", kbd: "⌘7" },
+        { id: "analyst", title: "📊 Отчет ИИ-аналитика (Executive Posture)", kbd: "⌘8" },
+        { id: "playbooks", title: "📖 Центр тактик и плейбуков (MITRE ATT&CK)", kbd: "⌘9" }
+      ];
+
+      function renderCommands(q = "") {
+        resultsContainer.innerHTML = "";
+        const query = q.toLowerCase().trim();
+        const filtered = commands.filter(c => c.title.toLowerCase().includes(query) || c.id.includes(query));
+
+        filtered.forEach((cmd, idx) => {
+          const item = document.createElement("div");
+          item.className = `cmd-item ${idx === 0 ? "selected" : ""}`;
+          item.innerHTML = `
+            <span>${cmd.title}</span>
+            <span class="cmd-kbd">${cmd.kbd}</span>
+          `;
+          item.addEventListener("click", () => {
+            switchTab(cmd.id);
+            dialog.close();
+          });
+          resultsContainer.appendChild(item);
+        });
+      }
+
+      function openPalette() {
+        dialog.showModal();
+        input.value = "";
+        renderCommands();
+        input.focus();
+      }
+
+      if (topSearch) topSearch.addEventListener("click", openPalette);
+      if (closeBtn) closeBtn.addEventListener("click", () => dialog.close());
+
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+
+      input.addEventListener("input", () => renderCommands(input.value));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const first = resultsContainer.querySelector(".cmd-item");
+          if (first) first.click();
+        }
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+          e.preventDefault();
+          if (dialog.open) dialog.close();
+          else openPalette();
+        }
+        if (e.metaKey || e.ctrlKey) {
+          const num = parseInt(e.key);
+          if (num >= 1 && num <= 9) {
+            const tabsOrder = ["geoint", "network", "osint", "audit", "crypto", "forensics", "opsec", "analyst", "playbooks"];
+            e.preventDefault();
+            switchTab(tabsOrder[num - 1]);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
