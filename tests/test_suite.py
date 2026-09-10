@@ -44,7 +44,7 @@ print("================================================================")
 try:
     res = client.get("/api/health")
     data = res.json()
-    passed = res.status_code == 200 and data.get("status") == "online" and "ARGUS" in data.get("service", "")
+    passed = res.status_code == 200 and data.get("status") == "online" and "Argus" in data.get("service", "")
     record("1. Service Health & Version", passed, f"Service: {data.get('service')} v{data.get('version')}")
 except Exception as e:
     record("1. Service Health & Version", False, str(e))
@@ -180,7 +180,7 @@ try:
     res = client.post("/api/crypto/webauthn/challenge")
     data = res.json()
     pub = data.get("publicKey", {})
-    passed = res.status_code == 200 and data.get("success") is True and "challenge" in pub and pub.get("rp", {}).get("name") == "ARGUS"
+    passed = res.status_code == 200 and data.get("success") is True and "challenge" in pub and pub.get("rp", {}).get("name") == "Argus"
     record("13. WebAuthn Passkeys Enclave", passed, f"RP: {pub.get('rp', {}).get('name')} | Protocol: {data.get('protocol')}")
 except Exception as e:
     record("13. WebAuthn Passkeys Enclave", False, str(e))

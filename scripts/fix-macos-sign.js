@@ -41,10 +41,10 @@ exports.default = async function (context) {
     
     // Sign each helper app
     const helpers = [
-      "ARGUS Helper.app",
-      "ARGUS Helper (GPU).app",
-      "ARGUS Helper (Plugin).app",
-      "ARGUS Helper (Renderer).app",
+      "Argus Helper.app",
+      "Argus Helper (GPU).app",
+      "Argus Helper (Plugin).app",
+      "Argus Helper (Renderer).app",
     ];
     for (const helper of helpers) {
       const helperPath = path.join(frameworks, helper);

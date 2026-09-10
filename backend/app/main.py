@@ -25,7 +25,7 @@ from backend.app.api import (
 ENABLE_DOCS = os.getenv("ARGUS_ENABLE_DOCS", "0") == "1"
 
 app = FastAPI(
-    title="ARGUS // Tactical Intelligence & Defense",
+    title="Argus // Tactical Intelligence & Defense",
     description="Единая рабочая станция кибербезопасности, OSINT, GEOINT, криптографии и аудита кода",
     version="1.0.0",
     docs_url="/docs" if ENABLE_DOCS else None,
@@ -138,7 +138,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
         if not secrets.compare_digest(provided_token, ipc_token):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"success": False, "error": "Доступ запрещен: требуется валидный токен безопасности ARGUS (X-ARGUS-Token)."},
+                content={"success": False, "error": "Доступ запрещен: требуется валидный токен безопасности Argus (X-ARGUS-Token)."},
             )
 
     response = await call_next(request)
@@ -175,7 +175,7 @@ app.include_router(watcher.router, prefix="/api/watcher", tags=["Autonomous Watc
 def health_check():
     return {
         "status": "online",
-        "service": "ARGUS Tactical Cockpit",
+        "service": "Argus Tactical Cockpit",
         "version": "1.0.0",
     }
 

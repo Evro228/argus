@@ -79,7 +79,7 @@ def export_report_markdown(req: AnalysisReportRequest):
     date_file = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
 
     md_lines = [
-        f"# 🛡️ ARGUS — EXECUTIVE SECURITY POSTURE REPORT",
+        f"# 🛡️ Argus — EXECUTIVE SECURITY POSTURE REPORT",
         f"",
         f"**Отчёт:** {report['title']}  ",
         f"**Дата генерации:** {now_str}  ",
@@ -129,13 +129,13 @@ def export_report_markdown(req: AnalysisReportRequest):
         f"",
         f"---",
         f"",
-        f"*Сформировано автоматически тактическим комплексом кибербезопасности ARGUS v1.0.0.*  ",
+        f"*Сформировано автоматически тактическим комплексом кибербезопасности Argus v1.0.0.*  ",
         f"*Конфиденциально. Предназначено для команды информационной безопасности и CISO.*",
     ])
 
     return {
         "success": True,
-        "filename": f"ARGUS-Security-Report-{date_file}.md",
+        "filename": f"Argus-Security-Report-{date_file}.md",
         "markdown": "\n".join(md_lines),
     }
 
@@ -236,7 +236,7 @@ async def assist_operator(req: AnalystAssistRequest):
             try:
                 async with httpx.AsyncClient(verify=True, timeout=2.0) as client:
                     prompt_text = (
-                        f"You are the ARGUS AI SOC Copilot, an elite defensive cybersecurity analyst.\n"
+                        f"You are the Argus AI SOC Copilot, an elite defensive cybersecurity analyst.\n"
                         f"User Query: {clean_query}\n"
                         f"Context: {req.context or 'Workstation & perimeter defense'}\n"
                         f"Grounded Playbooks: {', '.join([p['name'] for p in matched_playbooks])}\n"

@@ -2,7 +2,7 @@
 (function () {
   const translations = {
     ru: {
-      appName: "ARGUS",
+      appName: "Argus",
       appSubtitle: "Tactical Intelligence & Defense Cockpit",
       searchPlaceholder: "Cmd + K // Выполнить тактическое действие, проверить цель...",
       operatorStatus: "ОПЕРАТОР_01 В СЕТИ",
@@ -82,7 +82,7 @@
       statusOffline: "АВТОНОМНО"
     },
     en: {
-      appName: "ARGUS",
+      appName: "Argus",
       appSubtitle: "Tactical Intelligence & Defense Cockpit",
       searchPlaceholder: "Cmd + K // Execute tactical action, probe target...",
       operatorStatus: "OPERATOR_01 ONLINE",

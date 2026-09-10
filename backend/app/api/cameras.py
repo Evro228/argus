@@ -1930,7 +1930,7 @@ async def offline_test_pattern():
       <circle cx="320" cy="180" r="40" fill="none" stroke="#0ea5e9" stroke-width="1"/>
       <line x1="220" y1="180" x2="420" y2="180" stroke="#0ea5e9" stroke-width="1"/>
       <line x1="320" y1="80" x2="320" y2="280" stroke="#0ea5e9" stroke-width="1"/>
-      <text x="320" y="175" fill="#38bdf8" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">ARGUS AIR-GAP STEALTH MODE</text>
+      <text x="320" y="175" fill="#38bdf8" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">Argus AIR-GAP STEALTH MODE</text>
       <text x="320" y="195" fill="#94a3b8" font-family="monospace" font-size="10" text-anchor="middle">EXTERNAL EGRESS SOCKETS BLOCKED</text>
     </svg>"""
     return Response(content=svg_data, media_type="image/svg+xml")

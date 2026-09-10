@@ -265,11 +265,11 @@ def generate_webauthn_challenge():
 
     options = {
         "challenge": challenge_b64,
-        "rp": {"name": "ARGUS", "id": "localhost"},
+        "rp": {"name": "Argus", "id": "localhost"},
         "user": {
             "id": user_id,
             "name": "operator@argus.local",
-            "displayName": "ARGUS Tactical Operator",
+            "displayName": "Argus Tactical Operator",
         },
         "pubKeyCredParams": [
             {"type": "public-key", "alg": -7},  # ES256

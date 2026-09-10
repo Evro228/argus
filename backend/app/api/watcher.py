@@ -63,7 +63,7 @@ async def dispatch_telegram_alert(alert: Dict[str, Any]) -> Dict[str, Any]:
     ts = html.escape(alert.get("timestamp", ""))
 
     text = (
-        f"{icon} <b>ARGUS Tactical Alert</b> [<i>{sev}</i>]\n\n"
+        f"{icon} <b>Argus Tactical Alert</b> [<i>{sev}</i>]\n\n"
         f"📍 <b>Компонент:</b> <code>{cat}</code>\n"
         f"🎯 <b>Событие:</b> <b>{title}</b>\n"
         f"📝 {msg}\n\n"
@@ -109,7 +109,7 @@ class WatcherDaemon:
         self.add_alert(
             category="SYSTEM",
             severity="INFO",
-            title="Сторож ARGUS активирован",
+            title="Сторож Argus активирован",
             message="Фоновый мониторинг сокетов, камер и сетевых аномалий запущен.",
         )
 
@@ -123,7 +123,7 @@ class WatcherDaemon:
         self.add_alert(
             category="SYSTEM",
             severity="WARNING",
-            title="Сторож ARGUS остановлен",
+            title="Сторож Argus остановлен",
             message="Фоновый мониторинг приостановлен оператором.",
         )
 
@@ -258,7 +258,7 @@ except Exception:
 @router.post("/start")
 @router.post("/start/")
 async def start_watcher():
-    """Активирует фоновый демон-сторож ARGUS."""
+    """Активирует фоновый демон-сторож Argus."""
     DAEMON.start()
     return DAEMON.get_status()
 
@@ -306,7 +306,7 @@ async def trigger_test_alert():
     alert = DAEMON.add_alert(
         category="TEST_DRILL",
         severity="CRITICAL",
-        title="Тестовая тактическая тревога ARGUS",
+        title="Тестовая тактическая тревога Argus",
         message="Проверка канала нативных уведомлений и подсистемы оповещений оператора.",
         alert_id_prefix="ALT_TEST_",
     )
@@ -390,8 +390,8 @@ async def send_telegram_test():
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "category": "TELEGRAM_VERIFY",
         "severity": "CRITICAL",
-        "title": "ARGUS // Проверка канала Telegram",
-        "message": "Тестовая тактическая тревога. Связь между сторожем ARGUS и оператором успешно установлена.",
+        "title": "Argus // Проверка канала Telegram",
+        "message": "Тестовая тактическая тревога. Связь между сторожем Argus и оператором успешно установлена.",
     }
     return await dispatch_telegram_alert(test_alert)
 

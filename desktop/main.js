@@ -141,7 +141,7 @@ function createWindow() {
     resizable: true,
     movable: true,
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
-    title: 'ARGUS // Tactical Intelligence & Defense',
+    title: 'Argus // Tactical Intelligence & Defense',
     backgroundColor: '#05070a',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 18, y: 16 },

@@ -12,7 +12,7 @@
   },
   "build": {
     "appId": "io.argus.tactical",
-    "productName": "ARGUS",
+    "productName": "Argus",
     "asar": false,
     "afterPack": "./scripts/fix-macos-sign.js",
     "directories": {

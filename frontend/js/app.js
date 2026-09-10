@@ -95,7 +95,7 @@ const App = {
     this.initSystemMetrics();
     this.initQuickCodeAudit();
 
-    this.log('ARGUS Tactical Cockpit v1.0.0 инициализирован. Все подсистемы в норме.', 'system');
+    this.log('Argus Tactical Cockpit v1.0.0 инициализирован. Все подсистемы в норме.', 'system');
 
     // Initialize Tactical Threat Map on Main Screen
     setTimeout(() => {
@@ -1502,7 +1502,7 @@ const App = {
           method: 'POST',
           headers: getApiHeaders(),
           body: JSON.stringify({
-            title: 'ARGUS Executive Host Posture Summary',
+            title: 'Argus Executive Host Posture Summary',
             scan_type: 'full_cockpit',
             findings
           })
@@ -1560,7 +1560,7 @@ const App = {
         const res = await fetch(`${API_BASE}/analyst/assist`, {
           method: 'POST',
           headers: getApiHeaders(),
-          body: JSON.stringify({ query: q, context: 'ARGUS Workstation Defense' })
+          body: JSON.stringify({ query: q, context: 'Argus Workstation Defense' })
         });
         const data = await res.json();
         if (data.success && aiOutput) {
@@ -2202,7 +2202,7 @@ const App = {
             method: 'POST',
             headers: getApiHeaders(),
             body: JSON.stringify({
-              title: 'ARGUS Executive Host Posture Summary',
+              title: 'Argus Executive Host Posture Summary',
               scan_type: 'full_cockpit',
               findings: this.latestFindings || []
             })
@@ -2213,7 +2213,7 @@ const App = {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = data.filename || 'ARGUS-Security-Report.md';
+            a.download = data.filename || 'Argus-Security-Report.md';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
